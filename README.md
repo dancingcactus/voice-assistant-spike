@@ -72,6 +72,28 @@ npm run dev
 
 The server will start on http://localhost:3000
 
+## Testing Your Setup
+
+Before using the voice interface, run the test suite to ensure everything is configured correctly:
+
+```bash
+npm test
+```
+
+This will check:
+- ✅ Environment variables are set
+- ✅ OpenAI API connection works
+- ✅ ElevenLabs API connection works
+- ✅ Server is running
+- ✅ End-to-end chat flow works
+
+If any test fails, it will show you exactly what's wrong and how to fix it.
+
+**Common issues:**
+- **401 errors**: Check your API keys are correct in `.env`
+- **Voice ID errors**: Verify `ELEVENLABS_VOICE_ID=XHqlxleHbYnK8xmft8Vq`
+- **Network errors**: Check your internet connection
+
 ## Usage
 
 1. Open your browser and navigate to http://localhost:3000

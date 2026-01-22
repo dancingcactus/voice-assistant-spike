@@ -7,6 +7,33 @@ const axios = require('axios');
 const app = express();
 const port = process.env.PORT || 3000;
 
+// Validate environment variables on startup
+function validateEnvironment() {
+  const required = {
+    'OPENAI_API_KEY': process.env.OPENAI_API_KEY,
+    'ELEVENLABS_API_KEY': process.env.ELEVENLABS_API_KEY,
+    'ELEVENLABS_VOICE_ID': process.env.ELEVENLABS_VOICE_ID
+  };
+
+  const missing = [];
+  for (const [key, value] of Object.entries(required)) {
+    if (!value || value.includes('your_') || value.includes('_here')) {
+      missing.push(key);
+    }
+  }
+
+  if (missing.length > 0) {
+    console.error('❌ Missing or invalid environment variables:');
+    missing.forEach(key => console.error(`   - ${key}`));
+    console.error('\n💡 Please copy .env.example to .env and configure your API keys\n');
+    process.exit(1);
+  }
+
+  console.log('✅ Environment variables validated');
+}
+
+validateEnvironment();
+
 // Middleware
 app.use(cors());
 app.use(express.json());
@@ -126,11 +153,46 @@ app.post('/api/chat', async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Error:', error.response?.data || error.message);
-    res.status(500).json({
-      error: 'Failed to process request',
-      details: error.response?.data || error.message
-    });
+    console.error('❌ Error processing request:');
+
+    // Detailed error logging
+    if (error.response) {
+      // API error (OpenAI or ElevenLabs)
+      console.error('   API Error:', {
+        status: error.response.status,
+        statusText: error.response.statusText,
+        data: error.response.data
+      });
+
+      // Check if it's an authentication error
+      if (error.response.status === 401) {
+        console.error('   💡 Authentication failed - check your API keys in .env');
+      }
+
+      res.status(500).json({
+        error: 'API request failed',
+        details: error.response.data,
+        status: error.response.status
+      });
+    } else if (error.request) {
+      // Network error
+      console.error('   Network Error:', error.message);
+      console.error('   💡 Could not reach API - check your internet connection');
+
+      res.status(500).json({
+        error: 'Network error',
+        details: 'Could not reach API service'
+      });
+    } else {
+      // Other error
+      console.error('   Error:', error.message);
+      console.error('   Stack:', error.stack);
+
+      res.status(500).json({
+        error: 'Internal server error',
+        details: error.message
+      });
+    }
   }
 });
 
@@ -141,5 +203,12 @@ app.post('/api/reset', (req, res) => {
 });
 
 app.listen(port, () => {
-  console.log(`Voice assistant server running on http://localhost:${port}`);
+  console.log('\n🎉 Voice Assistant Server Started');
+  console.log('================================');
+  console.log(`🌐 Server: http://localhost:${port}`);
+  console.log(`🤖 Model: gpt-4o-mini (OpenAI)`);
+  console.log(`🎤 Voice: Miss Sally May (ElevenLabs Flash v2.5)`);
+  console.log(`👤 Character: Delilah Mae "Lila"`);
+  console.log('================================');
+  console.log('💡 Open http://localhost:' + port + ' in your browser to start\n');
 });
