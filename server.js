@@ -137,7 +137,7 @@ app.post('/api/chat', async (req, res) => {
       `https://api.elevenlabs.io/v1/text-to-speech/${process.env.ELEVENLABS_VOICE_ID}`,
       {
         text: responseText,
-        model_id: 'eleven_multilingual_v2',
+        model_id: 'eleven_flash_v2_5',
         voice_settings: {
           stability: 0.3,
           similarity_boost: 0.75,
@@ -227,7 +227,7 @@ app.listen(port, () => {
   console.log('================================');
   console.log(`🌐 Server: http://localhost:${port}`);
   console.log(`🤖 Model: gpt-4o-mini (OpenAI)`);
-  console.log(`🎤 Voice: Miss Sally May (ElevenLabs Multilingual v2)`);
+  console.log(`🎤 Voice: Miss Sally May (ElevenLabs Flash v2.5)`);
   console.log(`👤 Character: Delilah Mae "Lila"`);
   console.log('================================');
   console.log('💡 Open http://localhost:' + port + ' in your browser to start\n');
