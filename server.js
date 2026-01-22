@@ -116,7 +116,7 @@ app.post('/api/chat', async (req, res) => {
         ...conversationHistory
       ],
       temperature: 0.8,
-      max_tokens: 300
+      max_completion_tokens: 300
     });
     timings.openaiEnd = Date.now();
     timings.openaiDuration = timings.openaiEnd - timings.openaiStart;

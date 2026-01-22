@@ -45,7 +45,7 @@ async function testOpenAI() {
         { role: 'system', content: 'You are a test assistant.' },
         { role: 'user', content: 'Say "test successful" in 3 words or less.' }
       ],
-      max_tokens: 10
+      max_completion_tokens: 10
     });
 
     const response = completion.choices[0].message.content;
