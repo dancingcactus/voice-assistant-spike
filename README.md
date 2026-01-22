@@ -47,17 +47,15 @@ Then edit `.env` and add your API keys:
 2. Create a new API key
 3. Copy it to `ELEVENLABS_API_KEY` in your `.env` file
 
-#### Get ElevenLabs Voice ID for Miss Sally May
-1. Go to https://elevenlabs.io/app/voice-library
-2. Find or create the "Miss Sally May" voice
-3. Click on the voice and copy the Voice ID
-4. Paste it into `ELEVENLABS_VOICE_ID` in your `.env` file
+#### Voice ID (Already Configured)
+The Miss Sally May voice ID is already set in `.env.example`:
+- `ELEVENLABS_VOICE_ID=XHqlxleHbYnK8xmft8Vq`
 
 Your `.env` file should look like:
 ```
 OPENAI_API_KEY=sk-...
 ELEVENLABS_API_KEY=...
-ELEVENLABS_VOICE_ID=...
+ELEVENLABS_VOICE_ID=XHqlxleHbYnK8xmft8Vq
 PORT=3000
 ```
 
