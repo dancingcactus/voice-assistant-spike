@@ -110,7 +110,7 @@ app.post('/api/chat', async (req, res) => {
     // Get response from OpenAI
     timings.openaiStart = Date.now();
     const completion = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
+      model: 'gpt-5-mini',
       messages: [
         { role: 'system', content: DELILAH_SYSTEM_PROMPT },
         ...conversationHistory
@@ -226,7 +226,7 @@ app.listen(port, () => {
   console.log('\n🎉 Voice Assistant Server Started');
   console.log('================================');
   console.log(`🌐 Server: http://localhost:${port}`);
-  console.log(`🤖 Model: gpt-4o-mini (OpenAI)`);
+  console.log(`🤖 Model: gpt-5-mini (OpenAI)`);
   console.log(`🎤 Voice: Miss Sally May (ElevenLabs Flash v2.5)`);
   console.log(`👤 Character: Delilah Mae "Lila"`);
   console.log('================================');

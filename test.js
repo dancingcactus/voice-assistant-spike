@@ -40,7 +40,7 @@ async function testOpenAI() {
     });
 
     const completion = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
+      model: 'gpt-5-mini',
       messages: [
         { role: 'system', content: 'You are a test assistant.' },
         { role: 'user', content: 'Say "test successful" in 3 words or less.' }
