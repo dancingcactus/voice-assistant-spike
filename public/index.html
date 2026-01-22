@@ -561,7 +561,7 @@
                     currentAudio = null;
                 }
 
-                const audio = new Audio('data:audio/mpeg;base64,' + base64Audio);
+                const audio = new Audio();
                 currentAudio = audio;
 
                 audio.onended = () => {
@@ -575,7 +575,14 @@
                     reject(error);
                 };
 
-                audio.play().catch(reject);
+                // Wait for audio to be loaded before playing
+                audio.oncanplaythrough = () => {
+                    audio.play().catch(reject);
+                };
+
+                // Set the source after event handlers are attached
+                audio.src = 'data:audio/mpeg;base64,' + base64Audio;
+                audio.load();
             });
         }
 
