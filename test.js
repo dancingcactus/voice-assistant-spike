@@ -1,4 +1,4 @@
-require('dotenv').config();
+require('dotenv').config({ override: true });
 const axios = require('axios');
 const OpenAI = require('openai');
 

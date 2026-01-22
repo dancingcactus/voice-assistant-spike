@@ -1,4 +1,4 @@
-require('dotenv').config();
+require('dotenv').config({ override: true });
 
 console.log('🔍 Detailed API Key Diagnostic\n');
 console.log('================================\n');
