@@ -115,7 +115,7 @@ app.post('/api/chat', async (req, res) => {
         { role: 'system', content: DELILAH_SYSTEM_PROMPT },
         ...conversationHistory
       ],
-      max_completion_tokens: 300
+      max_completion_tokens: 1000  // Increased to allow for reasoning tokens + response
     });
     timings.openaiEnd = Date.now();
     timings.openaiDuration = timings.openaiEnd - timings.openaiStart;
