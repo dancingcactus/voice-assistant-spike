@@ -115,7 +115,6 @@ app.post('/api/chat', async (req, res) => {
         { role: 'system', content: DELILAH_SYSTEM_PROMPT },
         ...conversationHistory
       ],
-      temperature: 0.8,
       max_completion_tokens: 300
     });
     timings.openaiEnd = Date.now();
