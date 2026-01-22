@@ -268,6 +268,48 @@
         .hidden {
             display: none;
         }
+
+        .timings {
+            background: #f5f5f5;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            font-size: 0.85em;
+            color: #666;
+        }
+
+        .timings-title {
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        .timing-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 0;
+        }
+
+        .timing-label {
+            color: #666;
+        }
+
+        .timing-value {
+            font-weight: bold;
+            font-family: 'Courier New', monospace;
+        }
+
+        .timing-value.fast {
+            color: #4caf50;
+        }
+
+        .timing-value.medium {
+            color: #ff9800;
+        }
+
+        .timing-value.slow {
+            color: #f44336;
+        }
     </style>
 </head>
 <body>
@@ -278,6 +320,22 @@
         <div class="status" id="status">Ready to listen</div>
 
         <div class="error hidden" id="error"></div>
+
+        <div class="timings hidden" id="timings">
+            <div class="timings-title">⏱️ Last Request Timings</div>
+            <div class="timing-item">
+                <span class="timing-label">OpenAI (GPT-4o-mini):</span>
+                <span class="timing-value" id="timing-openai">--</span>
+            </div>
+            <div class="timing-item">
+                <span class="timing-label">ElevenLabs (TTS):</span>
+                <span class="timing-value" id="timing-elevenlabs">--</span>
+            </div>
+            <div class="timing-item">
+                <span class="timing-label">Total:</span>
+                <span class="timing-value" id="timing-total">--</span>
+            </div>
+        </div>
 
         <div class="conversation" id="conversation">
             <div style="text-align: center; color: #999; font-style: italic;">
@@ -321,6 +379,10 @@
         const status = document.getElementById('status');
         const conversation = document.getElementById('conversation');
         const errorDiv = document.getElementById('error');
+        const timingsDiv = document.getElementById('timings');
+        const timingOpenai = document.getElementById('timing-openai');
+        const timingElevenlabs = document.getElementById('timing-elevenlabs');
+        const timingTotal = document.getElementById('timing-total');
 
         let recognition;
         let isRecording = false;
@@ -463,6 +525,11 @@
 
                 const data = await response.json();
 
+                // Update timings display
+                if (data.timings) {
+                    updateTimings(data.timings);
+                }
+
                 // Add assistant message to conversation
                 addMessage('assistant', data.text);
 
@@ -548,6 +615,40 @@
                 console.error('Error resetting conversation:', error);
                 showError('Failed to reset conversation');
             }
+        }
+
+        function updateTimings(timings) {
+            // Show timings panel
+            timingsDiv.classList.remove('hidden');
+
+            // Helper to format time and apply color coding
+            function formatTiming(ms, element) {
+                element.textContent = `${ms}ms`;
+
+                // Remove existing classes
+                element.classList.remove('fast', 'medium', 'slow');
+
+                // Apply color based on speed
+                if (ms < 1000) {
+                    element.classList.add('fast');
+                } else if (ms < 3000) {
+                    element.classList.add('medium');
+                } else {
+                    element.classList.add('slow');
+                }
+            }
+
+            // Update each timing
+            formatTiming(timings.openai, timingOpenai);
+            formatTiming(timings.elevenlabs, timingElevenlabs);
+            formatTiming(timings.total, timingTotal);
+
+            // Log to console as well
+            console.log('⏱️ Timings:', {
+                openai: `${timings.openai}ms`,
+                elevenlabs: `${timings.elevenlabs}ms`,
+                total: `${timings.total}ms`
+            });
         }
 
         function showError(message) {

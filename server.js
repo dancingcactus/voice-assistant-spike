@@ -92,6 +92,10 @@ app.post('/api/chat', async (req, res) => {
 
     console.log('User said:', text);
 
+    const timings = {
+      start: Date.now()
+    };
+
     // Add user message to history
     conversationHistory.push({
       role: 'user',
@@ -104,6 +108,7 @@ app.post('/api/chat', async (req, res) => {
     }
 
     // Get response from OpenAI
+    timings.openaiStart = Date.now();
     const completion = await openai.chat.completions.create({
       model: 'gpt-4o-mini',
       messages: [
@@ -113,9 +118,12 @@ app.post('/api/chat', async (req, res) => {
       temperature: 0.8,
       max_tokens: 300
     });
+    timings.openaiEnd = Date.now();
+    timings.openaiDuration = timings.openaiEnd - timings.openaiStart;
 
     const responseText = completion.choices[0].message.content;
     console.log('Delilah says:', responseText);
+    console.log(`⏱️  OpenAI took ${timings.openaiDuration}ms`);
 
     // Add assistant message to history
     conversationHistory.push({
@@ -124,6 +132,7 @@ app.post('/api/chat', async (req, res) => {
     });
 
     // Convert to speech using ElevenLabs
+    timings.elevenlabsStart = Date.now();
     const audioResponse = await axios.post(
       `https://api.elevenlabs.io/v1/text-to-speech/${process.env.ELEVENLABS_VOICE_ID}`,
       {
@@ -145,11 +154,22 @@ app.post('/api/chat', async (req, res) => {
         responseType: 'arraybuffer'
       }
     );
+    timings.elevenlabsEnd = Date.now();
+    timings.elevenlabsDuration = timings.elevenlabsEnd - timings.elevenlabsStart;
+    timings.totalDuration = timings.elevenlabsEnd - timings.start;
 
-    // Send back both text and audio
+    console.log(`⏱️  ElevenLabs took ${timings.elevenlabsDuration}ms`);
+    console.log(`⏱️  Total processing time: ${timings.totalDuration}ms`);
+
+    // Send back text, audio, and timings
     res.json({
       text: responseText,
-      audio: Buffer.from(audioResponse.data).toString('base64')
+      audio: Buffer.from(audioResponse.data).toString('base64'),
+      timings: {
+        openai: timings.openaiDuration,
+        elevenlabs: timings.elevenlabsDuration,
+        total: timings.totalDuration
+      }
     });
 
   } catch (error) {
