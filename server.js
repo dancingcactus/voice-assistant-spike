@@ -120,6 +120,9 @@ app.post('/api/chat', async (req, res) => {
     timings.openaiEnd = Date.now();
     timings.openaiDuration = timings.openaiEnd - timings.openaiStart;
 
+    // Debug: Log the entire completion object
+    console.log('OpenAI completion:', JSON.stringify(completion, null, 2));
+
     const responseText = completion.choices[0].message.content;
     console.log('Delilah says:', responseText);
     console.log(`⏱️  OpenAI took ${timings.openaiDuration}ms`);
