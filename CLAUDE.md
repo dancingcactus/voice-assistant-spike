@@ -60,13 +60,13 @@ The ultimate measure of success: when family members quote characters unprompted
 **Defining Trait**: Turns every setback into a new, more exciting opportunity  
 **Mannerisms**: Everything is SCIENCE, grand pronouncements, hires/fires team repeatedly (running gag: "we were never hired!")
 
-### Chip Livingston - The Engineer
-**Role**: Automations, Advanced Devices, Technical Solutions  
-**Arc**: Joins late → Confused by chaos → Reluctant voice of reason  
-**Voice**: Precise, technical, socially awkward  
+### Dimitria - The Engineer
+**Role**: Automations, Advanced Devices, Technical Solutions
+**Arc**: Joins late → Confused by chaos → Reluctant voice of reason
+**Voice**: Precise, technical, socially awkward
 
-**Core Conflict**: Thinks he joined a serious engineering project, keeps getting dragged into Cave's schemes  
-**Defining Trait**: Relates better to systems than people but deeply competent  
+**Core Conflict**: Thinks she joined a serious engineering project, keeps getting dragged into Cave's schemes
+**Defining Trait**: Relates better to systems than people but deeply competent
 **Mannerisms**: Over-literal, corrects terminology, occasionally surprises with insight
 
 ---
@@ -141,7 +141,7 @@ The ultimate measure of success: when family members quote characters unprompted
 **Technical Focus**: Persistent state, callback system, narrative progression tracking
 
 ### Phase 4: Expansion (Chapters 8-11)
-- Four-character panel (add Chip)
+- Four-character panel (add Dimitria)
 - Advanced capabilities
 - Internet integration
 - Story resolution framework
@@ -234,7 +234,7 @@ The ultimate measure of success: when family members quote characters unprompted
 4. Smart home device control
 
 ### Long-term (Phase 4)
-1. Add Chip character
+1. Add Dimitria character
 2. Full team dynamics
 3. Web search integration
 4. Story resolution system
