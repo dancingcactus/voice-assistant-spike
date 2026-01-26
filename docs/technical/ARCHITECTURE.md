@@ -22,6 +22,8 @@ Hey Chat! is a modular, narrative-driven voice assistant system built around cle
 
 ## High-Level Architecture
 
+### Phase 1: Core System
+
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                        Web Interface                         │
@@ -31,7 +33,7 @@ Hey Chat! is a modular, narrative-driven voice assistant system built around cle
                   ↓
 ┌─────────────────────────────────────────────────────────────┐
 │                     Backend Server                           │
-│                  (Python + FastAPI)                          │
+│                  (Node.js + Express)                         │
 ├─────────────────────────────────────────────────────────────┤
 │                                                               │
 │  ┌───────────────────────────────────────────────────┐      │
@@ -54,12 +56,54 @@ Hey Chat! is a modular, narrative-driven voice assistant system built around cle
 │  └──────────┘  └──────────┘  └─────────────┘               │
 │        │              │              │                       │
 │        ↓              ↓              ↓                       │
-│  Claude API    (Timers, Recipes)  Virtual Devices           │
+│  OpenAI API    (Timers, Recipes)  Virtual Devices           │
 │                                                               │
 ├─────────────────────────────────────────────────────────────┤
 │                  Testing/Automation API                      │
 │              (REST endpoints for test harness)               │
 └─────────────────────────────────────────────────────────────┘
+```
+
+### Phase 2: Test Harness Addition
+
+```
+┌──────────────────────────────────────────────────────────────────────┐
+│                         Main Web Interface                           │
+│     (React + WebSocket Client + Web Speech API + Audio)             │
+└──────────────────┬───────────────────────────────────────────────────┘
+                   │ WebSocket
+                   │
+┌──────────────────┴───────────────────────────────────────────────────┐
+│                          Test Harness UI                             │
+│    (React + REST/WebSocket Client + Scenario Editor + Inspector)    │
+│  - Scenario Management  - Test Execution  - Run Inspection          │
+└──────────────────┬───────────────────────────────────────────────────┘
+                   │ REST + WebSocket
+                   ↓
+┌─────────────────────────────────────────────────────────────────────┐
+│                        Backend Server                                │
+│                     (Node.js + Express)                              │
+├─────────────────────────────────────────────────────────────────────┤
+│  ┌──────────────────────────────────────────────────────┐           │
+│  │            Conversation Manager (Core)               │           │
+│  │  - Message routing + Trace event emission            │           │
+│  │  - Context management + State snapshots              │           │
+│  └──────────────────┬────────────────────────────────┬──┘           │
+│                     │                                 │              │
+│  ┌──────────────────┴───────────┐   ┌────────────────┴───────────┐ │
+│  │  Core Modules                │   │  Test Infrastructure       │ │
+│  │  (Character, Story, Memory,  │   │  - TestExecutor            │ │
+│  │   LLM, TTS, Tools, Devices)  │   │  - Assertion Engine        │ │
+│  │                               │   │  - Mock LLM/TTS            │ │
+│  │  - Swappable LLM (Real/Mock) │   │  - Scenario Manager        │ │
+│  │  - Swappable TTS (Real/Mock) │   │  - Results Storage         │ │
+│  └───────────────────────────────┘   └────────────────────────────┘ │
+│                                                                      │
+├──────────────────────────────────────────────────────────────────────┤
+│              Testing/Automation API (Expanded)                       │
+│  - Scenario CRUD    - Test Execution    - Results & Traces          │
+│  - Mock Controls    - Live Updates (WebSocket)                      │
+└──────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
@@ -95,8 +139,9 @@ Hey Chat! is a modular, narrative-driven voice assistant system built around cle
 
 **Upgrade Path**:
 
-- Phase 2+: Add visual indicators for multiple characters
-- Phase 3+: Dashboard view with detailed state (lists, calendar, devices)
+- Phase 2: Test harness UI for inspecting automated test runs
+- Phase 3+: Add visual indicators for multiple characters
+- Phase 4+: Dashboard view with detailed state (lists, calendar, devices)
 - Future: Mobile app, voice-only mode
 
 ---
@@ -152,9 +197,10 @@ class ConversationManager:
 
 **Upgrade Path**:
 
-- Phase 2: Multi-character routing and handoff logic
-- Phase 3: Advanced context summarization for older conversations
-- Phase 4: Parallel tool execution, complex orchestration
+- Phase 2: Scenario management, test run tracking
+- Phase 3: Multi-character routing and handoff logic
+- Phase 4: Advanced context summarization for older conversations
+- Phase 5: Parallel tool execution, complex orchestration
 
 ---
 
@@ -225,9 +271,10 @@ class CharacterSystem:
 
 **Upgrade Path**:
 
-- Phase 2: Multiple characters, character selection logic
-- Phase 3: Character relationship tracking, dynamic personality adjustment
-- Phase 4: Full multi-character coordination, character memory systems
+- Phase 2: Test assertions for character consistency
+- Phase 3: Multiple characters, character selection logic
+- Phase 4: Character relationship tracking, dynamic personality adjustment
+- Phase 5: Full multi-character coordination, character memory systems
 
 ---
 
@@ -304,9 +351,10 @@ class StoryEngine:
 
 **Upgrade Path**:
 
-- Phase 2: Multi-character beats, character interaction tracking
-- Phase 3: Running gags system, callback humor tracking
-- Phase 4: Branching narratives, user influence on story
+- Phase 2: Test scenarios for story beat validation
+- Phase 3: Multi-character beats, character interaction tracking
+- Phase 4: Running gags system, callback humor tracking
+- Phase 5: Branching narratives, user influence on story
 
 ---
 
@@ -380,9 +428,10 @@ class RecipeTool(Tool):
 
 **Upgrade Path**:
 
-- Phase 2: Calendar, shopping lists, reminders
-- Phase 3: Advanced automations, scene control
-- Phase 4: Web search, complex device coordination
+- Phase 2: Test fixtures for tool execution validation
+- Phase 3: Calendar, shopping lists, reminders
+- Phase 4: Advanced automations, scene control
+- Phase 5: Web search, complex device coordination
 
 ---
 
@@ -470,7 +519,8 @@ class VirtualDeviceController(DeviceController):
 
 **Upgrade Path**:
 
-- Phase 2+: Implement `HomeAssistantController` with same interface
+- Phase 2: Mock device states for test scenarios
+- Phase 3+: Implement `HomeAssistantController` with same interface
 - Connects to Home Assistant via WebSocket API
 - No changes needed to Tool System or Conversation Manager
 - Just swap the controller implementation
@@ -561,9 +611,10 @@ class MemoryManager:
 
 **Upgrade Path**:
 
-- Phase 2: Implement PostgreSQL or SQLite backend
-- Phase 3: Add Redis for caching, vector DB for semantic search
-- Phase 4: Advanced relationship tracking, memory consolidation
+- Phase 2: Test scenario state snapshots and restoration
+- Phase 3: Implement PostgreSQL or SQLite backend
+- Phase 4: Add Redis for caching, vector DB for semantic search
+- Phase 5: Advanced relationship tracking, memory consolidation
 
 ---
 
@@ -644,9 +695,10 @@ class LLMResponse(BaseModel):
 
 **Upgrade Path**:
 
-- Phase 2: Multi-agent coordination patterns, consider GPT-5 or GPT-5.2 for more complex reasoning
-- Phase 3: Advanced prompt caching, longer context windows
-- Phase 4: Fine-tuned models for specific characters (if needed)
+- Phase 2: Mock LLM responses for deterministic testing
+- Phase 3: Multi-agent coordination patterns, consider GPT-5 or GPT-5.2 for more complex reasoning
+- Phase 4: Advanced prompt caching, longer context windows
+- Phase 5: Fine-tuned models for specific characters (if needed)
 
 ---
 
@@ -714,17 +766,20 @@ class ElevenLabsTTS(TTSProvider):
 
 **Upgrade Path**:
 
-- Phase 2+: Consider Piper (local, faster, lower cost)
-- Phase 3+: Custom voice cloning for perfect character match
+- Phase 2: Mock TTS for faster test execution
+- Phase 3+: Consider Piper (local, faster, lower cost)
+- Phase 4+: Custom voice cloning for perfect character match
 - Future: Real-time voice modulation based on emotion
 
 ---
 
-### 10. Testing/Automation API
+### 10. Testing/Automation API & Test Harness
 
-**Purpose**: Provide programmatic control for automated testing (FR1.8)
+**Purpose**: Provide comprehensive automated testing infrastructure with programmatic control and inspection UI
 
-**REST Endpoints**:
+**Phase 1 Implementation**:
+
+Basic REST API for test control:
 
 ```
 POST /api/test/conversation
@@ -747,25 +802,290 @@ POST /api/test/scenario
   Response: { userId: string, state: object }
 ```
 
+**Phase 2 Expansion: Test Harness & Inspection UI**
+
+Phase 2 transforms the testing API into a comprehensive test harness with visual inspection capabilities.
+
+**Test Scenario System**:
+
+```typescript
+interface TestScenario {
+  id: string
+  name: string
+  description: string
+  initialState: {
+    chapter?: number
+    deliveredBeats?: string[]
+    deviceStates?: Record<string, any>
+    userPreferences?: Record<string, any>
+  }
+  conversation: TestConversationStep[]
+  assertions: TestAssertion[]
+  tags: string[]  // e.g., ["story", "chapter1", "delilah"]
+}
+
+interface TestConversationStep {
+  userMessage: string
+  expectedResponse?: {
+    containsText?: string[]
+    voiceMode?: string
+    toolCalls?: string[]
+    storyBeat?: string
+    characterName?: string
+  }
+  assertions?: TestAssertion[]
+}
+
+interface TestAssertion {
+  type: 'response_contains' | 'voice_mode' | 'tool_executed' |
+        'story_beat_delivered' | 'state_changed' | 'character_consistency'
+  params: Record<string, any>
+  description: string
+}
+```
+
+**Test Execution Engine**:
+
+```typescript
+class TestExecutor {
+  async runScenario(scenario: TestScenario): Promise<TestRun> {
+    // 1. Set up initial state
+    // 2. Execute each conversation step
+    // 3. Run assertions after each step
+    // 4. Capture full trace of LLM calls, tool executions, state changes
+    // 5. Return comprehensive test run results
+  }
+
+  async runSuite(suiteId: string): Promise<TestSuiteRun> {
+    // Run multiple scenarios in sequence
+  }
+
+  async runAll(): Promise<TestSuiteRun[]> {
+    // Run all test scenarios
+  }
+}
+
+interface TestRun {
+  id: string
+  scenarioId: string
+  startTime: number
+  endTime: number
+  status: 'passed' | 'failed' | 'error'
+  steps: TestStepResult[]
+  failures: TestFailure[]
+  metrics: {
+    totalDuration: number
+    avgResponseTime: number
+    totalTokens: number
+    llmCalls: number
+  }
+  trace: TraceEvent[]  // Full execution trace
+}
+
+interface TestStepResult {
+  stepIndex: number
+  userMessage: string
+  response: {
+    text: string
+    voiceMode: string
+    toolCalls: ToolCall[]
+    storyBeat?: string
+  }
+  assertions: AssertionResult[]
+  duration: number
+}
+
+interface TraceEvent {
+  timestamp: number
+  type: 'llm_request' | 'llm_response' | 'tool_call' | 'state_change' | 'story_beat'
+  data: any
+}
+```
+
+**Expanded REST API**:
+
+```
+# Scenario Management
+GET /api/test/scenarios
+  Response: { scenarios: TestScenario[] }
+
+POST /api/test/scenarios
+  Body: TestScenario
+  Response: { id: string }
+
+GET /api/test/scenarios/:id
+  Response: TestScenario
+
+PUT /api/test/scenarios/:id
+  Body: Partial<TestScenario>
+  Response: { success: boolean }
+
+DELETE /api/test/scenarios/:id
+  Response: { success: boolean }
+
+# Test Execution
+POST /api/test/run/scenario/:id
+  Body: { mockMode?: boolean }
+  Response: TestRun
+
+POST /api/test/run/suite/:suiteId
+  Response: TestSuiteRun
+
+POST /api/test/run/all
+  Response: { runs: TestSuiteRun[] }
+
+# Test Results
+GET /api/test/runs
+  Query: { scenario?, status?, limit?, offset? }
+  Response: { runs: TestRun[], total: number }
+
+GET /api/test/runs/:id
+  Response: TestRun (with full trace)
+
+GET /api/test/runs/:id/trace
+  Response: { events: TraceEvent[] }
+
+# Mock Controls
+POST /api/test/mocks/llm
+  Body: { scenario: string, responses: MockLLMResponse[] }
+  Response: { success: boolean }
+
+POST /api/test/mocks/tts
+  Body: { enabled: boolean }
+  Response: { success: boolean }
+```
+
+**Test Inspection UI**:
+
+Phase 2 includes a React-based UI for managing and inspecting tests:
+
+```
+/test-ui (new React app)
+├── ScenarioList      # Browse all test scenarios
+├── ScenarioEditor    # Create/edit scenarios
+├── TestRunner        # Run tests, watch live progress
+├── RunHistory        # Browse past test runs
+├── RunInspector      # Detailed view of a test run
+│   ├── Overview      # Summary, metrics, pass/fail
+│   ├── Steps         # Each conversation step with assertions
+│   ├── Trace         # Timeline of all events
+│   ├── LLMCalls      # All LLM requests/responses
+│   ├── StateChanges  # State mutations over time
+│   └── Comparison    # Compare with previous runs
+└── Analytics         # Trends, flaky tests, performance
+```
+
+**UI Features**:
+
+1. **Scenario Management**
+   - Create scenarios from templates
+   - Import/export scenarios as JSON
+   - Tag and organize scenarios
+   - Duplicate and modify existing scenarios
+
+2. **Test Execution**
+   - Run individual scenarios or suites
+   - Watch live progress with streaming updates
+   - Pause/resume long-running tests
+   - Mock mode toggle (use mocked LLM responses)
+
+3. **Run Inspection**
+   - Side-by-side view of expected vs actual
+   - Highlight assertion failures
+   - Expand trace events for debugging
+   - View full LLM prompts and responses
+   - Visualize state changes over time
+
+4. **Analytics Dashboard**
+   - Pass/fail rates over time
+   - Performance trends (response times, token usage)
+   - Flaky test detection
+   - Character consistency scores
+   - Story beat coverage
+
+**Predefined Test Scenarios**:
+
+```
+# Story Progression
+- "chapter1_first_interaction" - Delilah's awakening
+- "chapter1_beat_progression" - All 4 Chapter 1 beats
+- "chapter1_completion" - Unlock Chapter 2
+
+# Character Consistency
+- "delilah_passionate_mode" - Foods she loves
+- "delilah_protective_mode" - Allergies/restrictions
+- "delilah_deadpan_mode" - Non-food tasks
+- "delilah_mama_bear_mode" - Child safety
+- "delilah_voice_mode_switching" - Multiple modes in one conversation
+
+# Tool Execution
+- "timer_basic" - Set, query, cancel timer
+- "device_control_lights" - Turn on/off, dim lights
+- "device_control_thermostat" - Temperature adjustments
+- "recipe_lookup" - Recipe search and guidance
+- "multi_tool_conversation" - Multiple tools in sequence
+
+# Edge Cases
+- "tool_call_failure" - Handle tool errors gracefully
+- "unknown_device" - Request for non-existent device
+- "ambiguous_request" - Require clarification
+- "story_beat_interruption" - Beat delivery during complex task
+```
+
+**Mock System**:
+
+For deterministic testing, Phase 2 adds mock implementations:
+
+```typescript
+class MockLLMIntegration extends LLMIntegration {
+  private mockResponses: Map<string, MockLLMResponse[]>
+
+  async generateResponse(...): Promise<LLMResponse> {
+    // Return pre-defined responses based on scenario
+    // Useful for testing without API calls
+  }
+}
+
+class MockTTSProvider extends TTSProvider {
+  async generateSpeech(text: string, voice: string): Promise<bytes> {
+    // Return empty audio or synthesized beep
+    // Skip expensive TTS calls during tests
+  }
+}
+```
+
 **Use Cases**:
 
-- Automated story beat validation
-- Character consistency testing
-- Chapter progression verification
-- Regression testing for tool execution
-- Performance benchmarking
+- **Regression Testing**: Run full suite after code changes
+- **Story Beat Validation**: Verify all beats trigger correctly
+- **Character Consistency**: Validate voice modes and personality
+- **Chapter Progression**: Test unlock conditions
+- **Performance Benchmarking**: Track response times over time
+- **LLM Prompt Debugging**: Inspect exact prompts sent to LLM
+- **Tool Execution**: Verify all tools work correctly
+- **Edge Case Coverage**: Test error handling
 
 **Implementation**:
 
 - Separate Express router for test endpoints
-- Uses same Conversation Manager as WebSocket interface
+- Test UI as standalone React app (similar to main frontend)
+- Shared test scenario storage (JSON files in `/tests/scenarios/`)
+- Test run results stored in `/data/test-runs/`
+- WebSocket for live test execution updates
 - Can manipulate state directly for test setup
-- Supports predefined scenarios (e.g., "new user", "chapter 1 complete")
+- Mock mode toggles for LLM and TTS
 
 **Security**:
 
 - Only enabled in development/test environments
 - Disabled in production via environment variable
+- Separate port for test UI (e.g., 3002)
+
+**Upgrade Path**:
+
+- Phase 3: Parallel test execution
+- Phase 4: Visual regression testing (screenshot comparison)
+- Phase 5: Load testing, stress testing capabilities
 
 ---
 
@@ -962,10 +1282,35 @@ voice-assistant-spike/
 │   │   └── ...
 │   └── chapters.json         # Chapter progression rules
 │
+├── tests/                    # Test scenarios and fixtures
+│   ├── scenarios/            # Test scenario definitions
+│   │   ├── story/
+│   │   ├── character/
+│   │   ├── tools/
+│   │   └── edge-cases/
+│   └── fixtures/             # Mock data, sample responses
+│
+├── test-ui/                  # Test harness UI (Phase 2)
+│   ├── src/
+│   │   ├── components/
+│   │   │   ├── ScenarioList.tsx
+│   │   │   ├── ScenarioEditor.tsx
+│   │   │   ├── TestRunner.tsx
+│   │   │   ├── RunHistory.tsx
+│   │   │   ├── RunInspector.tsx
+│   │   │   └── Analytics.tsx
+│   │   ├── services/
+│   │   ├── types/
+│   │   ├── App.tsx
+│   │   └── main.tsx
+│   ├── package.json
+│   └── vite.config.ts
+│
 ├── data/                     # Runtime data (gitignored)
 │   ├── users/
 │   ├── devices/
-│   └── story/
+│   ├── story/
+│   └── test-runs/            # Test execution results (Phase 2)
 │
 ├── docs/                     # Documentation
 │   ├── ARCHITECTURE.md       # This file
@@ -1095,6 +1440,70 @@ DELILAH_VOICE_ID=...
    - Performance optimization
    - Bug fixes
 
+### Phase 2 Development Sequence
+
+**Goal**: Build comprehensive test harness before expanding to multi-character system
+
+1. **Test Infrastructure** (Week 1)
+   - Implement TestExecutor class
+   - Test scenario JSON schema and validation
+   - Assertion engine implementation
+   - Trace event system integration
+
+2. **Mock Implementations** (Week 1)
+   - MockLLMIntegration with scenario-based responses
+   - MockTTSProvider for fast test execution
+   - Device state snapshot/restore
+   - Test mode configuration
+
+3. **Expanded Test API** (Week 2)
+   - Scenario CRUD endpoints
+   - Test execution endpoints (scenario, suite, all)
+   - Results retrieval and filtering
+   - Mock configuration endpoints
+   - WebSocket for live test updates
+
+4. **Test Harness UI Foundation** (Week 2)
+   - Initialize test-ui React app
+   - Scenario list and basic CRUD UI
+   - Test runner with live progress
+   - Basic run history view
+
+5. **Run Inspector** (Week 3)
+   - Detailed run viewer with tabs
+   - Step-by-step conversation view
+   - Trace timeline visualization
+   - LLM call inspector
+   - State change viewer
+
+6. **Predefined Test Scenarios** (Week 3)
+   - Story progression scenarios (Chapter 1)
+   - Character consistency tests (all Delilah modes)
+   - Tool execution tests (timers, devices, recipes)
+   - Edge case scenarios
+
+7. **Analytics Dashboard** (Week 4)
+   - Pass/fail trends over time
+   - Performance metrics (response time, tokens)
+   - Character consistency scoring
+   - Story beat coverage tracking
+   - Flaky test detection
+
+8. **Integration & Polish** (Week 4)
+   - Scenario templates for easy creation
+   - Import/export functionality
+   - Comparison view (baseline vs current)
+   - Documentation and examples
+   - CI/CD integration preparation
+
+**Phase 2 Deliverables**:
+
+- 20+ predefined test scenarios covering Phase 1 functionality
+- Full test harness UI for scenario management and inspection
+- Mock system for deterministic testing
+- Analytics dashboard for tracking test health
+- Foundation for regression testing in future phases
+
 ### Running the Application
 
 ```bash
@@ -1110,11 +1519,20 @@ npm run dev:backend
 # Frontend only
 npm run dev:frontend
 
+# Test harness UI (Phase 2+)
+npm run dev:test-ui
+
+# Run all services (backend + frontend + test-ui)
+npm run dev:all
+
 # Build for production
 npm run build
 
-# Run tests
+# Run unit tests
 npm run test
+
+# Run test scenarios via harness
+npm run test:scenarios
 
 # Type checking
 npm run type-check
@@ -1124,32 +1542,47 @@ npm run type-check
 
 ## Testing Strategy
 
-### Unit Tests
+### Unit Tests (Phase 1)
 
 - Individual module testing (Character System, Story Engine, Tools)
 - Mock LLM responses for consistent testing
 - Test tool execution in isolation
+- Jest-based automated tests
 
-### Integration Tests
+### Integration Tests (Phase 1)
 
 - Full conversation flow from user input to response
 - Story beat delivery
 - Chapter progression
 - Tool execution with multiple turns
 
-### End-to-End Tests
+### Scenario-Based Tests (Phase 2)
 
-- Automated test harness using Testing API
-- Predefined conversation scenarios
-- Character consistency validation
-- Story arc completion
+**Primary testing approach for Phase 2+**
 
-### Manual Testing
+- **Test Harness**: Visual UI for creating, running, and inspecting tests
+- **Predefined Scenarios**: 20+ scenarios covering all Phase 1 functionality
+- **Assertions**: Declarative checks for response content, tool calls, state changes
+- **Trace Inspection**: Full visibility into LLM calls, tool execution, state mutations
+- **Mock Mode**: Deterministic testing with pre-defined LLM responses
+- **Regression Testing**: Run full suite after any code change
+- **Performance Tracking**: Monitor response times, token usage trends
+- **Character Validation**: Automated consistency checks for voice modes
+
+**Key Scenario Categories**:
+
+1. **Story Progression** - Verify all Chapter 1 beats trigger correctly
+2. **Character Modes** - Test all 6 Delilah voice modes
+3. **Tool Execution** - Validate timers, devices, recipes
+4. **Edge Cases** - Error handling, ambiguity, interruptions
+
+### Manual Testing (Phase 1-2)
 
 - Voice input quality
 - TTS output quality
-- Character personality evaluation
+- Character personality evaluation (subjective)
 - User experience flow
+- New scenario discovery for test harness
 
 ---
 
@@ -1238,7 +1671,66 @@ npm run type-check
 
 ## Upgrade Paths
 
-### Phase 2: Multi-Character Coordination
+### Phase 2: Automated Testing Harness
+
+**Module Additions**:
+
+1. **Test Execution Engine**
+   - TestExecutor class for running scenarios
+   - Test scenario loader and validator
+   - Assertion engine
+   - Trace capture system
+
+2. **Test Harness UI**
+   - New React application for test management
+   - Scenario editor with JSON validation
+   - Live test execution viewer
+   - Run inspector with detailed trace viewing
+   - Analytics dashboard
+
+3. **Mock Implementations**
+   - MockLLMIntegration for deterministic testing
+   - MockTTSProvider to skip audio generation
+   - Device state snapshots and restoration
+
+4. **Expanded Test API**
+   - Scenario CRUD endpoints
+   - Test execution endpoints
+   - Results retrieval and filtering
+   - Mock configuration endpoints
+
+**Module Changes**:
+
+1. **Conversation Manager**
+   - Add trace event emission
+   - Support state snapshots/restoration
+   - Test mode flag for deterministic behavior
+
+2. **Memory Manager**
+   - Add scenario state management
+   - Support for test user isolation
+
+3. **Backend Infrastructure**
+   - Dependency injection for swappable LLM/TTS
+   - Test configuration management
+   - WebSocket support for live test updates
+
+**Minimal Changes Needed**:
+
+- Character System: add assertion helpers
+- Story Engine: expose beat delivery tracking
+- Tool System: add execution logging
+- Device Controller: snapshot/restore support
+
+**Phase 2 Benefits**:
+
+- Confidence in Phase 1 implementation before expansion
+- Regression testing as new features are added
+- Character consistency validation tooling
+- Performance baseline establishment
+- Foundation for CI/CD pipeline
+
+### Phase 3: Multi-Character Coordination
 
 **Module Changes**:
 
@@ -1267,8 +1759,9 @@ npm run type-check
 - Device Controller: unchanged
 - Memory Manager: add relationship data
 - Frontend: visual character indicators
+- Test Harness: multi-character test scenarios
 
-### Phase 3: Real Device Integration
+### Phase 4: Real Device Integration
 
 **Module Changes**:
 
@@ -1283,8 +1776,9 @@ npm run type-check
 - Tools use same device controller interface
 - Conversation flow unchanged
 - Just swap controller in dependency injection
+- Test harness can test both virtual and real devices
 
-### Phase 4: Advanced Features
+### Phase 5: Advanced Features
 
 **Module Additions**:
 
@@ -1293,6 +1787,7 @@ npm run type-check
 - Advanced context management (vector DB, semantic search)
 - Character memory systems
 - Running gags tracker
+- Add Dimitria character (fourth character)
 
 ---
 
@@ -1363,15 +1858,43 @@ npm run type-check
 - ✅ Documentation up to date
 - ✅ Easy to add new characters, tools, or story beats
 
+### Phase 2 Technical Success
+
+- ✅ Test harness UI fully functional
+- ✅ 20+ predefined test scenarios covering Phase 1
+- ✅ All scenarios pass consistently
+- ✅ Mock system enables deterministic testing
+- ✅ Trace inspection provides full debugging visibility
+- ✅ Analytics dashboard tracks trends and regressions
+- ✅ CI/CD ready for automated test execution
+
+### Phase 2 Code Quality
+
+- ✅ Dependency injection supports swappable LLM/TTS
+- ✅ Comprehensive trace event system
+- ✅ State snapshot/restore mechanism
+- ✅ Assertion engine extensible for new test types
+- ✅ Test scenarios stored as version-controlled JSON
+- ✅ Foundation ready for multi-character testing (Phase 3)
+
 ---
 
 ## Next Steps
 
-1. **Review & Approve Architecture** → Get stakeholder sign-off
-2. **Create Project Plan** → Break down tasks, estimate effort
-3. **Set Up Development Environment** → Initialize repo, tools, dependencies
-4. **Begin Foundation Development** → Week 1 tasks
-5. **Iterate Based on Testing** → Continuous feedback and improvement
+### After Phase 1 Completion
+
+1. **Review Phase 1 Implementation** → Validate against success criteria
+2. **Begin Phase 2 Planning** → Detailed test scenario design
+3. **Implement Test Infrastructure** → TestExecutor, assertion engine
+4. **Build Test Harness UI** → Scenario management and inspection
+5. **Create Predefined Scenarios** → Cover all Phase 1 functionality
+6. **Establish Testing Baseline** → Performance, character consistency metrics
+
+### Long-term Roadmap
+
+- **Phase 3**: Multi-character coordination (Hank integration)
+- **Phase 4**: Real Home Assistant device integration
+- **Phase 5**: Advanced features, full character panel
 
 ---
 
