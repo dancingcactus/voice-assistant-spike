@@ -104,6 +104,7 @@ in story progression.
 - **Note:** All smart home tools are virtual/simulated for Phase 1. Actual Home Assistant device integration deferred to later phase.
 
 **Virtual Test Devices:**
+
 - **Lights:**
   - Kitchen Light (dimmable, 0-100%)
   - Living Room Light (dimmable, 0-100%)
