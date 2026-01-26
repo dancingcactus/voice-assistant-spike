@@ -469,7 +469,7 @@ class UserStoryState(BaseModel):
     completed_progressions: List[str]  # Beat IDs of fully completed progressions
 ```
 
-**Example: Multiple Concurrent Beats**
+#### Example: Multiple Concurrent Beats
 
 After "awakening_confusion" (one-shot) is delivered at interaction 2:
 
@@ -943,7 +943,7 @@ POST /api/test/scenario
   Response: { userId: string, state: object }
 ```
 
-**Phase 2 Expansion: Test Harness & Inspection UI**
+#### Phase 2 Expansion: Test Harness & Inspection UI
 
 Phase 2 transforms the testing API into a comprehensive test harness with visual inspection capabilities.
 
@@ -1779,7 +1779,7 @@ ruff check src/
 
 ### Scenario-Based Tests (Phase 2)
 
-**Primary testing approach for Phase 2+**
+Primary testing approach for Phase 2+:
 
 - **Test Harness**: Visual UI for creating, running, and inspecting tests
 - **Predefined Scenarios**: 20+ scenarios covering all Phase 1 functionality
