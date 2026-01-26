@@ -651,8 +651,6 @@ class VirtualDeviceController(DeviceController):
 - Porch Light (on/off)
 - Main Floor Thermostat
 - Upstairs Thermostat
-- Greenhouse Thermostat
-- Coffee Maker
 - Ceiling Fan (with speed)
 - Garage Door
 
@@ -907,7 +905,7 @@ class ElevenLabsTTS(TTSProvider):
 
 **Upgrade Path**:
 
-- Phase 2: Mock TTS for faster test execution
+- Phase 2: Cache TTS for faster test execution
 - Phase 3: Add Hank's voice (gruff, lower register)
 - Phase 4: Add Cave's voice (bombastic, energetic)
 - Phase 5: Add Dimitria's voice (precise, neutral accent)
@@ -1013,6 +1011,9 @@ class TestRun(BaseModel):
     failures: List['TestFailure']
     metrics: dict  # total_duration, avg_response_time, total_tokens, llm_calls
     trace: List['TraceEvent']  # Full execution trace
+    version_tag: Optional[str] = None  # e.g., "v1.0-baseline", "v1.2-warmer-delilah"
+    system_prompt_hash: str  # Hash of system prompt for detecting changes
+    metadata: Dict[str, Any] = {}  # Git commit, branch, custom labels
 
 class TestStepResult(BaseModel):
     step_index: int
@@ -1050,18 +1051,20 @@ DELETE /api/test/scenarios/:id
 
 # Test Execution
 POST /api/test/run/scenario/:id
-  Body: { mockMode?: boolean }
+  Body: { mockMode?: boolean, versionTag?: string, metadata?: object }
   Response: TestRun
 
 POST /api/test/run/suite/:suiteId
+  Body: { versionTag?: string, metadata?: object }
   Response: TestSuiteRun
 
 POST /api/test/run/all
+  Body: { versionTag?: string, metadata?: object }
   Response: { runs: TestSuiteRun[] }
 
 # Test Results
 GET /api/test/runs
-  Query: { scenario?, status?, limit?, offset? }
+  Query: { scenario?, status?, versionTag?, limit?, offset? }
   Response: { runs: TestRun[], total: number }
 
 GET /api/test/runs/:id
@@ -1069,6 +1072,35 @@ GET /api/test/runs/:id
 
 GET /api/test/runs/:id/trace
   Response: { events: TraceEvent[] }
+
+# Version Comparison
+GET /api/test/compare/runs/:runId1/:runId2
+  Response: {
+    run1: TestRun,
+    run2: TestRun,
+    diff: {
+      prompt_changes: PromptDiff,
+      response_diffs: StepDiff[],
+      metric_changes: MetricComparison,
+      regression_flags: RegressionFlag[]
+    }
+  }
+
+GET /api/test/compare/versions/:versionTag1/:versionTag2
+  Query: { scenarioId?: string }
+  Response: {
+    version1_runs: TestRun[],
+    version2_runs: TestRun[],
+    aggregate_metrics: AggregateComparison,
+    scenarios_affected: string[]
+  }
+
+GET /api/test/versions
+  Response: {
+    versions: [
+      { tag: string, run_count: number, last_run: timestamp, metadata: object }
+    ]
+  }
 
 # Mock Controls
 POST /api/test/mocks/llm
@@ -1088,8 +1120,8 @@ Phase 2 includes a React-based UI for managing and inspecting tests:
 /test-ui (new React app)
 ├── ScenarioList      # Browse all test scenarios
 ├── ScenarioEditor    # Create/edit scenarios
-├── TestRunner        # Run tests, watch live progress
-├── RunHistory        # Browse past test runs
+├── TestRunner        # Run tests, watch live progress (with version tagging)
+├── RunHistory        # Browse past test runs (filterable by version)
 ├── RunInspector      # Detailed view of a test run
 │   ├── Overview      # Summary, metrics, pass/fail
 │   ├── Steps         # Each conversation step with assertions
@@ -1097,6 +1129,12 @@ Phase 2 includes a React-based UI for managing and inspecting tests:
 │   ├── LLMCalls      # All LLM requests/responses
 │   ├── StateChanges  # State mutations over time
 │   └── Comparison    # Compare with previous runs
+├── VersionCompare    # Version-to-version comparison tool
+│   ├── VersionSelect # Pick two versions to compare
+│   ├── PromptDiff    # Side-by-side system prompt comparison
+│   ├── ResponseDiff  # Side-by-side LLM response comparison per scenario
+│   ├── MetricsView   # Aggregate metrics comparison (character consistency, etc.)
+│   └── Regressions   # Flagged regressions with severity
 └── Analytics         # Trends, flaky tests, performance
 ```
 
@@ -1127,6 +1165,20 @@ Phase 2 includes a React-based UI for managing and inspecting tests:
    - Flaky test detection
    - Character consistency scores
    - Story beat coverage
+
+5. **Version Comparison**
+   - Compare test runs across prompt/system versions
+   - Side-by-side diff view of LLM responses
+   - Highlight changes in character voice/behavior
+   - Track how prompt evolution affects:
+     - Character consistency scores
+     - Tool call accuracy
+     - Story beat delivery
+     - Response quality metrics
+   - Tag runs with version labels (e.g., "v1.0-baseline", "v1.1-warmer-delilah")
+   - Visual diff of system prompts between versions
+   - Regression detection: flag when new version performs worse
+   - A/B comparison metrics: which version has better character consistency?
 
 **Predefined Test Scenarios**:
 
@@ -1182,6 +1234,41 @@ class MockTTSProvider(TTSProvider):
         return b''
 ```
 
+**Version Comparison Workflow Example**:
+
+```
+1. Baseline Run (v1.0-baseline)
+   - Run all 20+ scenarios with current prompts
+   - Tag run: "v1.0-baseline"
+   - Metadata: { git_commit: "abc123", description: "Initial Delilah prompts" }
+
+2. Modify Character Prompt
+   - Edit Delilah's passionate mode to be "warmer and more enthusiastic"
+   - Update character JSON definition
+
+3. Comparison Run (v1.1-warmer-delilah)
+   - Run same 20+ scenarios with new prompts
+   - Tag run: "v1.1-warmer-delilah"
+   - Metadata: { git_commit: "def456", description: "Warmer passionate mode" }
+
+4. Compare Versions in UI
+   - Select: v1.0-baseline vs v1.1-warmer-delilah
+   - View side-by-side:
+     * System prompt diff (highlighted changes)
+     * Each scenario's response differences
+     * Character consistency score: 85% → 91% ✅
+     * Passionate mode usage: 12 instances → 15 instances
+     * Average warmth score: 3.2 → 4.1 ✅
+   - Regressions flagged:
+     * Scenario "timer_basic": Response time increased 200ms → 450ms ⚠️
+     * Scenario "deadpan_mode": Incorrectly used passionate mode ❌
+
+5. Decision
+   - Keep warmth improvements
+   - Fix deadpan mode regression
+   - Investigate response time increase
+```
+
 **Use Cases**:
 
 - **Regression Testing**: Run full suite after code changes
@@ -1192,6 +1279,9 @@ class MockTTSProvider(TTSProvider):
 - **LLM Prompt Debugging**: Inspect exact prompts sent to LLM
 - **Tool Execution**: Verify all tools work correctly
 - **Edge Case Coverage**: Test error handling
+- **Prompt Engineering**: A/B test different character definitions
+- **Version Tracking**: Maintain history of all prompt iterations
+- **Regression Detection**: Automatically flag when new prompts perform worse
 
 **Implementation**:
 
