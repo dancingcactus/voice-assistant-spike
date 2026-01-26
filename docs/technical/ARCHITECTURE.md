@@ -502,7 +502,7 @@ The engine prioritizes which beat to inject based on:
 
 **Phase 1 Implementation**:
 
-- Define tools as Claude function calling schemas
+- Define tools as OpenAI function calling schemas
 - Implement tool handlers
 - Virtual implementations for smart home devices
 
@@ -1250,13 +1250,13 @@ class MockTTSProvider(TTSProvider):
    - Return complete system prompt
 
 5. LLM Call
-   LLM Integration: generateResponse()
+   LLM Integration: generate_response()
    ↓
-   - Send to Claude API with tools available
+   - Send to OpenAI API with tools available
    - Receive response with tool call
    {
      content: "Of course, sugar.",
-     toolCalls: [{ name: "timer", params: { action: "set", duration: 600 } }]
+     tool_calls: [{ name: "timer", params: { action: "set", duration: 600 } }]
    }
 
 6. Tool Execution
@@ -1266,7 +1266,7 @@ class MockTTSProvider(TTSProvider):
    - Return result
 
 7. Follow-up LLM Call (if needed)
-   LLM Integration: generateResponse()
+   LLM Integration: generate_response()
    ↓
    - Include tool results
    - Get final response: "Timer's set for 10 minutes, honey."
@@ -1334,7 +1334,7 @@ class MockTTSProvider(TTSProvider):
 
 ### External Services
 
-- **LLM**: Claude API (Anthropic)
+- **LLM**: OpenAI API (GPT-5 mini)
 - **TTS**: ElevenLabs API
 
 ### Deployment (Phase 1)
@@ -1730,7 +1730,7 @@ ruff check src/
 1. **Caching**
    - Cache frequently used TTS phrases
    - Cache character prompts (structured prompts)
-   - Consider Claude prompt caching (Phase 2+)
+   - Consider OpenAI prompt caching (Phase 2+)
 
 2. **Streaming**
    - Stream LLM responses where possible
