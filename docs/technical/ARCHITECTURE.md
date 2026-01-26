@@ -33,7 +33,7 @@ Hey Chat! is a modular, narrative-driven voice assistant system built around cle
                   ↓
 ┌─────────────────────────────────────────────────────────────┐
 │                     Backend Server                           │
-│                  (Node.js + Express)                         │
+│                  (Python + FastAPI)                          │
 ├─────────────────────────────────────────────────────────────┤
 │                                                               │
 │  ┌───────────────────────────────────────────────────┐      │
@@ -82,7 +82,7 @@ Hey Chat! is a modular, narrative-driven voice assistant system built around cle
                    ↓
 ┌─────────────────────────────────────────────────────────────────────┐
 │                        Backend Server                                │
-│                     (Node.js + Express)                              │
+│                     (Python + FastAPI)                               │
 ├─────────────────────────────────────────────────────────────────────┤
 │  ┌──────────────────────────────────────────────────────┐           │
 │  │            Conversation Manager (Core)               │           │
@@ -116,7 +116,7 @@ Hey Chat! is a modular, narrative-driven voice assistant system built around cle
 
 **Phase 1 Implementation**:
 
-- React application with TypeScript
+- React application with JavaScript/TypeScript
 - Microphone button using Web Speech API
 - Text input field for typing
 - Audio playback for TTS responses
@@ -817,98 +817,80 @@ Phase 2 transforms the testing API into a comprehensive test harness with visual
 
 **Test Scenario System**:
 
-```typescript
-interface TestScenario {
-  id: string
-  name: string
-  description: string
-  initialState: {
-    chapter?: number
-    deliveredBeats?: string[]
-    deviceStates?: Record<string, any>
-    userPreferences?: Record<string, any>
-  }
-  conversation: TestConversationStep[]
-  assertions: TestAssertion[]
-  tags: string[]  // e.g., ["story", "chapter1", "delilah"]
-}
+```python
+from typing import Optional, List, Dict, Any, Literal
+from pydantic import BaseModel
 
-interface TestConversationStep {
-  userMessage: string
-  expectedResponse?: {
-    containsText?: string[]
-    voiceMode?: string
-    toolCalls?: string[]
-    storyBeat?: string
-    characterName?: string
-  }
-  assertions?: TestAssertion[]
-}
+class TestScenario(BaseModel):
+    id: str
+    name: str
+    description: str
+    initial_state: dict  # chapter, delivered_beats, device_states, user_preferences
+    conversation: List['TestConversationStep']
+    assertions: List['TestAssertion']
+    tags: List[str]  # e.g., ["story", "chapter1", "delilah"]
 
-interface TestAssertion {
-  type: 'response_contains' | 'voice_mode' | 'tool_executed' |
-        'story_beat_delivered' | 'state_changed' | 'character_consistency'
-  params: Record<string, any>
-  description: string
-}
+class TestConversationStep(BaseModel):
+    user_message: str
+    expected_response: Optional[dict] = None  # contains_text, voice_mode, tool_calls, story_beat, character_name
+    assertions: Optional[List['TestAssertion']] = None
+
+class TestAssertion(BaseModel):
+    type: Literal['response_contains', 'voice_mode', 'tool_executed',
+                   'story_beat_delivered', 'state_changed', 'character_consistency']
+    params: Dict[str, Any]
+    description: str
 ```
 
 **Test Execution Engine**:
 
-```typescript
-class TestExecutor {
-  async runScenario(scenario: TestScenario): Promise<TestRun> {
-    // 1. Set up initial state
-    // 2. Execute each conversation step
-    // 3. Run assertions after each step
-    // 4. Capture full trace of LLM calls, tool executions, state changes
-    // 5. Return comprehensive test run results
-  }
+```python
+from typing import List
+from pydantic import BaseModel
 
-  async runSuite(suiteId: string): Promise<TestSuiteRun> {
-    // Run multiple scenarios in sequence
-  }
+class TestExecutor:
+    """Execute test scenarios and capture results."""
 
-  async runAll(): Promise<TestSuiteRun[]> {
-    // Run all test scenarios
-  }
-}
+    async def run_scenario(self, scenario: TestScenario) -> 'TestRun':
+        """
+        1. Set up initial state
+        2. Execute each conversation step
+        3. Run assertions after each step
+        4. Capture full trace of LLM calls, tool executions, state changes
+        5. Return comprehensive test run results
+        """
+        pass
 
-interface TestRun {
-  id: string
-  scenarioId: string
-  startTime: number
-  endTime: number
-  status: 'passed' | 'failed' | 'error'
-  steps: TestStepResult[]
-  failures: TestFailure[]
-  metrics: {
-    totalDuration: number
-    avgResponseTime: number
-    totalTokens: number
-    llmCalls: number
-  }
-  trace: TraceEvent[]  // Full execution trace
-}
+    async def run_suite(self, suite_id: str) -> 'TestSuiteRun':
+        """Run multiple scenarios in sequence."""
+        pass
 
-interface TestStepResult {
-  stepIndex: number
-  userMessage: string
-  response: {
-    text: string
-    voiceMode: string
-    toolCalls: ToolCall[]
-    storyBeat?: string
-  }
-  assertions: AssertionResult[]
-  duration: number
-}
+    async def run_all(self) -> List['TestSuiteRun']:
+        """Run all test scenarios."""
+        pass
 
-interface TraceEvent {
-  timestamp: number
-  type: 'llm_request' | 'llm_response' | 'tool_call' | 'state_change' | 'story_beat'
-  data: any
-}
+class TestRun(BaseModel):
+    id: str
+    scenario_id: str
+    start_time: int
+    end_time: int
+    status: Literal['passed', 'failed', 'error']
+    steps: List['TestStepResult']
+    failures: List['TestFailure']
+    metrics: dict  # total_duration, avg_response_time, total_tokens, llm_calls
+    trace: List['TraceEvent']  # Full execution trace
+
+class TestStepResult(BaseModel):
+    step_index: int
+    user_message: str
+    response: dict  # text, voice_mode, tool_calls, story_beat
+    assertions: List['AssertionResult']
+    duration: int
+
+class TraceEvent(BaseModel):
+    timestamp: int
+    type: Literal['llm_request', 'llm_response', 'tool_call', 'state_change', 'story_beat']
+    data: Dict[str, Any]
 ```
 
 **Expanded REST API**:
@@ -1045,22 +1027,25 @@ Phase 2 includes a React-based UI for managing and inspecting tests:
 
 For deterministic testing, Phase 2 adds mock implementations:
 
-```typescript
-class MockLLMIntegration extends LLMIntegration {
-  private mockResponses: Map<string, MockLLMResponse[]>
+```python
+class MockLLMIntegration(LLMIntegration):
+    """Mock LLM for deterministic testing."""
 
-  async generateResponse(...): Promise<LLMResponse> {
-    // Return pre-defined responses based on scenario
-    // Useful for testing without API calls
-  }
-}
+    def __init__(self):
+        self.mock_responses: Dict[str, List[MockLLMResponse]] = {}
 
-class MockTTSProvider extends TTSProvider {
-  async generateSpeech(text: string, voice: string): Promise<bytes> {
-    // Return empty audio or synthesized beep
-    // Skip expensive TTS calls during tests
-  }
-}
+    async def generate_response(self, *args, **kwargs) -> LLMResponse:
+        """Return pre-defined responses based on scenario."""
+        # Useful for testing without API calls
+        pass
+
+class MockTTSProvider(TTSProvider):
+    """Mock TTS for fast test execution."""
+
+    async def generate_speech(self, text: str, voice_id: str) -> bytes:
+        """Return empty audio or synthesized beep."""
+        # Skip expensive TTS calls during tests
+        return b''
 ```
 
 **Use Cases**:
@@ -1076,7 +1061,7 @@ class MockTTSProvider extends TTSProvider {
 
 **Implementation**:
 
-- Separate Express router for test endpoints
+- FastAPI router for test endpoints
 - Test UI as standalone React app (similar to main frontend)
 - Shared test scenario storage (JSON files in `/tests/scenarios/`)
 - Test run results stored in `/data/test-runs/`
@@ -1188,7 +1173,7 @@ class MockTTSProvider extends TTSProvider {
 
 ### Frontend
 
-- **Framework**: React 18 with TypeScript
+- **Framework**: React 18 with JavaScript/TypeScript
 - **Styling**: Tailwind CSS (or plain CSS for simplicity)
 - **Voice Input**: Web Speech API (browser native)
 - **Audio Playback**: HTML5 Audio element
@@ -1197,21 +1182,21 @@ class MockTTSProvider extends TTSProvider {
 
 ### Backend
 
-- **Runtime**: Node.js 20+
-- **Framework**: Express
-- **Language**: TypeScript
-- **WebSocket**: `ws` library
-- **LLM**: Anthropic SDK (`@anthropic-ai/sdk`)
-- **Storage**: JSON files (Phase 1), fs/promises for async I/O
+- **Runtime**: Python 3.11+
+- **Framework**: FastAPI
+- **WebSocket**: FastAPI WebSocket support (built-in)
+- **LLM**: OpenAI Python SDK (`openai`)
+- **Data Validation**: Pydantic (built into FastAPI)
+- **Storage**: JSON files (Phase 1), using `aiofiles` for async I/O
+- **ASGI Server**: Uvicorn (development), Gunicorn + Uvicorn (production)
 
 ### Development Tools
 
-- **TypeScript**: Compilation and type checking
-- **tsx**: Run TypeScript directly (development)
-- **Jest**: Testing framework
-- **ESLint**: Code linting
-- **Prettier**: Code formatting
-- **Nodemon**: Auto-restart on changes
+- **Python**: Type hints with mypy for type checking
+- **pytest**: Testing framework
+- **black**: Code formatting
+- **ruff**: Fast Python linter
+- **watchfiles**: Auto-restart on changes (via uvicorn --reload)
 
 ### External Services
 
@@ -1221,7 +1206,7 @@ class MockTTSProvider extends TTSProvider {
 ### Deployment (Phase 1)
 
 - **Environment**: Local development machine
-- **Process Manager**: npm scripts / tsx
+- **Process Manager**: uvicorn for backend, vite for frontends
 - **Optional**: Docker Compose for containerization
 
 ---
@@ -1247,38 +1232,38 @@ voice-assistant-spike/
 │   ├── package.json
 │   └── vite.config.ts
 │
-├── backend/                  # Node.js Express server
+├── backend/                  # Python FastAPI server
 │   ├── src/
 │   │   ├── core/             # Core modules
-│   │   │   ├── ConversationManager.ts
-│   │   │   ├── CharacterSystem.ts
-│   │   │   ├── StoryEngine.ts
-│   │   │   └── MemoryManager.ts
+│   │   │   ├── conversation_manager.py
+│   │   │   ├── character_system.py
+│   │   │   ├── story_engine.py
+│   │   │   └── memory_manager.py
 │   │   ├── integrations/     # External service integrations
-│   │   │   ├── LLMIntegration.ts
-│   │   │   ├── TTSIntegration.ts
-│   │   │   └── DeviceController.ts
+│   │   │   ├── llm_integration.py
+│   │   │   ├── tts_integration.py
+│   │   │   └── device_controller.py
 │   │   ├── tools/            # Tool implementations
-│   │   │   ├── Tool.ts       # Base interface
-│   │   │   ├── TimerTool.ts
-│   │   │   ├── DeviceTool.ts
-│   │   │   └── RecipeTool.ts
-│   │   ├── api/              # Express routes
-│   │   │   ├── websocket.ts  # WebSocket handler
-│   │   │   └── test.ts       # Testing API endpoints
-│   │   ├── types/            # TypeScript types
+│   │   │   ├── tool_base.py  # Base class
+│   │   │   ├── timer_tool.py
+│   │   │   ├── device_tool.py
+│   │   │   └── recipe_tool.py
+│   │   ├── api/              # FastAPI routes
+│   │   │   ├── websocket.py  # WebSocket handler
+│   │   │   └── test_api.py   # Testing API endpoints
+│   │   ├── models/           # Pydantic models
 │   │   ├── utils/            # Utilities
-│   │   └── server.ts         # Main entry point
-│   ├── package.json
-│   └── tsconfig.json
+│   │   └── main.py           # Main entry point
+│   ├── requirements.txt
+│   └── pyproject.toml
 │
-├── shared/                   # Shared types between frontend/backend
-│   ├── types/
-│   │   ├── Message.ts
-│   │   ├── Device.ts
-│   │   ├── Character.ts
-│   │   └── Story.ts
-│   └── package.json
+├── shared/                   # Shared schemas/types
+│   ├── schemas/              # JSON schemas for data exchange
+│   │   ├── message.schema.json
+│   │   ├── device.schema.json
+│   │   ├── character.schema.json
+│   │   └── story.schema.json
+│   └── README.md
 │
 ├── story/                    # Story content (data, not code)
 │   ├── characters/
@@ -1344,9 +1329,9 @@ voice-assistant-spike/
 
 ```bash
 # Backend (.env)
-NODE_ENV=development
-PORT=3001
-ANTHROPIC_API_KEY=sk-...
+ENVIRONMENT=development
+PORT=8000
+OPENAI_API_KEY=sk-...
 ELEVENLABS_API_KEY=...
 
 # Feature flags
@@ -1359,7 +1344,7 @@ DATA_DIR=./data
 STORY_DIR=./story
 
 # LLM Configuration
-CLAUDE_MODEL=claude-3-5-sonnet-20241022
+OPENAI_MODEL=gpt-5-mini-2025-08-07
 MAX_TOKENS=1024
 TEMPERATURE=0.8
 
@@ -1396,15 +1381,16 @@ DELILAH_VOICE_ID=...
 ### Phase 1 Development Sequence
 
 1. **Foundation Setup** (Week 1)
-   - Initialize monorepo structure
-   - Set up TypeScript, build tools
-   - Create shared types
-   - Basic Express server + React frontend
+   - Initialize project structure
+   - Set up Python backend with FastAPI
+   - Set up React frontend with Vite
+   - Create shared schemas
+   - Basic FastAPI server + React frontend
    - WebSocket communication working
 
 2. **Core Conversation Flow** (Week 1-2)
    - Implement ConversationManager
-   - LLM Integration with Claude
+   - LLM Integration with OpenAI (GPT-5 mini)
    - Basic message handling (no tools yet)
    - Simple prompt construction
    - Frontend displays responses
@@ -1517,35 +1503,34 @@ DELILAH_VOICE_ID=...
 ### Running the Application
 
 ```bash
-# Install dependencies
-npm install
+# Backend (Python)
+cd backend
+pip install -r requirements.txt
+uvicorn src.main:app --reload --port 8000
 
-# Development mode (both frontend and backend)
+# Frontend (React)
+cd frontend
+npm install
 npm run dev
 
-# Backend only
-npm run dev:backend
+# Test Harness UI (Phase 2+)
+cd test-ui
+npm install
+npm run dev
 
-# Frontend only
-npm run dev:frontend
+# Run tests
+cd backend
+pytest
 
-# Test harness UI (Phase 2+)
-npm run dev:test-ui
+# Run test scenarios via harness (Phase 2+)
+pytest tests/scenarios/
 
-# Run all services (backend + frontend + test-ui)
-npm run dev:all
+# Type checking (Python)
+mypy src/
 
-# Build for production
-npm run build
-
-# Run unit tests
-npm run test
-
-# Run test scenarios via harness
-npm run test:scenarios
-
-# Type checking
-npm run type-check
+# Formatting
+black src/
+ruff check src/
 ```
 
 ---
@@ -1557,7 +1542,8 @@ npm run type-check
 - Individual module testing (Character System, Story Engine, Tools)
 - Mock LLM responses for consistent testing
 - Test tool execution in isolation
-- Jest-based automated tests
+- pytest-based automated tests
+- pytest-asyncio for async test support
 
 ### Integration Tests (Phase 1)
 
@@ -1902,8 +1888,8 @@ npm run type-check
 ### Phase 1 Code Quality
 
 - ✅ Modular architecture with clear boundaries
-- ✅ TypeScript types throughout
-- ✅ Unit tests for core modules
+- ✅ Python type hints throughout (enforced by mypy)
+- ✅ Unit tests for core modules (pytest)
 - ✅ Integration tests for conversation flow
 - ✅ Documentation up to date
 - ✅ Easy to add new characters, tools, or story beats
