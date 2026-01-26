@@ -295,11 +295,63 @@ class CharacterSystem:
 
 **Story Beat Format**:
 
+Beats can be active concurrently and progress independently through multiple stages.
+
+```json
+{
+  "id": "existential_spiral",
+  "chapter": 1,
+  "type": "progression",  // "one-shot" or "progression"
+  "unlockConditions": {
+    "requiredBeats": ["awakening_confusion"],  // Must be delivered first
+    "minInteractions": 3,
+    "taskTypes": ["recipe", "cooking"]  // Optional: only unlock on certain task types
+  },
+  "stages": [
+    {
+      "stageId": 1,
+      "variants": {
+        "brief": "First mention of existential anxiety - 2-3 sentences",
+        "standard": "Deeper exploration of what it means to exist - 4-5 sentences",
+        "full": "Full existential crisis moment - 7-8 sentences"
+      },
+      "content": {
+        "brief": "...",
+        "standard": "...",
+        "full": "..."
+      },
+      "progressConditions": {
+        "minInteractionsSinceStage": 2,
+        "maxInteractionsSinceStage": 10
+      }
+    },
+    {
+      "stageId": 2,
+      "variants": {
+        "brief": "Continued anxiety, searching for purpose - 2-3 sentences",
+        "standard": "Grasping for meaning through cooking - 4-5 sentences",
+        "full": "Full spiral into maternal caregiving - 7-8 sentences"
+      },
+      "content": {
+        "brief": "...",
+        "standard": "...",
+        "full": "..."
+      },
+      "progressConditions": {
+        "minInteractionsSinceStage": 3
+      }
+    }
+  ]
+}
+```
+
+**One-Shot Beat Example**:
+
 ```json
 {
   "id": "awakening_confusion",
   "chapter": 1,
-  "required": true,
+  "type": "one-shot",
   "unlockConditions": {
     "minInteractions": 1,
     "maxInteractions": 5
@@ -320,22 +372,74 @@ class CharacterSystem:
 **Key Features**:
 
 ```python
+from typing import Optional, List
+from pydantic import BaseModel
+
+class BeatProgress(BaseModel):
+    """Track progress of a multi-stage beat."""
+    beat_id: str
+    current_stage: int
+    stages_delivered: List[int]
+    last_delivery_interaction: int
+    unlocked_at_interaction: int
+
 class StoryEngine:
     """Track and deliver narrative beats, manage chapter progression."""
 
-    def should_inject_beat(self, context: ConversationContext) -> StoryBeat | None:
-        """Determine if a story beat should be injected."""
+    def get_active_beats(self, user_id: str, context: ConversationContext) -> List[StoryBeat]:
+        """
+        Get all beats that are currently active and eligible for delivery.
+        Multiple beats can be active simultaneously.
+        Returns beats sorted by priority.
+        """
         pass
 
-    def mark_beat_delivered(self, user_id: str, beat_id: str) -> None:
-        """Mark a beat as delivered for a user."""
+    def should_inject_beat(self, context: ConversationContext) -> Optional[StoryBeat]:
+        """
+        Determine if a story beat should be injected in this interaction.
+        Considers active beats, delivery timing, and conversation context.
+        """
         pass
 
-    def get_delivered_beats(self, user_id: str) -> list[str]:
-        """Get all delivered beats for a user."""
+    def get_beat_stage(self, user_id: str, beat_id: str) -> Optional[BeatProgress]:
+        """Get current progress for a progression beat."""
         pass
 
-    def check_chapter_progression(self, user_id: str) -> Chapter:
+    def mark_beat_stage_delivered(
+        self,
+        user_id: str,
+        beat_id: str,
+        stage_id: int,
+        interaction_count: int
+    ) -> None:
+        """
+        Mark a beat stage as delivered.
+        For one-shot beats, this completes the beat.
+        For progression beats, this advances to next stage.
+        """
+        pass
+
+    def check_unlock_conditions(
+        self,
+        user_id: str,
+        beat: StoryBeat,
+        context: ConversationContext
+    ) -> bool:
+        """
+        Check if a beat's unlock conditions are met.
+        Considers required beats, interaction counts, task types, etc.
+        """
+        pass
+
+    def get_delivered_beats(self, user_id: str) -> List[str]:
+        """Get all beat IDs that have been delivered (one-shots or completed progressions)."""
+        pass
+
+    def get_active_progressions(self, user_id: str) -> List[BeatProgress]:
+        """Get all progression beats that are in-progress but not completed."""
+        pass
+
+    def check_chapter_progression(self, user_id: str) -> int:
         """Check current chapter for user."""
         pass
 
@@ -344,13 +448,43 @@ class StoryEngine:
         pass
 
     def on_user_message(self, event: MessageEvent) -> None:
-        """Handle user message event."""
+        """Handle user message event - check for new beat unlocks."""
         pass
 
     def on_task_completed(self, event: TaskEvent) -> None:
-        """Handle task completion event."""
+        """Handle task completion event - may unlock task-specific beats."""
         pass
 ```
+
+**Beat Delivery Logic**:
+
+The Story Engine maintains per-user state:
+
+```python
+class UserStoryState(BaseModel):
+    current_chapter: int
+    interaction_count: int
+    delivered_one_shots: List[str]  # Beat IDs of completed one-shot beats
+    active_progressions: List[BeatProgress]  # In-progress multi-stage beats
+    completed_progressions: List[str]  # Beat IDs of fully completed progressions
+```
+
+**Example: Multiple Concurrent Beats**
+
+After "awakening_confusion" (one-shot) is delivered at interaction 2:
+
+- Interaction 5: "existential_spiral" unlocks (progression beat, stage 1)
+- Interaction 6: "food_metaphors" unlocks (progression beat, stage 1)
+- Interaction 8: "existential_spiral" stage 2 becomes eligible
+- Interaction 10: "food_metaphors" stage 2 becomes eligible
+- Both can deliver stages independently based on conversation context
+
+The engine prioritizes which beat to inject based on:
+
+1. Conversation relevance (task type, keywords)
+2. Time since last delivery (avoid overwhelming user)
+3. Beat priority scores
+4. Variant selection (brief/standard/full based on task complexity)
 
 **Upgrade Path**:
 
