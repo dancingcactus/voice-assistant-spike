@@ -1532,13 +1532,14 @@ voice-assistant-spike/
 │   └── test-runs/            # Test execution results (Phase 2)
 │
 ├── docs/                     # Documentation
-│   ├── ARCHITECTURE.md       # This file
-│   ├── CHARACTER_*.md        # Character voice guides
-│   ├── STORY_STRUCTURE.md
-│   └── API.md
-│
-├── PRDs/                     # Product requirements
-│   └── hey_chat_prd.md
+│   ├── technical/            # Technical documentation
+│   │   ├── ARCHITECTURE.md   # This file - system architecture and design
+│   │   └── hey_chat_prd.md   # Product requirements document
+│   └── narrative/            # Character and story documentation
+│       ├── CHARACTER_LILA.md       # Delilah Mae voice guide
+│       ├── CHARACTER_HANK.md       # Half Hands Hank voice guide
+│       ├── CHARACTER_DIMITRIA.md   # Dimitria voice guide
+│       └── STORY_CHAPTERS.md       # 11-chapter story structure
 │
 ├── package.json              # Root package.json for workspace
 ├── docker-compose.yml        # Optional: containerization
