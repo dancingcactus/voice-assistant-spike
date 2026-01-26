@@ -140,9 +140,10 @@ Hey Chat! is a modular, narrative-driven voice assistant system built around cle
 **Upgrade Path**:
 
 - Phase 2: Test harness UI for inspecting automated test runs
-- Phase 3+: Add visual indicators for multiple characters
-- Phase 4+: Dashboard view with detailed state (lists, calendar, devices)
-- Future: Mobile app, voice-only mode
+- Phase 3: Visual indicators for two characters (Delilah + Hank)
+- Phase 4: Panel view for three characters (add Cave)
+- Phase 5: Full four-character panel (add Dimitria), dashboard view with detailed state
+- Phase 6+: Mobile app, voice-only mode
 
 ---
 
@@ -198,9 +199,10 @@ class ConversationManager:
 **Upgrade Path**:
 
 - Phase 2: Scenario management, test run tracking
-- Phase 3: Multi-character routing and handoff logic
-- Phase 4: Advanced context summarization for older conversations
-- Phase 5: Parallel tool execution, complex orchestration
+- Phase 3: Two-character routing and handoff logic
+- Phase 4: Three-character panel coordination
+- Phase 5: Four-character coordination, advanced context summarization
+- Phase 6+: Parallel tool execution, complex orchestration
 
 ---
 
@@ -272,9 +274,10 @@ class CharacterSystem:
 **Upgrade Path**:
 
 - Phase 2: Test assertions for character consistency
-- Phase 3: Multiple characters, character selection logic
-- Phase 4: Character relationship tracking, dynamic personality adjustment
-- Phase 5: Full multi-character coordination, character memory systems
+- Phase 3: Two characters (Delilah + Hank), character selection logic
+- Phase 4: Three characters (add Cave), panel coordination
+- Phase 5: Four characters (add Dimitria), full multi-character coordination
+- Phase 6+: Character relationship tracking, dynamic personality adjustment, character memory systems
 
 ---
 
@@ -352,9 +355,10 @@ class StoryEngine:
 **Upgrade Path**:
 
 - Phase 2: Test scenarios for story beat validation
-- Phase 3: Multi-character beats, character interaction tracking
-- Phase 4: Running gags system, callback humor tracking
-- Phase 5: Branching narratives, user influence on story
+- Phase 3: Two-character beats (Delilah + Hank), character interaction tracking
+- Phase 4: Three-character beats (add Cave), running gags system
+- Phase 5: Four-character beats (add Dimitria), callback humor tracking
+- Phase 6+: Branching narratives, user influence on story
 
 ---
 
@@ -431,7 +435,8 @@ class RecipeTool(Tool):
 - Phase 2: Test fixtures for tool execution validation
 - Phase 3: Calendar, shopping lists, reminders
 - Phase 4: Advanced automations, scene control
-- Phase 5: Web search, complex device coordination
+- Phase 5: Web search integration
+- Phase 6: Complex device coordination with real Home Assistant devices
 
 ---
 
@@ -520,7 +525,7 @@ class VirtualDeviceController(DeviceController):
 **Upgrade Path**:
 
 - Phase 2: Mock device states for test scenarios
-- Phase 3+: Implement `HomeAssistantController` with same interface
+- Phase 6: Implement `HomeAssistantController` with same interface
 - Connects to Home Assistant via WebSocket API
 - No changes needed to Tool System or Conversation Manager
 - Just swap the controller implementation
@@ -612,9 +617,10 @@ class MemoryManager:
 **Upgrade Path**:
 
 - Phase 2: Test scenario state snapshots and restoration
-- Phase 3: Implement PostgreSQL or SQLite backend
-- Phase 4: Add Redis for caching, vector DB for semantic search
-- Phase 5: Advanced relationship tracking, memory consolidation
+- Phase 3: Relationship data for two characters
+- Phase 4: Running gags tracking, failed plans history
+- Phase 5: Complete character memory systems, vector DB for semantic search
+- Phase 6+: Implement PostgreSQL or SQLite backend, Redis for caching, advanced memory consolidation
 
 ---
 
@@ -696,9 +702,10 @@ class LLMResponse(BaseModel):
 **Upgrade Path**:
 
 - Phase 2: Mock LLM responses for deterministic testing
-- Phase 3: Multi-agent coordination patterns, consider GPT-5 or GPT-5.2 for more complex reasoning
-- Phase 4: Advanced prompt caching, longer context windows
-- Phase 5: Fine-tuned models for specific characters (if needed)
+- Phase 3: Two-agent coordination patterns
+- Phase 4: Three-agent panel coordination, consider GPT-5 or GPT-5.2 for more complex reasoning
+- Phase 5: Four-agent coordination, advanced prompt caching, longer context windows
+- Phase 6+: Fine-tuned models for specific characters (if needed)
 
 ---
 
@@ -767,9 +774,11 @@ class ElevenLabsTTS(TTSProvider):
 **Upgrade Path**:
 
 - Phase 2: Mock TTS for faster test execution
-- Phase 3+: Consider Piper (local, faster, lower cost)
-- Phase 4+: Custom voice cloning for perfect character match
-- Future: Real-time voice modulation based on emotion
+- Phase 3: Add Hank's voice (gruff, lower register)
+- Phase 4: Add Cave's voice (bombastic, energetic)
+- Phase 5: Add Dimitria's voice (precise, neutral accent)
+- Phase 6+: Consider Piper (local, faster, lower cost)
+- Future: Custom voice cloning for perfect character match, real-time voice modulation
 
 ---
 
@@ -1083,9 +1092,10 @@ class MockTTSProvider extends TTSProvider {
 
 **Upgrade Path**:
 
-- Phase 3: Parallel test execution
-- Phase 4: Visual regression testing (screenshot comparison)
-- Phase 5: Load testing, stress testing capabilities
+- Phase 3: Two-character test scenarios (Delilah + Hank)
+- Phase 4: Three-character test scenarios (add Cave)
+- Phase 5: Four-character test scenarios (add Dimitria)
+- Phase 6+: Parallel test execution, visual regression testing, load testing
 
 ---
 
@@ -1730,7 +1740,7 @@ npm run type-check
 - Performance baseline establishment
 - Foundation for CI/CD pipeline
 
-### Phase 3: Multi-Character Coordination
+### Phase 3: Multi-Character Coordination (Hank)
 
 **Module Changes**:
 
@@ -1741,16 +1751,16 @@ npm run type-check
 
 2. **Conversation Manager**
    - Route to appropriate character(s)
-   - Handle multi-turn character interactions
-   - Coordinate responses between characters
+   - Handle two-character interactions
+   - Coordinate responses between Delilah and Hank
 
 3. **Story Engine**
-   - Multi-character beats
+   - Two-character beats (Chapter 2)
    - Relationship tracking
    - Character interaction events
 
 4. **TTS Integration**
-   - Multiple voices
+   - Multiple voices (Delilah + Hank)
    - Character voice mapping
 
 **Minimal Changes Needed**:
@@ -1759,9 +1769,53 @@ npm run type-check
 - Device Controller: unchanged
 - Memory Manager: add relationship data
 - Frontend: visual character indicators
-- Test Harness: multi-character test scenarios
+- Test Harness: two-character test scenarios
 
-### Phase 4: Real Device Integration
+**Phase 3 Goal**: Validate that multi-character dynamics work and are engaging before further expansion
+
+### Phase 4: Three-Character Panel (Cave)
+
+**Module Additions**:
+
+- Add Cave character definition
+- Three-way conversation coordination
+- Cave's leadership and coordination role
+- Chapter 3 story beats
+- Advanced context management (vector DB, semantic search)
+- Character memory systems
+- Running gags tracker
+
+**Module Changes**:
+
+1. **Conversation Manager**
+   - Panel discussion orchestration
+   - Three-way handoff patterns
+   - Agent bidding system for query routing
+
+2. **Story Engine**
+   - Three-character interaction beats
+   - Failed plans history tracking
+   - Callback humor system
+
+3. **TTS Integration**
+   - Cave's bombastic voice
+   - Three-voice mixing and timing
+
+**Phase 4 Goal**: Prove the full character panel experience before committing to device integration
+
+### Phase 5: Full Character Panel (Dimitria) + Advanced Features
+
+**Module Additions**:
+
+- Add Dimitria character (fourth character)
+- New tools (web search, advanced automations)
+- Visual dashboard (separate React app or extension of frontend)
+- Chapter 4+ story beats
+- Complete running gags system
+
+**Phase 5 Goal**: Complete character roster and story arc foundation
+
+### Phase 6: Real Device Integration
 
 **Module Changes**:
 
@@ -1778,16 +1832,12 @@ npm run type-check
 - Just swap controller in dependency injection
 - Test harness can test both virtual and real devices
 
-### Phase 5: Advanced Features
+**Phase 6 Benefits**:
 
-**Module Additions**:
-
-- New tools (web search, advanced automations)
-- Visual dashboard (separate React app or extension of frontend)
-- Advanced context management (vector DB, semantic search)
-- Character memory systems
-- Running gags tracker
-- Add Dimitria character (fourth character)
+- Character system fully validated before integration
+- Story experience proven engaging
+- Only pursued if character-driven approach succeeds
+- Lower risk - virtual devices work if HA integration delayed
 
 ---
 
@@ -1893,8 +1943,9 @@ npm run type-check
 ### Long-term Roadmap
 
 - **Phase 3**: Multi-character coordination (Hank integration)
-- **Phase 4**: Real Home Assistant device integration
-- **Phase 5**: Advanced features, full character panel
+- **Phase 4**: Three-character panel (Cave integration)
+- **Phase 5**: Full character panel (Dimitria) + advanced features
+- **Phase 6**: Real Home Assistant device integration (only if character experience succeeds)
 
 ---
 
