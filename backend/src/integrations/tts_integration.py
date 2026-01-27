@@ -57,19 +57,26 @@ class TTSProvider(ABC):
 class ElevenLabsTTS(TTSProvider):
     """ElevenLabs TTS implementation."""
 
-    def __init__(self, audio_dir: str = "backend/audio"):
+    def __init__(self, audio_dir: str = "audio"):
         """
         Initialize ElevenLabs TTS provider.
 
         Args:
-            audio_dir: Directory to store generated audio files
+            audio_dir: Directory to store generated audio files (relative to backend dir)
         """
         self.api_key = os.getenv("ELEVENLABS_API_KEY")
         if not self.api_key:
             logger.error("ELEVENLABS_API_KEY not found in environment")
             raise ValueError("ELEVENLABS_API_KEY is required")
 
-        self.audio_dir = Path(audio_dir)
+        # Make path absolute from backend directory
+        if not Path(audio_dir).is_absolute():
+            # Get backend directory (parent of src)
+            backend_dir = Path(__file__).parent.parent.parent
+            self.audio_dir = backend_dir / audio_dir
+        else:
+            self.audio_dir = Path(audio_dir)
+
         self.audio_dir.mkdir(exist_ok=True)
 
         # Voice mapping: character_id -> ElevenLabs voice ID
@@ -203,7 +210,7 @@ class ElevenLabsTTS(TTSProvider):
 
             payload = {
                 "text": text,
-                "model_id": "eleven_monolingual_v1",
+                "model_id": "eleven_flash_v2_5",  # Fast, supports library voices on free tier
                 "voice_settings": voice_settings
             }
 

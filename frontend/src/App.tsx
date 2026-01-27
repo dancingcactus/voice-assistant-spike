@@ -2,6 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import './App.css';
 import { WebSocketService } from './services/websocket';
 import type { Message } from './services/websocket';
+import { AudioPlayer } from './components/AudioPlayer';
+import { VoiceInput } from './components/VoiceInput';
 
 function App() {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -19,7 +21,14 @@ function App() {
 
     // Set up event handlers
     ws.onMessage((message) => {
-      setMessages((prev) => [...prev, message]);
+      setMessages((prev) => {
+        // Find the most recent user message to determine input mode
+        const lastUserMessage = [...prev].reverse().find(m => m.role === 'user');
+        const inputMode = lastUserMessage?.inputMode || 'chat';
+
+        // Add input mode to assistant message for rendering logic
+        return [...prev, { ...message, inputMode }];
+      });
     });
 
     ws.onStatus((status, message) => {
@@ -60,12 +69,13 @@ function App() {
     const userMessage: Message = {
       role: 'user',
       content: inputText,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      inputMode: 'chat'
     };
     setMessages((prev) => [...prev, userMessage]);
 
-    // Send to backend
-    wsRef.current.sendMessage(inputText);
+    // Send to backend with input mode
+    wsRef.current.sendMessage(inputText, 'chat');
 
     // Clear input
     setInputText('');
@@ -76,6 +86,28 @@ function App() {
       e.preventDefault();
       handleSend();
     }
+  };
+
+  const handleVoiceTranscript = (text: string) => {
+    // For voice input, send immediately as voice mode
+    if (!wsRef.current) return;
+
+    // Add user message to display
+    const userMessage: Message = {
+      role: 'user',
+      content: text,
+      timestamp: new Date().toISOString(),
+      inputMode: 'voice'
+    };
+    setMessages((prev) => [...prev, userMessage]);
+
+    // Send to backend with voice mode
+    wsRef.current.sendMessage(text, 'voice');
+  };
+
+  const handleVoiceError = (error: string) => {
+    console.error('Voice input error:', error);
+    setStatusMessage(error);
   };
 
   const getStatusColor = () => {
@@ -125,7 +157,7 @@ function App() {
           {messages.length === 0 && (
             <div className="empty-state">
               <p>Send a message to start chatting with Delilah!</p>
-              <p className="phase-indicator">Phase 2: LLM Integration</p>
+              <p className="phase-indicator">Phase 6: TTS Integration - Voice Input & Audio Output</p>
             </div>
           )}
           {messages.map((message, index) => (
@@ -142,10 +174,23 @@ function App() {
                 </span>
               </div>
               <div className="message-content">{message.content}</div>
+              {message.role === 'assistant' && message.inputMode === 'voice' && message.audioUrl && (
+                <AudioPlayer audioUrl={message.audioUrl} autoPlay={true} />
+              )}
+              {message.role === 'assistant' && message.inputMode === 'chat' && (
+                <AudioPlayer
+                  text={message.content}
+                  character={message.character || 'delilah'}
+                  voiceMode={message.metadata?.voice_mode}
+                  wsService={wsRef.current}
+                  autoPlay={false}
+                />
+              )}
               {message.metadata?.tokens_used && (
                 <div className="message-metadata">
                   Tokens: {message.metadata.tokens_used} |
                   Time: {message.metadata.response_time?.toFixed(2)}s
+                  {message.metadata.voice_mode && ` | Voice: ${message.metadata.voice_mode}`}
                 </div>
               )}
             </div>
@@ -166,11 +211,16 @@ function App() {
         </div>
 
         <div className="input-area">
+          <VoiceInput
+            onTranscript={handleVoiceTranscript}
+            onError={handleVoiceError}
+            disabled={connectionStatus !== 'connected'}
+          />
           <textarea
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
             onKeyDown={handleKeyPress}
-            placeholder="Type a message..."
+            placeholder="Type a message or use voice input..."
             disabled={connectionStatus !== 'connected'}
             rows={2}
           />

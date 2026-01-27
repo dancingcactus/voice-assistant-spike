@@ -130,8 +130,9 @@ async def websocket_endpoint(websocket: WebSocket):
                 # Handle user messages with ConversationManager
                 if message_data.get("type") == "user_message":
                     user_text = message_data.get("data", {}).get("text", "")
+                    input_mode = message_data.get("data", {}).get("input_mode", "chat")  # "voice" or "chat"
 
-                    logger.info(f"📨 Received from {session_id}: {user_text}")
+                    logger.info(f"📨 Received from {session_id}: {user_text} (mode: {input_mode})")
 
                     # Send typing indicator
                     await manager.send_message(
@@ -145,7 +146,8 @@ async def websocket_endpoint(websocket: WebSocket):
                     # Get response from ConversationManager (with LLM)
                     result = await conversation_manager.handle_user_message(
                         session_id=session_id,
-                        user_message=user_text
+                        user_message=user_text,
+                        input_mode=input_mode
                     )
 
                     # Build assistant response

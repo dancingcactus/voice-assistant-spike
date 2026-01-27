@@ -224,3 +224,130 @@
     opacity: 1;
   }
 }
+
+/* Audio Player */
+.audio-player {
+  margin-top: 0.75rem;
+  width: 100%;
+  max-width: 400px;
+  height: 40px;
+}
+
+.audio-player-manual {
+  margin-top: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.speak-button {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 6px;
+  background-color: #2a2a2a;
+  color: white;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 1px solid #444;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: fit-content;
+}
+
+.speak-button:hover:not(:disabled) {
+  background-color: #3a3a3a;
+  border-color: #646cff;
+  transform: translateY(-1px);
+}
+
+.speak-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.audio-error {
+  font-size: 0.75rem;
+  color: #ef4444;
+  padding: 0.25rem 0.5rem;
+  background-color: rgba(239, 68, 68, 0.1);
+  border-radius: 4px;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+/* Voice Input */
+.voice-input-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  position: relative;
+}
+
+.voice-input-button {
+  width: 50px;
+  height: 50px;
+  border: none;
+  border-radius: 50%;
+  background-color: #2a2a2a;
+  color: white;
+  font-size: 1.5rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #444;
+}
+
+.voice-input-button:hover:not(:disabled) {
+  background-color: #3a3a3a;
+  border-color: #646cff;
+  transform: scale(1.05);
+}
+
+.voice-input-button.listening {
+  background-color: #dc2626;
+  border-color: #ef4444;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.voice-input-button.unsupported {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.voice-input-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.7);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 0 0 10px rgba(220, 38, 38, 0);
+  }
+}
+
+.interim-transcript {
+  position: absolute;
+  bottom: 60px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #2a2a2a;
+  border: 1px solid #646cff;
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
+  color: #888;
+  white-space: nowrap;
+  max-width: 300px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+}

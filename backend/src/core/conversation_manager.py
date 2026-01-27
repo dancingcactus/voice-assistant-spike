@@ -203,7 +203,8 @@ class ConversationManager:
         self,
         session_id: str,
         user_message: str,
-        user_id: str = "default_user"
+        user_id: str = "default_user",
+        input_mode: str = "chat"
     ) -> Dict[str, Any]:
         """
         Handle an incoming user message and generate a response.
@@ -212,6 +213,7 @@ class ConversationManager:
             session_id: Unique session identifier
             user_message: User's message text
             user_id: User identifier
+            input_mode: Input method ("voice" or "chat") - affects TTS generation
 
         Returns:
             Dict containing:
@@ -425,8 +427,8 @@ class ConversationManager:
                 f"story_beat: {story_beat_injected})"
             )
 
-            # Phase 6: Generate TTS audio
-            if self.tts_provider:
+            # Phase 6: Generate TTS audio (only for voice input mode)
+            if self.tts_provider and input_mode == "voice":
                 try:
                     audio_path = self.tts_provider.generate_speech(
                         text=response_text,
@@ -443,6 +445,10 @@ class ConversationManager:
                 except Exception as e:
                     logger.error(f"Error generating TTS: {str(e)}", exc_info=True)
                     # Don't fail the request if TTS fails - just log and continue
+
+            # Store voice mode in metadata for potential manual TTS generation later
+            if voice_mode:
+                response["metadata"]["voice_mode"] = voice_mode
 
             return response
 

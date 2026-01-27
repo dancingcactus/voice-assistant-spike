@@ -9,9 +9,11 @@ export interface Message {
   timestamp: string;
   audioUrl?: string;
   character?: string;
+  inputMode?: 'voice' | 'chat';  // Track how the message was input
   metadata?: {
     tokens_used?: number;
     response_time?: number;
+    voice_mode?: string;
     [key: string]: any;
   };
 }
@@ -83,7 +85,7 @@ export class WebSocketService {
     }
   }
 
-  sendMessage(text: string): void {
+  sendMessage(text: string, inputMode: 'voice' | 'chat' = 'chat'): void {
     if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
       this.notifyError('WebSocket is not connected');
       return;
@@ -91,11 +93,43 @@ export class WebSocketService {
 
     const message: WebSocketMessage = {
       type: 'user_message',
-      data: { text },
+      data: {
+        text,
+        input_mode: inputMode
+      },
       timestamp: new Date().toISOString()
     };
 
     this.ws.send(JSON.stringify(message));
+  }
+
+  /**
+   * Request TTS generation for a given text
+   * @param text Text to convert to speech
+   * @param characterId Character ID for voice selection
+   * @param voiceMode Optional voice mode
+   * @returns Promise with audio URL
+   */
+  async requestTTS(text: string, characterId: string = 'delilah', voiceMode?: string): Promise<string> {
+    const response = await fetch('http://localhost:8000/api/tts/generate', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        text,
+        character_id: characterId,
+        voice_mode: voiceMode
+      })
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'TTS generation failed');
+    }
+
+    const data = await response.json();
+    return data.audio_url;
   }
 
   onMessage(handler: MessageHandler): () => void {

@@ -67,7 +67,11 @@ app = FastAPI(
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:3000"],  # Vite and Express dev servers
+    allow_origins=[
+        "http://localhost:5173",
+        "http://localhost:5174",  # Vite dev server (alternate port)
+        "http://localhost:3000"   # Express dev server
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -82,8 +86,10 @@ app.mount("/audio", StaticFiles(directory=str(audio_dir)), name="audio")
 
 # Import and register routers
 from api.websocket import router as websocket_router, memory_manager
+from api.tts_api import router as tts_router, set_tts_provider
 
 app.include_router(websocket_router)
+app.include_router(tts_router)
 
 # Startup event to initialize memory manager periodic flush
 @app.on_event("startup")
@@ -91,6 +97,12 @@ async def startup_event():
     """Initialize background tasks on startup"""
     await memory_manager.start_periodic_flush()
     print("✅ Memory Manager periodic flush started")
+
+    # Register TTS provider with TTS API if available
+    from api.websocket import conversation_manager
+    if conversation_manager.tts_provider:
+        set_tts_provider(conversation_manager.tts_provider)
+        print("✅ TTS provider registered with TTS API")
 
 # Shutdown event to clean up
 @app.on_event("shutdown")
