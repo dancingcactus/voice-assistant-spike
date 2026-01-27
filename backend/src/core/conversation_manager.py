@@ -9,12 +9,15 @@ Responsibilities:
 """
 
 import logging
+import json
 from typing import List, Dict, Any, Optional
 from datetime import datetime
 
 from models.message import Message, ConversationContext, LLMResponse, ToolCall
 from integrations.llm_integration import LLMIntegration
 from core.character_system import CharacterSystem
+from core.tool_system import ToolSystem
+from tools.tool_base import ToolContext
 
 logger = logging.getLogger(__name__)
 
@@ -26,8 +29,10 @@ class ConversationManager:
         self,
         llm_integration: Optional[LLMIntegration] = None,
         character_system: Optional[CharacterSystem] = None,
+        tool_system: Optional[ToolSystem] = None,
         max_history: int = 10,
-        default_character: str = "delilah"
+        default_character: str = "delilah",
+        max_tool_calls: int = 5
     ):
         """
         Initialize the Conversation Manager.
@@ -35,20 +40,25 @@ class ConversationManager:
         Args:
             llm_integration: LLM integration instance (creates one if not provided)
             character_system: Character system instance (creates one if not provided)
+            tool_system: Tool system instance (creates one if not provided)
             max_history: Maximum number of messages to keep in history
             default_character: Default character ID to use
+            max_tool_calls: Maximum tool calls per turn (circuit breaker)
         """
         self.llm = llm_integration or LLMIntegration()
         self.character_system = character_system or CharacterSystem()
+        self.tool_system = tool_system or ToolSystem()
         self.max_history = max_history
         self.default_character = default_character
+        self.max_tool_calls = max_tool_calls
 
         # Store active conversations by session_id
         self.conversations: Dict[str, ConversationContext] = {}
 
         logger.info(
             f"Conversation Manager initialized "
-            f"(max_history={max_history}, default_character={default_character})"
+            f"(max_history={max_history}, default_character={default_character}, "
+            f"max_tool_calls={max_tool_calls})"
         )
 
     def get_or_create_conversation(
@@ -198,21 +208,86 @@ class ConversationManager:
             # Prepare messages for LLM (pass user_message for voice mode selection)
             messages = self._prepare_messages(context, user_message=user_message)
 
-            # Generate response from LLM
+            # Get tool definitions
+            tools = self.tool_system.get_openai_functions() if self.tool_system.list_tools() else None
+
+            # Generate response from LLM (with tool calling if tools available)
             llm_response = self.llm.generate_response(
                 messages=messages,
-                temperature=0.7
+                temperature=0.7,
+                tools=tools
             )
 
-            # Extract response text
+            # Handle tool calls if present
+            tool_call_count = 0
+            while llm_response.get("tool_calls") and tool_call_count < self.max_tool_calls:
+                tool_call_count += 1
+                logger.info(f"Processing tool call {tool_call_count}/{self.max_tool_calls}")
+
+                # Add assistant message with tool calls to history
+                assistant_msg = Message(
+                    role="assistant",
+                    content=llm_response.get("content", ""),
+                    timestamp=datetime.utcnow()
+                )
+                context.history.append(assistant_msg)
+
+                # Execute each tool call
+                tool_results = []
+                for tool_call in llm_response["tool_calls"]:
+                    tool_name = tool_call["function"]["name"]
+                    try:
+                        arguments = json.loads(tool_call["function"]["arguments"])
+                    except json.JSONDecodeError:
+                        arguments = {}
+
+                    # Create tool context
+                    tool_context = ToolContext(
+                        user_id=user_id,
+                        session_id=session_id,
+                        character_id=self.default_character,
+                        metadata=context.metadata
+                    )
+
+                    # Execute tool
+                    result = await self.tool_system.execute_tool(
+                        tool_name,
+                        tool_context,
+                        arguments
+                    )
+
+                    tool_results.append({
+                        "tool_call_id": tool_call["id"],
+                        "role": "tool",
+                        "name": tool_name,
+                        "content": result.message
+                    })
+
+                # Add tool results to messages for next LLM call
+                messages = self._prepare_messages(context, user_message=None)
+                for tool_result in tool_results:
+                    messages.append(tool_result)
+
+                # Get next LLM response with tool results
+                llm_response = self.llm.generate_response(
+                    messages=messages,
+                    temperature=0.7,
+                    tools=tools
+                )
+
+            # Circuit breaker: if max tool calls reached
+            if tool_call_count >= self.max_tool_calls:
+                logger.warning(f"Hit tool call limit ({self.max_tool_calls}) for session {session_id}")
+
+            # Extract final response text
             response_text = llm_response.get("content", "")
 
             if not response_text:
-                # Handle case where there's no content (e.g., only tool calls)
-                response_text = "I'm not sure how to respond to that."
-                logger.warning(f"No content in LLM response for session {session_id}")
+                # Handle case where there's no content
+                response_text = "I've completed the task."
+                logger.warning(f"No content in final LLM response for session {session_id}")
 
-            # Add assistant message to history
+            # Add final assistant message to history
             assistant_msg = Message(
                 role="assistant",
                 content=response_text,
@@ -230,17 +305,18 @@ class ConversationManager:
                     "session_id": session_id,
                     "tokens_used": llm_response["usage"]["total_tokens"],
                     "response_time": llm_response["response_time"],
-                    "finish_reason": llm_response["finish_reason"]
+                    "finish_reason": llm_response["finish_reason"],
+                    "tool_calls_made": tool_call_count
                 }
             }
 
             logger.info(
                 f"Generated response for session {session_id} "
                 f"(tokens: {llm_response['usage']['total_tokens']}, "
-                f"time: {llm_response['response_time']:.2f}s)"
+                f"time: {llm_response['response_time']:.2f}s, "
+                f"tool_calls: {tool_call_count})"
             )
 
-            # TODO: Phase 4 - Handle tool calls if present
             # TODO: Phase 5 - Check for story beat injection
             # TODO: Phase 6 - Generate TTS audio
 

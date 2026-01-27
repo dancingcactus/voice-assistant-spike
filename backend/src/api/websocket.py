@@ -11,10 +11,20 @@ import logging
 
 from models.message import WebSocketMessage, UserMessage, AssistantResponse
 from core.conversation_manager import ConversationManager
+from core.tool_system import ToolSystem
+from tools.timer_tool import TimerTool
+from tools.device_tool import DeviceTool
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
+
+# Initialize Tool System and register tools
+tool_system = ToolSystem()
+tool_system.register_tool(TimerTool())
+tool_system.register_tool(DeviceTool())
+
+logger.info(f"Registered tools: {tool_system.list_tools()}")
 
 
 class ConnectionManager:
@@ -52,7 +62,7 @@ class ConnectionManager:
 
 # Global connection manager and conversation manager
 manager = ConnectionManager()
-conversation_manager = ConversationManager()
+conversation_manager = ConversationManager(tool_system=tool_system)
 
 
 @router.websocket("/ws")
