@@ -1,18 +1,34 @@
 """
 Aperture Assist - Main application entry point
-Phase 1: Foundation Setup
+Phase 2: LLM Integration
 """
 import os
+import sys
 from pathlib import Path
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from dotenv import load_dotenv
 
+# Add the backend/src directory to the Python path for imports
+src_dir = Path(__file__).parent
+sys.path.insert(0, str(src_dir))
+
 # Load environment variables from backend/.env
+# Clear any existing OpenAI key from shell environment first to ensure backend/.env takes precedence
+if 'OPENAI_API_KEY' in os.environ:
+    del os.environ['OPENAI_API_KEY']
+
 backend_dir = Path(__file__).parent.parent
 dotenv_path = backend_dir / ".env"
 load_dotenv(dotenv_path=dotenv_path, override=True)
+
+# Verify we loaded the backend .env
+loaded_key = os.getenv('OPENAI_API_KEY', '')
+if loaded_key:
+    print(f"✅ Loaded OpenAI key from backend/.env: ...{loaded_key[-6:]}")
+else:
+    print("⚠️  No OpenAI key found!")
 
 # Validate required environment variables
 def validate_environment():
@@ -65,11 +81,7 @@ audio_dir.mkdir(exist_ok=True)
 app.mount("/audio", StaticFiles(directory=str(audio_dir)), name="audio")
 
 # Import and register routers
-# Use try/except to handle both module and direct execution
-try:
-    from .api.websocket import router as websocket_router
-except ImportError:
-    from api.websocket import router as websocket_router
+from api.websocket import router as websocket_router
 
 app.include_router(websocket_router)
 

@@ -8,6 +8,7 @@ function App() {
   const [inputText, setInputText] = useState('');
   const [connectionStatus, setConnectionStatus] = useState<'connected' | 'disconnected' | 'error'>('disconnected');
   const [statusMessage, setStatusMessage] = useState('');
+  const [isThinking, setIsThinking] = useState(false);
   const wsRef = useRef<WebSocketService | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -24,6 +25,13 @@ function App() {
     ws.onStatus((status, message) => {
       setConnectionStatus(status);
       setStatusMessage(message || '');
+
+      // Handle thinking status
+      if (message === 'thinking') {
+        setIsThinking(true);
+      } else if (status === 'connected') {
+        setIsThinking(false);
+      }
     });
 
     ws.onError((error) => {
@@ -117,7 +125,7 @@ function App() {
           {messages.length === 0 && (
             <div className="empty-state">
               <p>Send a message to start chatting with Delilah!</p>
-              <p className="phase-indicator">Phase 1: Echo Mode</p>
+              <p className="phase-indicator">Phase 2: LLM Integration</p>
             </div>
           )}
           {messages.map((message, index) => (
@@ -134,8 +142,26 @@ function App() {
                 </span>
               </div>
               <div className="message-content">{message.content}</div>
+              {message.metadata?.tokens_used && (
+                <div className="message-metadata">
+                  Tokens: {message.metadata.tokens_used} |
+                  Time: {message.metadata.response_time?.toFixed(2)}s
+                </div>
+              )}
             </div>
           ))}
+          {isThinking && (
+            <div className="message assistant thinking">
+              <div className="message-header">
+                <span className="message-role">Delilah</span>
+              </div>
+              <div className="message-content thinking-indicator">
+                <span className="dot"></span>
+                <span className="dot"></span>
+                <span className="dot"></span>
+              </div>
+            </div>
+          )}
           <div ref={messagesEndRef} />
         </div>
 

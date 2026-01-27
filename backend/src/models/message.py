@@ -40,3 +40,19 @@ class ConversationContext(BaseModel):
     user_id: str = Field(default="default_user")
     history: List[Message] = Field(default_factory=list)
     metadata: Dict[str, Any] = Field(default_factory=dict)
+
+
+class ToolCall(BaseModel):
+    """A tool/function call from the LLM"""
+    id: str = Field(..., description="Unique identifier for this tool call")
+    type: str = Field(default="function", description="Type of tool call")
+    function: Dict[str, str] = Field(..., description="Function name and arguments")
+
+
+class LLMResponse(BaseModel):
+    """Response from the LLM including content and metadata"""
+    content: Optional[str] = Field(None, description="Text content of the response")
+    tool_calls: Optional[List[ToolCall]] = Field(None, description="Tool calls requested by LLM")
+    finish_reason: str = Field(..., description="Reason the model stopped generating")
+    usage: Dict[str, int] = Field(..., description="Token usage statistics")
+    response_time: float = Field(..., description="Time taken to generate response")

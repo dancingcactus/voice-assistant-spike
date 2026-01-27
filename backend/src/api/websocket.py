@@ -1,17 +1,18 @@
 """
 WebSocket endpoint for real-time communication
-Phase 1: Basic echo functionality
+Phase 2: LLM integration via ConversationManager
 """
 import json
 import uuid
 from typing import Dict
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from datetime import datetime
+import logging
 
-try:
-    from ..models.message import WebSocketMessage, UserMessage, AssistantResponse
-except ImportError:
-    from models.message import WebSocketMessage, UserMessage, AssistantResponse
+from models.message import WebSocketMessage, UserMessage, AssistantResponse
+from core.conversation_manager import ConversationManager
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -49,8 +50,9 @@ class ConnectionManager:
         await self.send_message(session_id, message)
 
 
-# Global connection manager
+# Global connection manager and conversation manager
 manager = ConnectionManager()
+conversation_manager = ConversationManager()
 
 
 @router.websocket("/ws")
@@ -85,20 +87,32 @@ async def websocket_endpoint(websocket: WebSocket):
                 # Parse incoming message
                 message_data = json.loads(data)
 
-                # For Phase 1, just echo back the message
+                # Handle user messages with ConversationManager
                 if message_data.get("type") == "user_message":
                     user_text = message_data.get("data", {}).get("text", "")
 
-                    print(f"📨 Received from {session_id}: {user_text}")
+                    logger.info(f"📨 Received from {session_id}: {user_text}")
 
-                    # Echo response (will be replaced with LLM in Phase 2)
+                    # Send typing indicator
+                    await manager.send_message(
+                        session_id,
+                        WebSocketMessage(
+                            type="status",
+                            data={"status": "thinking"}
+                        )
+                    )
+
+                    # Get response from ConversationManager (with LLM)
+                    result = await conversation_manager.handle_user_message(
+                        session_id=session_id,
+                        user_message=user_text
+                    )
+
+                    # Build assistant response
                     response = AssistantResponse(
-                        text=f"Echo: {user_text}",
+                        text=result["text"],
                         character="delilah",
-                        metadata={
-                            "phase": "1",
-                            "mode": "echo"
-                        }
+                        metadata=result.get("metadata", {})
                     )
 
                     # Send response
@@ -110,7 +124,10 @@ async def websocket_endpoint(websocket: WebSocket):
                         )
                     )
 
-                    print(f"📤 Sent to {session_id}: {response.text}")
+                    logger.info(
+                        f"📤 Sent to {session_id}: {response.text[:50]}... "
+                        f"(tokens: {result['metadata'].get('tokens_used', 0)})"
+                    )
 
             except json.JSONDecodeError:
                 await manager.send_error(session_id, "Invalid JSON format")

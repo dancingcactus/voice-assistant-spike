@@ -9,6 +9,11 @@ export interface Message {
   timestamp: string;
   audioUrl?: string;
   character?: string;
+  metadata?: {
+    tokens_used?: number;
+    response_time?: number;
+    [key: string]: any;
+  };
 }
 
 export interface WebSocketMessage {
@@ -122,15 +127,20 @@ export class WebSocketService {
           content: wsMessage.data.text,
           timestamp: wsMessage.timestamp,
           audioUrl: wsMessage.data.audio_url,
-          character: wsMessage.data.character
+          character: wsMessage.data.character,
+          metadata: wsMessage.data.metadata
         };
         this.notifyMessage(message);
+        // Clear thinking status when response arrives
+        this.notifyStatus('connected');
         break;
 
       case 'status':
         console.log('Status:', wsMessage.data);
         if (wsMessage.data.status === 'connected') {
           this.notifyStatus('connected', wsMessage.data.message);
+        } else if (wsMessage.data.status === 'thinking') {
+          this.notifyStatus('connected', 'thinking');
         }
         break;
 
