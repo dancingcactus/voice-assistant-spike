@@ -14,8 +14,10 @@ from models.message import WebSocketMessage, UserMessage, AssistantResponse
 from core.conversation_manager import ConversationManager
 from core.story_engine import StoryEngine
 from core.tool_system import ToolSystem
+from integrations.tts_integration import create_tts_provider
 from tools.timer_tool import TimerTool
 from tools.device_tool import DeviceTool
+import os
 
 logger = logging.getLogger(__name__)
 
@@ -31,6 +33,17 @@ logger.info(f"Registered tools: {tool_system.list_tools()}")
 # Initialize Story Engine with correct path (relative to project root)
 story_dir = Path(__file__).parent.parent.parent.parent / "story"
 story_engine = StoryEngine(story_dir=str(story_dir))
+
+# Initialize TTS Provider (optional - only if ElevenLabs is configured)
+tts_provider = None
+try:
+    if os.getenv("ELEVENLABS_API_KEY") and os.getenv("ELEVENLABS_VOICE_ID"):
+        tts_provider = create_tts_provider("elevenlabs")
+        logger.info("TTS provider initialized (ElevenLabs)")
+    else:
+        logger.info("TTS provider disabled (no API keys configured)")
+except Exception as e:
+    logger.warning(f"Failed to initialize TTS provider: {str(e)}")
 
 
 class ConnectionManager:
@@ -70,7 +83,8 @@ class ConnectionManager:
 manager = ConnectionManager()
 conversation_manager = ConversationManager(
     tool_system=tool_system,
-    story_engine=story_engine
+    story_engine=story_engine,
+    tts_provider=tts_provider
 )
 
 

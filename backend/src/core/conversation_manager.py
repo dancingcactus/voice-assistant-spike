@@ -15,6 +15,7 @@ from datetime import datetime
 
 from models.message import Message, ConversationContext, LLMResponse, ToolCall
 from integrations.llm_integration import LLMIntegration
+from integrations.tts_integration import TTSProvider
 from core.character_system import CharacterSystem
 from core.tool_system import ToolSystem
 from core.story_engine import StoryEngine
@@ -32,6 +33,7 @@ class ConversationManager:
         character_system: Optional[CharacterSystem] = None,
         tool_system: Optional[ToolSystem] = None,
         story_engine: Optional[StoryEngine] = None,
+        tts_provider: Optional[TTSProvider] = None,
         max_history: int = 10,
         default_character: str = "delilah",
         max_tool_calls: int = 5
@@ -44,6 +46,7 @@ class ConversationManager:
             character_system: Character system instance (creates one if not provided)
             tool_system: Tool system instance (creates one if not provided)
             story_engine: Story engine instance (creates one if not provided)
+            tts_provider: TTS provider instance (optional, for voice output)
             max_history: Maximum number of messages to keep in history
             default_character: Default character ID to use
             max_tool_calls: Maximum tool calls per turn (circuit breaker)
@@ -52,6 +55,7 @@ class ConversationManager:
         self.character_system = character_system or CharacterSystem()
         self.tool_system = tool_system or ToolSystem()
         self.story_engine = story_engine or StoryEngine()
+        self.tts_provider = tts_provider  # Optional - voice output
         self.max_history = max_history
         self.default_character = default_character
         self.max_tool_calls = max_tool_calls
@@ -62,7 +66,7 @@ class ConversationManager:
         logger.info(
             f"Conversation Manager initialized "
             f"(max_history={max_history}, default_character={default_character}, "
-            f"max_tool_calls={max_tool_calls})"
+            f"max_tool_calls={max_tool_calls}, tts={self.tts_provider is not None})"
         )
 
     def get_or_create_conversation(
@@ -208,6 +212,15 @@ class ConversationManager:
             context.history.append(user_msg)
 
             logger.info(f"Processing user message in session {session_id}: {user_message[:50]}...")
+
+            # Select voice mode for this response (store for TTS later)
+            voice_mode = None
+            voice_mode_selection = self.character_system.select_voice_mode(
+                self.default_character, user_message, context.metadata
+            )
+            if voice_mode_selection:
+                voice_mode = voice_mode_selection.mode.name.lower()
+                logger.debug(f"Selected voice mode: {voice_mode}")
 
             # Prepare messages for LLM (pass user_message for voice mode selection)
             messages = self._prepare_messages(context, user_message=user_message)
@@ -384,7 +397,24 @@ class ConversationManager:
                 f"story_beat: {story_beat_injected})"
             )
 
-            # TODO: Phase 6 - Generate TTS audio
+            # Phase 6: Generate TTS audio
+            if self.tts_provider:
+                try:
+                    audio_path = self.tts_provider.generate_speech(
+                        text=response_text,
+                        character_id=self.default_character,
+                        voice_mode=voice_mode
+                    )
+
+                    if audio_path:
+                        response["metadata"]["audio_url"] = f"/{audio_path}"
+                        logger.info(f"Generated TTS audio: {audio_path}")
+                    else:
+                        logger.warning("TTS generation returned no audio path")
+
+                except Exception as e:
+                    logger.error(f"Error generating TTS: {str(e)}", exc_info=True)
+                    # Don't fail the request if TTS fails - just log and continue
 
             return response
 
