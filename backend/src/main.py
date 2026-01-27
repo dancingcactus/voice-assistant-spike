@@ -81,9 +81,24 @@ audio_dir.mkdir(exist_ok=True)
 app.mount("/audio", StaticFiles(directory=str(audio_dir)), name="audio")
 
 # Import and register routers
-from api.websocket import router as websocket_router
+from api.websocket import router as websocket_router, memory_manager
 
 app.include_router(websocket_router)
+
+# Startup event to initialize memory manager periodic flush
+@app.on_event("startup")
+async def startup_event():
+    """Initialize background tasks on startup"""
+    await memory_manager.start_periodic_flush()
+    print("✅ Memory Manager periodic flush started")
+
+# Shutdown event to clean up
+@app.on_event("shutdown")
+async def shutdown_event():
+    """Clean up on shutdown"""
+    memory_manager.stop_periodic_flush()
+    await memory_manager.flush_dirty_users()
+    print("✅ Memory Manager flushed and stopped")
 
 # Test API will be added in Phase 8
 # from .api.test_api import router as test_router
@@ -97,7 +112,7 @@ async def root():
         "name": "Aperture Assist API",
         "version": "0.1.0",
         "status": "online",
-        "phase": "4 - Tool System (Timers & Devices)"
+        "phase": "6 - TTS Integration (Voice Input & Audio Output)"
     }
 
 @app.get("/health")
@@ -116,10 +131,13 @@ if __name__ == "__main__":
     print("=" * 50)
     print(f"🌐 Server: http://localhost:{port}")
     print(f"📚 API Docs: http://localhost:{port}/docs")
-    print(f"🤖 Phase 4: Tool System")
-    print(f"   - Delilah with 6 voice modes")
-    print(f"   - Timer management")
-    print(f"   - 10 virtual devices")
+    print(f"🤖 Phase 7: Memory & State")
+    print(f"   - Persistent user state & preferences")
+    print(f"   - 30-minute conversation history window")
+    print(f"   - Story progress persistence")
+    print(f"   - Device state persistence")
+    print(f"   - Delilah with 6 voice modes + TTS")
+    print(f"   - Timer & device management")
     print("=" * 50)
     print("💡 Press Ctrl+C to stop\n")
     

@@ -20,6 +20,10 @@ from models.story import (
     StoryBeat, Chapter, UserStoryState, BeatProgress,
     ChapterProgress, BeatVariant, BeatTrigger, BeatStage
 )
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from core.memory_manager import MemoryManager
 
 logger = logging.getLogger(__name__)
 
@@ -27,17 +31,19 @@ logger = logging.getLogger(__name__)
 class StoryEngine:
     """Manages story progression and beat delivery."""
 
-    def __init__(self, story_dir: str = "story"):
+    def __init__(self, story_dir: str = "story", memory_manager: Optional["MemoryManager"] = None):
         """
         Initialize the Story Engine.
 
         Args:
             story_dir: Directory containing story beats and chapters
+            memory_manager: Memory manager instance for persistent storage
         """
         self.story_dir = Path(story_dir)
         self.beats: Dict[int, List[StoryBeat]] = {}  # chapter_id -> beats
         self.chapters: Dict[int, Chapter] = {}  # chapter_id -> chapter
-        self.user_states: Dict[str, UserStoryState] = {}  # user_id -> state
+        self.user_states: Dict[str, UserStoryState] = {}  # user_id -> state (in-memory cache)
+        self.memory_manager = memory_manager  # Optional - for persistent storage
 
         # Load story content
         self._load_chapters()
@@ -45,7 +51,8 @@ class StoryEngine:
 
         logger.info(
             f"Story Engine initialized: {len(self.chapters)} chapters, "
-            f"{sum(len(b) for b in self.beats.values())} beats"
+            f"{sum(len(b) for b in self.beats.values())} beats, "
+            f"memory={self.memory_manager is not None}"
         )
 
     def _load_chapters(self):
@@ -102,6 +109,7 @@ class StoryEngine:
     def get_or_create_user_state(self, user_id: str) -> UserStoryState:
         """
         Get existing user state or create a new one.
+        Loads from persistent storage if memory_manager is available.
 
         Args:
             user_id: User identifier
@@ -110,8 +118,44 @@ class StoryEngine:
             UserStoryState for this user
         """
         if user_id not in self.user_states:
-            self.user_states[user_id] = UserStoryState(user_id=user_id)
-            logger.info(f"Created new story state for user {user_id}")
+            # Try to load from memory manager if available
+            if self.memory_manager:
+                user_state = self.memory_manager.load_user_state(user_id)
+                # Convert StoryProgress to UserStoryState
+                story_state = UserStoryState(user_id=user_id)
+                story_state.current_chapter = user_state.story_progress.current_chapter
+                story_state.total_interactions = user_state.story_progress.interaction_count
+
+                # Reconstruct beat progress and chapter progress from stored data
+                for beat_id, beat_data in user_state.story_progress.beats_delivered.items():
+                    progress = BeatProgress(
+                        beat_id=beat_id,
+                        delivered=beat_data.get("delivered", False),
+                        current_stage=beat_data.get("current_stage", 1),
+                        delivered_stages=set(beat_data.get("delivered_stages", [])),
+                        first_delivered_at=beat_data.get("first_delivered_at")
+                    )
+
+                    # Determine which chapter this beat belongs to
+                    chapter_id = story_state.current_chapter  # Assume current chapter for now
+
+                    # Create chapter progress if it doesn't exist
+                    if chapter_id not in story_state.chapter_progress:
+                        story_state.chapter_progress[chapter_id] = ChapterProgress(
+                            chapter_id=chapter_id,
+                            started_at=user_state.story_progress.first_interaction or datetime.utcnow(),
+                            interaction_count=story_state.total_interactions
+                        )
+
+                    # Add beat progress to chapter
+                    story_state.chapter_progress[chapter_id].beat_progress[beat_id] = progress
+
+                self.user_states[user_id] = story_state
+                logger.info(f"Loaded story state for user {user_id} (Chapter {story_state.current_chapter})")
+            else:
+                # Create new state
+                self.user_states[user_id] = UserStoryState(user_id=user_id)
+                logger.info(f"Created new story state for user {user_id}")
 
         return self.user_states[user_id]
 
@@ -360,6 +404,43 @@ class StoryEngine:
 
         logger.info(f"Marked beat '{beat_id}' stage {stage} as delivered for user {user_id}")
 
+        # Save to persistent storage
+        self._save_story_state(user_id, state)
+
+    def _save_story_state(self, user_id: str, state: UserStoryState):
+        """Save story state to persistent storage via Memory Manager."""
+        if not self.memory_manager:
+            return
+
+        # Convert UserStoryState to format for memory manager
+        # Collect all beat progress from all chapters
+        beats_delivered = {}
+        for chapter_id, chapter_progress in state.chapter_progress.items():
+            for beat_id, progress in chapter_progress.beat_progress.items():
+                beats_delivered[beat_id] = {
+                    "delivered": progress.delivered,
+                    "current_stage": progress.current_stage,
+                    "delivered_stages": progress.delivered_stages,  # Already a list in BeatProgress
+                    "first_delivered_at": progress.first_triggered
+                }
+
+        # Update story progress in memory manager
+        # Get first interaction from chapter progress
+        first_interaction = None
+        if state.chapter_progress:
+            for chapter_progress in state.chapter_progress.values():
+                if chapter_progress.started_at:
+                    first_interaction = chapter_progress.started_at
+                    break
+
+        self.memory_manager.update_story_progress(
+            user_id,
+            current_chapter=state.current_chapter,
+            beats_delivered=beats_delivered,
+            interaction_count=state.total_interactions,
+            first_interaction=first_interaction
+        )
+
     def _find_beat(self, beat_id: str, chapter_id: int) -> Optional[StoryBeat]:
         """Find a beat by ID in a specific chapter."""
         chapter_beats = self.beats.get(chapter_id, [])
@@ -449,6 +530,9 @@ class StoryEngine:
             # Progress to next chapter
             state.current_chapter = next_chapter
             state.updated_at = datetime.utcnow()
+
+            # Save to persistent storage
+            self._save_story_state(user_id, state)
 
             return next_chapter
 

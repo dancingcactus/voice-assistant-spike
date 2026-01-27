@@ -14,6 +14,7 @@ from models.message import WebSocketMessage, UserMessage, AssistantResponse
 from core.conversation_manager import ConversationManager
 from core.story_engine import StoryEngine
 from core.tool_system import ToolSystem
+from core.memory_manager import MemoryManager
 from integrations.tts_integration import create_tts_provider
 from tools.timer_tool import TimerTool
 from tools.device_tool import DeviceTool
@@ -22,6 +23,11 @@ import os
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
+
+# Initialize Memory Manager (Phase 7)
+data_dir = Path(__file__).parent.parent.parent.parent / "data"
+memory_manager = MemoryManager(data_dir=str(data_dir))
+logger.info(f"Memory Manager initialized (data_dir: {data_dir})")
 
 # Initialize Tool System and register tools
 tool_system = ToolSystem()
@@ -32,7 +38,7 @@ logger.info(f"Registered tools: {tool_system.list_tools()}")
 
 # Initialize Story Engine with correct path (relative to project root)
 story_dir = Path(__file__).parent.parent.parent.parent / "story"
-story_engine = StoryEngine(story_dir=str(story_dir))
+story_engine = StoryEngine(story_dir=str(story_dir), memory_manager=memory_manager)
 
 # Initialize TTS Provider (optional - only if ElevenLabs is configured)
 tts_provider = None
@@ -84,7 +90,8 @@ manager = ConnectionManager()
 conversation_manager = ConversationManager(
     tool_system=tool_system,
     story_engine=story_engine,
-    tts_provider=tts_provider
+    tts_provider=tts_provider,
+    memory_manager=memory_manager
 )
 
 
@@ -142,10 +149,12 @@ async def websocket_endpoint(websocket: WebSocket):
                     )
 
                     # Build assistant response
+                    metadata = result.get("metadata", {})
                     response = AssistantResponse(
                         text=result["text"],
+                        audio_url=metadata.get("audio_url"),
                         character="delilah",
-                        metadata=result.get("metadata", {})
+                        metadata=metadata
                     )
 
                     # Send response

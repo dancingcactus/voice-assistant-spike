@@ -14,11 +14,13 @@ from typing import List, Dict, Any, Optional
 from datetime import datetime
 
 from models.message import Message, ConversationContext, LLMResponse, ToolCall
+from models.user_state import ConversationMessage
 from integrations.llm_integration import LLMIntegration
 from integrations.tts_integration import TTSProvider
 from core.character_system import CharacterSystem
 from core.tool_system import ToolSystem
 from core.story_engine import StoryEngine
+from core.memory_manager import MemoryManager
 from tools.tool_base import ToolContext
 
 logger = logging.getLogger(__name__)
@@ -34,6 +36,7 @@ class ConversationManager:
         tool_system: Optional[ToolSystem] = None,
         story_engine: Optional[StoryEngine] = None,
         tts_provider: Optional[TTSProvider] = None,
+        memory_manager: Optional[MemoryManager] = None,
         max_history: int = 10,
         default_character: str = "delilah",
         max_tool_calls: int = 5
@@ -47,6 +50,7 @@ class ConversationManager:
             tool_system: Tool system instance (creates one if not provided)
             story_engine: Story engine instance (creates one if not provided)
             tts_provider: TTS provider instance (optional, for voice output)
+            memory_manager: Memory manager instance (creates one if not provided)
             max_history: Maximum number of messages to keep in history
             default_character: Default character ID to use
             max_tool_calls: Maximum tool calls per turn (circuit breaker)
@@ -56,17 +60,19 @@ class ConversationManager:
         self.tool_system = tool_system or ToolSystem()
         self.story_engine = story_engine or StoryEngine()
         self.tts_provider = tts_provider  # Optional - voice output
+        self.memory_manager = memory_manager or MemoryManager()
         self.max_history = max_history
         self.default_character = default_character
         self.max_tool_calls = max_tool_calls
 
-        # Store active conversations by session_id
+        # Store active conversations by session_id (in-memory for current session)
         self.conversations: Dict[str, ConversationContext] = {}
 
         logger.info(
             f"Conversation Manager initialized "
             f"(max_history={max_history}, default_character={default_character}, "
-            f"max_tool_calls={max_tool_calls}, tts={self.tts_provider is not None})"
+            f"max_tool_calls={max_tool_calls}, tts={self.tts_provider is not None}, "
+            f"memory={self.memory_manager is not None})"
         )
 
     def get_or_create_conversation(
@@ -76,6 +82,7 @@ class ConversationManager:
     ) -> ConversationContext:
         """
         Get existing conversation or create a new one.
+        Loads conversation history from persistent storage via Memory Manager.
 
         Args:
             session_id: Unique session identifier
@@ -85,13 +92,25 @@ class ConversationManager:
             ConversationContext for this session
         """
         if session_id not in self.conversations:
+            # Load user state from persistent storage
+            user_state = self.memory_manager.load_user_state(user_id)
+
+            # Convert stored conversation messages to Message objects
+            history = []
+            for conv_msg in user_state.conversation_history.messages:
+                history.append(Message(
+                    role=conv_msg.role,
+                    content=conv_msg.content,
+                    timestamp=conv_msg.timestamp
+                ))
+
             self.conversations[session_id] = ConversationContext(
                 session_id=session_id,
                 user_id=user_id,
-                history=[],
+                history=history,
                 metadata={}
             )
-            logger.info(f"Created new conversation for session {session_id}")
+            logger.info(f"Created/loaded conversation for session {session_id} (user: {user_id}, {len(history)} messages)")
 
         return self.conversations[session_id]
 
@@ -210,6 +229,12 @@ class ConversationManager:
                 timestamp=datetime.utcnow()
             )
             context.history.append(user_msg)
+
+            # Save user message to persistent storage
+            self.memory_manager.add_conversation_message(user_id, user_msg, "user")
+
+            # Increment interaction count for story progression
+            self.memory_manager.increment_interaction_count(user_id)
 
             logger.info(f"Processing user message in session {session_id}: {user_message[:50]}...")
 
@@ -370,7 +395,10 @@ class ConversationManager:
             )
             context.history.append(assistant_msg)
 
-            # Manage history size
+            # Save assistant message to persistent storage
+            self.memory_manager.add_conversation_message(user_id, assistant_msg, "assistant")
+
+            # Manage history size (in-memory context only)
             self._manage_history(context)
 
             # Build response
