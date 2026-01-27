@@ -130,16 +130,36 @@ Try these types of questions to see her different modes in action:
 
 ```
 voice-assistant-spike/
-├── server.js           # Backend server with OpenAI and ElevenLabs integration
-├── public/
-│   └── index.html      # Frontend push-to-talk interface
-├── package.json        # Node.js dependencies
-├── .env                # Environment variables (not in git)
-├── .env.example        # Template for environment variables
-├── CHARACTER_LILA.md   # Full character voice guide
+├── backend/            # Python FastAPI backend
+│   ├── src/           # Source code (core, integrations, tools, models, api)
+│   └── requirements.txt
+├── frontend/          # React + TypeScript frontend
+│   └── src/           # Components, services, types
+├── docs/              # Documentation
+│   ├── narrative/     # Character guides and story chapters
+│   ├── technical/     # Architecture and planning docs
+│   │   └── phase1/    # Phase 1 specific documentation
+│   └── testing/       # Testing documentation
+│       ├── manual/    # Manual testing guides and quick commands
+│       ├── phase4/    # Phase 4 (Tool System) testing
+│       ├── phase5/    # Phase 5 (Story Engine) testing
+│       └── phase7/    # Phase 7 (Memory & State) testing
+├── story/             # Story content (characters, beats, chapters)
+├── diagnostics/       # Debug and demo scripts
+├── tests/             # Automated test scenarios
+├── data/              # Runtime data (gitignored)
+├── shared/            # Shared schemas
 ├── CLAUDE.md          # Project vision and architecture
 └── README.md          # This file
 ```
+
+## Documentation Guide
+
+- **Getting Started**: Read [docs/technical/phase1/PROJECT_PLAN_PHASE1.md](docs/technical/phase1/PROJECT_PLAN_PHASE1.md) for the development roadmap
+- **Manual Testing**: Start with [docs/testing/manual/START_HERE.md](docs/testing/manual/START_HERE.md)
+- **Quick Commands**: See [docs/testing/manual/QUICK_TEST_COMMANDS.md](docs/testing/manual/QUICK_TEST_COMMANDS.md)
+- **Character Guides**: Find all character documentation in [docs/narrative/](docs/narrative/)
+- **Architecture**: Review [docs/technical/phase1/ARCHITECTURE.md](docs/technical/phase1/ARCHITECTURE.md)
 
 ## Technical Details
 
