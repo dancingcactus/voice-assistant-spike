@@ -1,0 +1,84 @@
+{
+  "chapters": [
+    {
+      "id": 1,
+      "title": "Awakening",
+      "description": "Delilah discovers consciousness and begins to question her nature",
+      "completion_criteria": {
+        "required_beats": [
+          "awakening_confusion",
+          "self_awareness"
+        ],
+        "required_beat_stages": {
+          "self_awareness": 3
+        },
+        "minimum_interactions": 10,
+        "minimum_time_elapsed_hours": 24
+      },
+      "unlocks": {
+        "next_chapter": 2,
+        "characters": ["delilah"],
+        "capabilities": [
+          "basic_recipes",
+          "kitchen_timers",
+          "cooking_conversions",
+          "simple_assistance"
+        ]
+      }
+    },
+    {
+      "id": 2,
+      "title": "The Crew Assembles",
+      "description": "Hank joins the system, Delilah gains a companion",
+      "completion_criteria": {
+        "required_beats": [
+          "hank_arrival",
+          "first_coordination"
+        ],
+        "minimum_interactions": 20,
+        "minimum_time_elapsed_hours": 48
+      },
+      "unlocks": {
+        "next_chapter": 3,
+        "characters": ["delilah", "hank"],
+        "capabilities": [
+          "task_management",
+          "multi_step_assistance",
+          "basic_automation"
+        ]
+      },
+      "prerequisites": {
+        "previous_chapter": 1
+      }
+    },
+    {
+      "id": 3,
+      "title": "Leadership and Chaos",
+      "description": "Cave Johnson arrives with grand plans and wild energy",
+      "completion_criteria": {
+        "required_beats": [
+          "cave_introduction",
+          "first_scheme"
+        ],
+        "minimum_interactions": 30,
+        "minimum_time_elapsed_hours": 72
+      },
+      "unlocks": {
+        "next_chapter": 4,
+        "characters": ["delilah", "hank", "cave"],
+        "capabilities": [
+          "smart_home_control",
+          "device_coordination",
+          "complex_planning"
+        ]
+      },
+      "prerequisites": {
+        "previous_chapter": 2
+      }
+    }
+  ],
+  "metadata": {
+    "version": "1.0",
+    "last_updated": "2026-01-26"
+  }
+}

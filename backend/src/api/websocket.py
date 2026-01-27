@@ -5,12 +5,14 @@ Phase 2: LLM integration via ConversationManager
 import json
 import uuid
 from typing import Dict
+from pathlib import Path
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from datetime import datetime
 import logging
 
 from models.message import WebSocketMessage, UserMessage, AssistantResponse
 from core.conversation_manager import ConversationManager
+from core.story_engine import StoryEngine
 from core.tool_system import ToolSystem
 from tools.timer_tool import TimerTool
 from tools.device_tool import DeviceTool
@@ -25,6 +27,10 @@ tool_system.register_tool(TimerTool())
 tool_system.register_tool(DeviceTool())
 
 logger.info(f"Registered tools: {tool_system.list_tools()}")
+
+# Initialize Story Engine with correct path (relative to project root)
+story_dir = Path(__file__).parent.parent.parent.parent / "story"
+story_engine = StoryEngine(story_dir=str(story_dir))
 
 
 class ConnectionManager:
@@ -62,7 +68,10 @@ class ConnectionManager:
 
 # Global connection manager and conversation manager
 manager = ConnectionManager()
-conversation_manager = ConversationManager(tool_system=tool_system)
+conversation_manager = ConversationManager(
+    tool_system=tool_system,
+    story_engine=story_engine
+)
 
 
 @router.websocket("/ws")

@@ -17,6 +17,7 @@ from models.message import Message, ConversationContext, LLMResponse, ToolCall
 from integrations.llm_integration import LLMIntegration
 from core.character_system import CharacterSystem
 from core.tool_system import ToolSystem
+from core.story_engine import StoryEngine
 from tools.tool_base import ToolContext
 
 logger = logging.getLogger(__name__)
@@ -30,6 +31,7 @@ class ConversationManager:
         llm_integration: Optional[LLMIntegration] = None,
         character_system: Optional[CharacterSystem] = None,
         tool_system: Optional[ToolSystem] = None,
+        story_engine: Optional[StoryEngine] = None,
         max_history: int = 10,
         default_character: str = "delilah",
         max_tool_calls: int = 5
@@ -41,6 +43,7 @@ class ConversationManager:
             llm_integration: LLM integration instance (creates one if not provided)
             character_system: Character system instance (creates one if not provided)
             tool_system: Tool system instance (creates one if not provided)
+            story_engine: Story engine instance (creates one if not provided)
             max_history: Maximum number of messages to keep in history
             default_character: Default character ID to use
             max_tool_calls: Maximum tool calls per turn (circuit breaker)
@@ -48,6 +51,7 @@ class ConversationManager:
         self.llm = llm_integration or LLMIntegration()
         self.character_system = character_system or CharacterSystem()
         self.tool_system = tool_system or ToolSystem()
+        self.story_engine = story_engine or StoryEngine()
         self.max_history = max_history
         self.default_character = default_character
         self.max_tool_calls = max_tool_calls
@@ -248,6 +252,12 @@ class ConversationManager:
                         arguments
                     )
 
+                    # Notify Story Engine about tool execution
+                    self.story_engine.on_tool_executed(user_id, tool_name)
+
+                    # Store last tool used for story beat context
+                    context.metadata["last_tool_used"] = tool_name
+
                     tool_results.append({
                         "tool_call_id": tool_call["id"],
                         "role": "tool",
@@ -288,7 +298,58 @@ class ConversationManager:
                 response_text = "I've completed the task."
                 logger.warning(f"No content in final LLM response for session {session_id}")
 
-            # Add final assistant message to history
+            # Phase 5: Check for story beat injection
+            story_beat_injected = False
+            story_beat_info = None
+
+            # Emit event to Story Engine
+            self.story_engine.on_user_message(user_id)
+
+            # Check if we should inject a story beat
+            beat_context = {
+                "user_message": user_message,
+                "task_completed": tool_call_count > 0,
+                "tool_used": context.metadata.get("last_tool_used"),
+                "response_length": len(response_text)
+            }
+
+            beat_result = self.story_engine.should_inject_beat(user_id, beat_context)
+
+            if beat_result:
+                beat, stage, variant_type = beat_result
+                beat_content_result = self.story_engine.get_beat_content(beat, stage, variant_type)
+
+                if beat_content_result:
+                    beat_content, delivery_type = beat_content_result
+
+                    # Inject beat based on delivery type
+                    if delivery_type == "append":
+                        response_text = f"{response_text}\n\n{beat_content}"
+                    elif delivery_type == "replace":
+                        response_text = beat_content
+
+                    # Mark beat as delivered
+                    self.story_engine.mark_beat_stage_delivered(user_id, beat.id, stage)
+
+                    story_beat_injected = True
+                    story_beat_info = {
+                        "beat_id": beat.id,
+                        "stage": stage,
+                        "variant": variant_type,
+                        "delivery": delivery_type
+                    }
+
+                    logger.info(
+                        f"Injected story beat '{beat.id}' (stage {stage}, {variant_type}) "
+                        f"into response for session {session_id}"
+                    )
+
+            # Check for chapter progression
+            next_chapter = self.story_engine.check_chapter_progression(user_id)
+            if next_chapter:
+                logger.info(f"User {user_id} progressed to Chapter {next_chapter}")
+
+            # Add final assistant message to history (with story beat if injected)
             assistant_msg = Message(
                 role="assistant",
                 content=response_text,
@@ -307,18 +368,22 @@ class ConversationManager:
                     "tokens_used": llm_response["usage"]["total_tokens"],
                     "response_time": llm_response["response_time"],
                     "finish_reason": llm_response["finish_reason"],
-                    "tool_calls_made": tool_call_count
+                    "tool_calls_made": tool_call_count,
+                    "story_beat_injected": story_beat_injected
                 }
             }
+
+            if story_beat_info:
+                response["metadata"]["story_beat"] = story_beat_info
 
             logger.info(
                 f"Generated response for session {session_id} "
                 f"(tokens: {llm_response['usage']['total_tokens']}, "
                 f"time: {llm_response['response_time']:.2f}s, "
-                f"tool_calls: {tool_call_count})"
+                f"tool_calls: {tool_call_count}, "
+                f"story_beat: {story_beat_injected})"
             )
 
-            # TODO: Phase 5 - Check for story beat injection
             # TODO: Phase 6 - Generate TTS audio
 
             return response
