@@ -97,7 +97,7 @@ async def root():
         "name": "Aperture Assist API",
         "version": "0.1.0",
         "status": "online",
-        "phase": "1 - Foundation Setup"
+        "phase": "3 - Character System"
     }
 
 @app.get("/health")
@@ -116,7 +116,7 @@ if __name__ == "__main__":
     print("=" * 50)
     print(f"🌐 Server: http://localhost:{port}")
     print(f"📚 API Docs: http://localhost:{port}/docs")
-    print(f"🤖 Phase 1: Foundation Setup")
+    print(f"🤖 Phase 3: Character System (Delilah with 6 Voice Modes)")
     print("=" * 50)
     print("💡 Press Ctrl+C to stop\n")
     

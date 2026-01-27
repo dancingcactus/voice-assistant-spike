@@ -14,6 +14,7 @@ from datetime import datetime
 
 from models.message import Message, ConversationContext, LLMResponse, ToolCall
 from integrations.llm_integration import LLMIntegration
+from core.character_system import CharacterSystem
 
 logger = logging.getLogger(__name__)
 
@@ -24,22 +25,31 @@ class ConversationManager:
     def __init__(
         self,
         llm_integration: Optional[LLMIntegration] = None,
-        max_history: int = 10
+        character_system: Optional[CharacterSystem] = None,
+        max_history: int = 10,
+        default_character: str = "delilah"
     ):
         """
         Initialize the Conversation Manager.
 
         Args:
             llm_integration: LLM integration instance (creates one if not provided)
+            character_system: Character system instance (creates one if not provided)
             max_history: Maximum number of messages to keep in history
+            default_character: Default character ID to use
         """
         self.llm = llm_integration or LLMIntegration()
+        self.character_system = character_system or CharacterSystem()
         self.max_history = max_history
+        self.default_character = default_character
 
         # Store active conversations by session_id
         self.conversations: Dict[str, ConversationContext] = {}
 
-        logger.info(f"Conversation Manager initialized (max_history={max_history})")
+        logger.info(
+            f"Conversation Manager initialized "
+            f"(max_history={max_history}, default_character={default_character})"
+        )
 
     def get_or_create_conversation(
         self,
@@ -67,26 +77,43 @@ class ConversationManager:
 
         return self.conversations[session_id]
 
-    def _build_system_prompt(self, context: ConversationContext) -> str:
+    def _build_system_prompt(
+        self,
+        context: ConversationContext,
+        character_id: Optional[str] = None,
+        user_message: Optional[str] = None
+    ) -> str:
         """
-        Build the system prompt for the LLM.
-
-        In Phase 2, this is a simple prompt. Later phases will integrate
-        with Character System for personality-driven prompts.
+        Build the system prompt for the LLM using Character System.
 
         Args:
             context: Conversation context
+            character_id: Character to use (defaults to default_character)
+            user_message: Latest user message for voice mode selection
 
         Returns:
             System prompt string
         """
-        # Simple prompt for Phase 2
-        # TODO: Phase 3 - Integrate with Character System
-        return (
-            "You are a helpful AI assistant. Provide clear, concise, and friendly responses. "
-            "If the user asks about cooking, recipes, or food, be enthusiastic and helpful. "
-            "Keep responses conversational and natural."
-        )
+        char_id = character_id or self.default_character
+
+        # If we have a user message, select the appropriate voice mode
+        if user_message:
+            voice_mode_selection = self.character_system.select_voice_mode(
+                char_id, user_message, context.metadata
+            )
+
+            if voice_mode_selection:
+                logger.debug(
+                    f"Selected voice mode: {voice_mode_selection.mode.name} "
+                    f"(confidence: {voice_mode_selection.confidence:.2f}) - "
+                    f"{voice_mode_selection.reasoning}"
+                )
+                return self.character_system.build_system_prompt(
+                    char_id, voice_mode_selection.mode
+                )
+
+        # Fallback to character prompt without specific voice mode
+        return self.character_system.build_system_prompt(char_id)
 
     def _manage_history(self, context: ConversationContext):
         """
@@ -102,20 +129,25 @@ class ConversationManager:
             context.history = context.history[-self.max_history:]
             logger.debug(f"Trimmed conversation history to {self.max_history} messages")
 
-    def _prepare_messages(self, context: ConversationContext) -> List[Dict[str, str]]:
+    def _prepare_messages(
+        self,
+        context: ConversationContext,
+        user_message: Optional[str] = None
+    ) -> List[Dict[str, str]]:
         """
         Prepare messages for the LLM API call.
 
         Args:
             context: Conversation context
+            user_message: Latest user message for voice mode selection
 
         Returns:
             List of message dicts in OpenAI format
         """
         messages = []
 
-        # Add system prompt
-        system_prompt = self._build_system_prompt(context)
+        # Add system prompt (with voice mode selection based on user message)
+        system_prompt = self._build_system_prompt(context, user_message=user_message)
         messages.append({
             "role": "system",
             "content": system_prompt
@@ -163,8 +195,8 @@ class ConversationManager:
 
             logger.info(f"Processing user message in session {session_id}: {user_message[:50]}...")
 
-            # Prepare messages for LLM
-            messages = self._prepare_messages(context)
+            # Prepare messages for LLM (pass user_message for voice mode selection)
+            messages = self._prepare_messages(context, user_message=user_message)
 
             # Generate response from LLM
             llm_response = self.llm.generate_response(

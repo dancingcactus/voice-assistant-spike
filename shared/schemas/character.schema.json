@@ -1,0 +1,181 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://aperture-assist.local/schemas/character.schema.json",
+  "title": "Character Definition",
+  "description": "Schema for AI character personality, voice modes, and behavior",
+  "type": "object",
+  "required": ["id", "name", "role", "personality", "voice_modes", "capabilities"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique identifier for the character",
+      "pattern": "^[a-z][a-z0-9_]*$"
+    },
+    "name": {
+      "type": "string",
+      "description": "Full name of the character"
+    },
+    "nickname": {
+      "type": "string",
+      "description": "Shortened or informal name"
+    },
+    "role": {
+      "type": "string",
+      "description": "Primary role or expertise area"
+    },
+    "description": {
+      "type": "string",
+      "description": "Brief character description"
+    },
+    "personality": {
+      "type": "object",
+      "required": ["core_traits", "speech_patterns"],
+      "properties": {
+        "core_traits": {
+          "type": "array",
+          "description": "Fundamental personality characteristics",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1
+        },
+        "speech_patterns": {
+          "type": "array",
+          "description": "How the character speaks and expresses themselves",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1
+        },
+        "mannerisms": {
+          "type": "array",
+          "description": "Behavioral quirks and habits",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "voice_modes": {
+      "type": "array",
+      "description": "Different modes of speaking based on context",
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "triggers", "characteristics", "example_phrases", "response_style"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for this mode",
+            "pattern": "^[a-z][a-z0-9_]*$"
+          },
+          "name": {
+            "type": "string",
+            "description": "Human-readable mode name"
+          },
+          "triggers": {
+            "type": "array",
+            "description": "Contexts or topics that activate this mode",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1
+          },
+          "characteristics": {
+            "type": "array",
+            "description": "How behavior changes in this mode",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1
+          },
+          "example_phrases": {
+            "type": "array",
+            "description": "Sample phrases that exemplify this mode",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1
+          },
+          "response_style": {
+            "type": "string",
+            "description": "Overall style guide for responses in this mode"
+          }
+        }
+      },
+      "minItems": 1
+    },
+    "context_awareness": {
+      "type": "object",
+      "description": "What the character tracks and remembers",
+      "properties": {
+        "remembers": {
+          "type": "array",
+          "description": "Types of information to retain across conversations",
+          "items": {
+            "type": "string"
+          }
+        },
+        "tracks": {
+          "type": "array",
+          "description": "Active state to monitor",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "story_arc": {
+      "type": "object",
+      "description": "Character development and narrative progression",
+      "properties": {
+        "chapter_1": {
+          "type": "string",
+          "description": "Character state in Chapter 1"
+        },
+        "internal_conflict": {
+          "type": "string",
+          "description": "Core emotional or existential struggle"
+        },
+        "coping_mechanism": {
+          "type": "string",
+          "description": "How character deals with their conflict"
+        }
+      }
+    },
+    "capabilities": {
+      "type": "array",
+      "description": "What the character can help with",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1
+    },
+    "relationships": {
+      "type": "object",
+      "description": "Connections to other characters",
+      "patternProperties": {
+        "^[a-z][a-z0-9_]*$": {
+          "type": "object",
+          "required": ["dynamic", "interaction_style"],
+          "properties": {
+            "dynamic": {
+              "type": "string",
+              "description": "Nature of the relationship"
+            },
+            "interaction_style": {
+              "type": "string",
+              "description": "How they communicate with this character"
+            },
+            "running_gags": {
+              "type": "array",
+              "description": "Recurring jokes or patterns between them",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
