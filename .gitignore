@@ -1,8 +1,37 @@
 # Environment variables
 .env
+backend/.env
 
 # Node modules
 node_modules/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+venv/
+env/
+ENV/
+
+# Data directory (runtime state, user data)
+data/
 
 # Logs
 logs
@@ -18,3 +47,12 @@ Thumbs.db
 .idea/
 *.swp
 *.swo
+
+# Frontend build artifacts
+frontend/dist/
+frontend/build/
+
+# Audio files (temporary TTS output)
+backend/audio/
+*.mp3
+*.wav

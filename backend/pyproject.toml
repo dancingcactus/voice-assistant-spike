@@ -1,0 +1,27 @@
+[project]
+name = "aperture-assist-backend"
+version = "0.1.0"
+description = "Backend server for Aperture Assist voice assistant system"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.109.0",
+    "uvicorn[standard]>=0.27.0",
+    "websockets>=12.0",
+    "openai>=1.10.0",
+    "pydantic>=2.5.3",
+    "pydantic-settings>=2.1.0",
+    "aiofiles>=23.2.1",
+    "httpx>=0.26.0",
+    "python-dotenv>=1.0.0",
+    "python-multipart>=0.0.6",
+]
+
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
