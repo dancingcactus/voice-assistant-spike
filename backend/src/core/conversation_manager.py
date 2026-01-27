@@ -224,14 +224,6 @@ class ConversationManager:
                 tool_call_count += 1
                 logger.info(f"Processing tool call {tool_call_count}/{self.max_tool_calls}")
 
-                # Add assistant message with tool calls to history
-                assistant_msg = Message(
-                    role="assistant",
-                    content=llm_response.get("content", ""),
-                    timestamp=datetime.utcnow()
-                )
-                context.history.append(assistant_msg)
-
                 # Execute each tool call
                 tool_results = []
                 for tool_call in llm_response["tool_calls"]:
@@ -263,8 +255,17 @@ class ConversationManager:
                         "content": result.message
                     })
 
-                # Add tool results to messages for next LLM call
+                # Rebuild messages with assistant's tool call message + tool results
                 messages = self._prepare_messages(context, user_message=None)
+
+                # Add assistant message with tool_calls
+                messages.append({
+                    "role": "assistant",
+                    "content": llm_response.get("content") or "",
+                    "tool_calls": llm_response["tool_calls"]
+                })
+
+                # Add tool results
                 for tool_result in tool_results:
                     messages.append(tool_result)
 
