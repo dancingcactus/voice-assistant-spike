@@ -1,0 +1,106 @@
+#!/bin/bash
+
+echo "=== Milestone 2 Browser Test Script ==="
+echo ""
+echo "This script will help you manually test the Story Beat Tool."
+echo ""
+echo "Prerequisites:"
+echo "  ✓ Backend running on http://localhost:8000"
+echo "  ✓ Frontend running on http://localhost:5173"
+echo ""
+
+# Check backend
+echo -n "Checking backend... "
+if curl -s http://localhost:8000/api/v1/health > /dev/null 2>&1; then
+    echo "✓ Running"
+else
+    echo "✗ NOT running"
+    echo "Please start backend: cd backend && source venv/bin/activate && python -m uvicorn src.observability.api:app --reload"
+    exit 1
+fi
+
+# Check frontend
+echo -n "Checking frontend... "
+if curl -s http://localhost:5173 > /dev/null 2>&1; then
+    echo "✓ Running"
+else
+    echo "✗ NOT running"
+    echo "Please start frontend: cd frontend && npm run dev"
+    exit 1
+fi
+
+echo ""
+echo "=== Manual Test Checklist ==="
+echo ""
+echo "1. Open browser to: http://localhost:5173/observability"
+echo ""
+echo "2. Click 'Story Beats' tab in the header"
+echo "   Expected: Story Beat Tool loads with chapter list on left"
+echo ""
+echo "3. Verify Chapter Display:"
+echo "   ✓ Chapter 1 'Awakening' shows as current (blue)"
+echo "   ✓ Chapters 2-3 are locked (gray, disabled)"
+echo "   ✓ Progress summary shows at top: 'Chapter 1, 3/4 beats, 47 interactions'"
+echo ""
+echo "4. Verify Beat List:"
+echo "   ✓ 4 beats displayed for Chapter 1"
+echo "   ✓ 3 beats show green 'delivered' status"
+echo "   ✓ 1 beat shows yellow 'ready' status"
+echo "   ✓ Each beat shows: name, status badge, type badge"
+echo ""
+echo "5. Test Beat Filters:"
+echo "   ✓ Click 'All' - shows all 4 beats"
+echo "   ✓ Click 'Delivered' - shows 3 beats"
+echo "   ✓ Click 'Ready' - shows 1 beat"
+echo "   ✓ Click 'Locked' - shows 0 beats"
+echo ""
+echo "6. View Chapter Flow Diagram:"
+echo "   ✓ Diagram appears on right side"
+echo "   ✓ Shows beat names and connections"
+echo "   ✓ No errors in rendering"
+echo ""
+echo "7. Open Beat Detail Modal:"
+echo "   ✓ Click on 'awakening_confusion' beat card"
+echo "   ✓ Modal opens with beat details"
+echo "   ✓ Shows: type, priority, required status"
+echo "   ✓ Shows trigger conditions"
+echo "   ✓ Shows all 3 variants (brief, standard, full)"
+echo "   ✓ Each variant shows content text"
+echo "   ✓ Shows delivery status with timestamp"
+echo ""
+echo "8. Test Beat Triggering:"
+echo "   ✓ In modal, find 'Trigger' button under a variant"
+echo "   ✓ Click 'Trigger standard' button"
+echo "   ✓ Confirmation dialog appears"
+echo "   ✓ Confirm the trigger"
+echo "   ✓ Success message appears"
+echo "   ✓ Modal closes"
+echo "   ✓ Beat list updates automatically"
+echo ""
+echo "9. Check Console for Errors:"
+echo "   ✓ Open browser DevTools (F12)"
+echo "   ✓ Check Console tab"
+echo "   ✓ Should see no errors (warnings OK)"
+echo ""
+echo "=== API Verification ==="
+echo ""
+echo "Testing API endpoints directly:"
+echo ""
+
+AUTH="Authorization: Bearer dev_token_12345"
+
+echo "✓ GET /api/v1/story/chapters"
+curl -s -H "$AUTH" "http://localhost:8000/api/v1/story/chapters?user_id=user_justin" | python3 -c "import sys, json; d=json.load(sys.stdin); print(f'  Found {len(d)} chapters')"
+
+echo "✓ GET /api/v1/story/chapters/1/beats"
+curl -s -H "$AUTH" "http://localhost:8000/api/v1/story/chapters/1/beats?user_id=user_justin" | python3 -c "import sys, json; d=json.load(sys.stdin); print(f'  Found {len(d)} beats, {sum(1 for b in d if b[\"status\"]==\"delivered\")} delivered')"
+
+echo "✓ GET /api/v1/story/users/user_justin/progress"
+curl -s -H "$AUTH" "http://localhost:8000/api/v1/story/users/user_justin/progress" | python3 -c "import sys, json; d=json.load(sys.stdin); print(f'  Chapter {d[\"current_chapter\"]}, {d[\"beats_delivered\"]}/{d[\"beats_total\"]} beats, {d[\"interaction_count\"]} interactions')"
+
+echo ""
+echo "=== All checks passed! ==="
+echo ""
+echo "Now open your browser to: http://localhost:5173/observability"
+echo "and follow the manual test checklist above."
+echo ""

@@ -1,0 +1,223 @@
+/* Dashboard Styles */
+
+.dashboard {
+  min-height: 100vh;
+  background: #0a0a0a;
+  color: #e0e0e0;
+  padding: 2rem;
+}
+
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #333;
+  gap: 2rem;
+}
+
+.dashboard-header h1 {
+  margin: 0;
+  font-size: 2rem;
+  color: #fff;
+}
+
+.main-nav {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.main-nav button {
+  padding: 0.75rem 1.5rem;
+  background: #1a1a1a;
+  border: 2px solid transparent;
+  border-radius: 6px;
+  color: #aaa;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.main-nav button:hover {
+  background: #2a2a2a;
+  color: #fff;
+}
+
+.main-nav button.active {
+  background: #1a3a5c;
+  border-color: #4a90e2;
+  color: #fff;
+}
+
+.health-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: #1a1a1a;
+  border-radius: 4px;
+}
+
+.status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.status-dot.healthy {
+  background: #4caf50;
+  box-shadow: 0 0 8px #4caf50;
+}
+
+.status-dot.error {
+  background: #f44336;
+  box-shadow: 0 0 8px #f44336;
+}
+
+.dashboard-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.info-card {
+  background: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 8px;
+  padding: 1.5rem;
+}
+
+.info-card.highlight {
+  border-color: #4a90e2;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+}
+
+.info-card h2, .info-card h3 {
+  margin-top: 0;
+  margin-bottom: 1rem;
+  color: #fff;
+}
+
+.loading {
+  text-align: center;
+  padding: 4rem;
+  font-size: 1.5rem;
+  color: #888;
+}
+
+.error {
+  background: #2a1a1a;
+  border: 2px solid #f44336;
+  padding: 2rem;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.error h2 {
+  color: #f44336;
+  margin-top: 0;
+}
+
+.error-details {
+  font-family: monospace;
+  font-size: 0.875rem;
+  color: #ccc;
+  margin-top: 1rem;
+  padding: 1rem;
+  background: #1a1a1a;
+  border-radius: 4px;
+}
+
+.profile-info {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.profile-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.profile-field label {
+  font-size: 0.875rem;
+  color: #888;
+  font-weight: 500;
+}
+
+.profile-field span {
+  font-size: 1.125rem;
+  color: #fff;
+}
+
+.users-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1rem;
+}
+
+.user-card {
+  background: #0f0f0f;
+  border: 1px solid #333;
+  border-radius: 6px;
+  padding: 1rem;
+}
+
+.user-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.user-header strong {
+  color: #fff;
+  font-size: 1rem;
+}
+
+.badge {
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.badge.production {
+  background: #4caf50;
+  color: #fff;
+}
+
+.user-stats {
+  display: flex;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: #888;
+}
+
+.next-steps {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.next-steps li {
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #2a2a2a;
+}
+
+.next-steps li:last-child {
+  border-bottom: none;
+}
+
+.dashboard-footer {
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid #333;
+  text-align: center;
+  color: #666;
+  font-size: 0.875rem;
+}

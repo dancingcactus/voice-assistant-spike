@@ -6,6 +6,26 @@ Tracks user preferences, story progress, and conversation history.
 from datetime import datetime
 from typing import Dict, List, Optional, Any
 from pydantic import BaseModel, Field
+import uuid
+
+
+class Memory(BaseModel):
+    """A single memory entry for a user."""
+    memory_id: str = Field(default_factory=lambda: f"mem_{uuid.uuid4().hex[:12]}")
+    category: str = Field(..., description="Memory category: preference, fact, relationship, event, dietary_restriction")
+    content: str = Field(..., description="The actual memory content")
+    source: str = Field(..., description="Where this memory came from (e.g., 'conversation_2026-01-27', 'manual_entry')")
+    importance: int = Field(default=5, ge=1, le=10, description="Memory importance/weight (1-10)")
+    verified: bool = Field(default=False, description="Whether this memory has been confirmed by user")
+    created_at: datetime = Field(default_factory=datetime.now)
+    last_accessed: Optional[datetime] = Field(default=None, description="Last time this memory was used in context")
+    access_count: int = Field(default=0, description="Number of times this memory was loaded into context")
+    metadata: Dict[str, Any] = Field(default_factory=dict, description="Additional metadata")
+
+
+class UserMemories(BaseModel):
+    """Collection of memories for a user."""
+    memories: Dict[str, Memory] = Field(default_factory=dict, description="Map of memory_id to Memory object")
 
 
 class UserPreferences(BaseModel):
@@ -67,6 +87,7 @@ class UserState(BaseModel):
     conversation_history: ConversationHistory = Field(default_factory=ConversationHistory)
     device_preferences: DevicePreferences = Field(default_factory=DevicePreferences)
     story_progress: StoryProgress = Field(default_factory=StoryProgress)
+    memories: UserMemories = Field(default_factory=UserMemories)
     created_at: datetime = Field(default_factory=datetime.now)
     updated_at: datetime = Field(default_factory=datetime.now)
 
