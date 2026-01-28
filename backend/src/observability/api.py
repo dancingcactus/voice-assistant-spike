@@ -164,7 +164,7 @@ class ContextPreviewResponse(BaseModel):
 
 # API Endpoints
 
-@app.get("/api/v1/health", response_model=HealthResponse)
+@app.get("/health", response_model=HealthResponse)
 async def health_check():
     """Health check endpoint."""
     return HealthResponse(
@@ -174,7 +174,7 @@ async def health_check():
     )
 
 
-@app.get("/api/v1/users", response_model=List[UserSummary])
+@app.get("/users", response_model=List[UserSummary])
 async def list_users(authorization: Optional[str] = Header(None)):
     """List all users with summary information."""
     verify_token(authorization)
@@ -196,7 +196,7 @@ async def list_users(authorization: Optional[str] = Header(None)):
     return users
 
 
-@app.get("/api/v1/users/{user_id}", response_model=UserDetailResponse)
+@app.get("/users/{user_id}", response_model=UserDetailResponse)
 async def get_user(user_id: str, authorization: Optional[str] = Header(None)):
     """Get detailed user information."""
     verify_token(authorization)
@@ -210,7 +210,7 @@ async def get_user(user_id: str, authorization: Optional[str] = Header(None)):
 
 # Story Beat Endpoints
 
-@app.get("/api/v1/story/chapters", response_model=List[ChapterSummary])
+@app.get("/story/chapters", response_model=List[ChapterSummary])
 async def list_chapters(
     user_id: str,
     authorization: Optional[str] = Header(None)
@@ -250,7 +250,7 @@ async def list_chapters(
     ]
 
 
-@app.get("/api/v1/story/chapters/{chapter_id}/beats", response_model=List[BeatSummary])
+@app.get("/story/chapters/{chapter_id}/beats", response_model=List[BeatSummary])
 async def list_chapter_beats(
     chapter_id: int,
     user_id: str,
@@ -274,7 +274,7 @@ async def list_chapter_beats(
     ]
 
 
-@app.get("/api/v1/story/chapters/{chapter_id}/beats/{beat_id}")
+@app.get("/story/chapters/{chapter_id}/beats/{beat_id}")
 async def get_beat_detail(
     chapter_id: int,
     beat_id: str,
@@ -296,7 +296,7 @@ async def get_beat_detail(
     }
 
 
-@app.get("/api/v1/story/users/{user_id}/progress", response_model=ChapterProgressSummary)
+@app.get("/story/users/{user_id}/progress", response_model=ChapterProgressSummary)
 async def get_user_story_progress(
     user_id: str,
     authorization: Optional[str] = Header(None)
@@ -308,7 +308,7 @@ async def get_user_story_progress(
     return ChapterProgressSummary(**progress_summary)
 
 
-@app.get("/api/v1/story/chapters/{chapter_id}/diagram")
+@app.get("/story/chapters/{chapter_id}/diagram")
 async def get_chapter_diagram(
     chapter_id: int,
     authorization: Optional[str] = Header(None)
@@ -324,7 +324,7 @@ async def get_chapter_diagram(
     }
 
 
-@app.post("/api/v1/story/users/{user_id}/beats/{beat_id}/trigger")
+@app.post("/story/users/{user_id}/beats/{beat_id}/trigger")
 async def trigger_beat(
     user_id: str,
     beat_id: str,
@@ -372,7 +372,7 @@ async def trigger_beat(
 
 # Memory Endpoints
 
-@app.get("/api/v1/memory/users/{user_id}", response_model=List[MemoryResponse])
+@app.get("/memory/users/{user_id}", response_model=List[MemoryResponse])
 async def list_memories(
     user_id: str,
     category: Optional[str] = None,
@@ -408,7 +408,7 @@ async def list_memories(
     ]
 
 
-@app.get("/api/v1/memory/{memory_id}", response_model=MemoryResponse)
+@app.get("/memory/{memory_id}", response_model=MemoryResponse)
 async def get_memory(
     memory_id: str,
     user_id: str,
@@ -435,7 +435,7 @@ async def get_memory(
     )
 
 
-@app.post("/api/v1/memory/users/{user_id}", response_model=MemoryResponse)
+@app.post("/memory/users/{user_id}", response_model=MemoryResponse)
 async def create_memory(
     user_id: str,
     request: CreateMemoryRequest,
@@ -471,7 +471,7 @@ async def create_memory(
         raise HTTPException(status_code=404, detail=str(e))
 
 
-@app.put("/api/v1/memory/{memory_id}", response_model=MemoryResponse)
+@app.put("/memory/{memory_id}", response_model=MemoryResponse)
 async def update_memory(
     memory_id: str,
     user_id: str,
@@ -508,7 +508,7 @@ async def update_memory(
     )
 
 
-@app.delete("/api/v1/memory/{memory_id}")
+@app.delete("/memory/{memory_id}")
 async def delete_memory(
     memory_id: str,
     user_id: str,
@@ -527,7 +527,7 @@ async def delete_memory(
     }
 
 
-@app.get("/api/v1/memory/users/{user_id}/context", response_model=ContextPreviewResponse)
+@app.get("/memory/users/{user_id}/context", response_model=ContextPreviewResponse)
 async def get_context_preview(
     user_id: str,
     min_importance: int = 3,
@@ -565,14 +565,14 @@ class SetActiveUserRequest(BaseModel):
     user_id: str
 
 
-@app.get("/api/v1/users/test/list")
+@app.get("/users/test/list")
 async def list_all_users_with_type(authorization: Optional[str] = Header(None)):
     """List all users with type information (production, test)."""
     verify_token(authorization)
     return user_testing_dal.list_all_users_with_type()
 
 
-@app.post("/api/v1/users/test")
+@app.post("/users/test")
 async def create_test_user(
     request: CreateTestUserRequest,
     authorization: Optional[str] = Header(None)
@@ -597,7 +597,7 @@ async def create_test_user(
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@app.get("/api/v1/users/{user_id}/state", response_model=UserStateSummaryResponse)
+@app.get("/users/{user_id}/state", response_model=UserStateSummaryResponse)
 async def get_user_state_summary(
     user_id: str,
     authorization: Optional[str] = Header(None)
@@ -612,7 +612,7 @@ async def get_user_state_summary(
         raise HTTPException(status_code=404, detail=str(e))
 
 
-@app.delete("/api/v1/users/{user_id}")
+@app.delete("/users/{user_id}")
 async def delete_test_user(
     user_id: str,
     authorization: Optional[str] = Header(None)
@@ -627,7 +627,7 @@ async def delete_test_user(
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@app.post("/api/v1/users/{user_id}/export")
+@app.post("/users/{user_id}/export")
 async def export_user_data(
     user_id: str,
     authorization: Optional[str] = Header(None)

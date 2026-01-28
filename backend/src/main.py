@@ -125,7 +125,7 @@ async def root():
         "name": "Aperture Assist API",
         "version": "0.1.0",
         "status": "online",
-        "phase": "8 - Testing/Automation API"
+        "phase": "1.5 - Observability Dashboard"
     }
 
 @app.get("/health")
@@ -136,6 +136,11 @@ async def health_check():
         "environment": os.getenv("ENVIRONMENT", "unknown")
     }
 
+# Observability API (Phase 1.5) - mounted after main routes to avoid conflicts
+from observability.api import app as observability_app
+app.mount("/api/v1", observability_app)
+print("✅ Observability API mounted at /api/v1")
+
 if __name__ == "__main__":
     import uvicorn
     port = int(os.getenv("PORT", 8000))
@@ -144,11 +149,11 @@ if __name__ == "__main__":
     print("=" * 50)
     print(f"🌐 Server: http://localhost:{port}")
     print(f"📚 API Docs: http://localhost:{port}/docs")
-    print(f"🤖 Phase 8: Testing/Automation API")
-    print(f"   - Programmatic conversation testing")
-    print(f"   - State inspection and manipulation")
-    print(f"   - Test scenario loading")
-    print(f"   - Full Phase 1-7 features")
+    print(f"🤖 Phase 1.5: Observability Dashboard")
+    print(f"   - Story Beat Tool")
+    print(f"   - Memory Tool")
+    print(f"   - User Testing Tool")
+    print(f"   - Full Phase 1 features + debugging")
     print("=" * 50)
     print("💡 Press Ctrl+C to stop\n")
     
