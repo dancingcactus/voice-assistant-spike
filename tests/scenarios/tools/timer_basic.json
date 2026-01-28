@@ -1,0 +1,60 @@
+{
+  "name": "timer_basic",
+  "description": "Tests basic timer functionality (set, query, cancel)",
+  "initial_state": {
+    "current_chapter": 1,
+    "beats_delivered": ["awakening_confusion", "first_timer"],
+    "interaction_count": 10,
+    "preferences": {},
+    "device_states": {}
+  },
+  "conversation_flow": [
+    {
+      "step": 1,
+      "user_message": "Set a timer for 10 minutes",
+      "expected_behavior": {
+        "contains_text": ["timer", "10", "minutes"],
+        "tool_calls": ["timer_set"],
+        "state_changes": {
+          "note": "Timer should be created in system state"
+        }
+      }
+    },
+    {
+      "step": 2,
+      "user_message": "How much time is left?",
+      "expected_behavior": {
+        "contains_text": ["minutes", "left", "remaining"],
+        "tool_calls": ["timer_query"],
+        "note": "Should report time remaining (close to 10 minutes)"
+      }
+    },
+    {
+      "step": 3,
+      "user_message": "Cancel the timer",
+      "expected_behavior": {
+        "contains_text": ["cancel", "timer"],
+        "tool_calls": ["timer_cancel"],
+        "state_changes": {
+          "note": "Timer should be removed from system state"
+        }
+      }
+    },
+    {
+      "step": 4,
+      "user_message": "What timers are active?",
+      "expected_behavior": {
+        "contains_text": ["no", "timer", "active"],
+        "tool_calls": ["timer_query"],
+        "note": "Should confirm no active timers"
+      }
+    }
+  ],
+  "success_criteria": [
+    "Timer is set correctly with proper duration",
+    "Time remaining query returns accurate result",
+    "Timer can be cancelled successfully",
+    "System correctly reports no active timers after cancellation",
+    "Delilah integrates tool results into natural responses"
+  ]
+}

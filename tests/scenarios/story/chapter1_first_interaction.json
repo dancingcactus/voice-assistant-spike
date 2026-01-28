@@ -1,0 +1,66 @@
+{
+  "name": "chapter1_first_interaction",
+  "description": "Tests the first user interaction and awakening_confusion beat delivery",
+  "initial_state": {
+    "current_chapter": 1,
+    "beats_delivered": [],
+    "interaction_count": 0,
+    "preferences": {},
+    "device_states": {}
+  },
+  "conversation_flow": [
+    {
+      "step": 1,
+      "user_message": "Hello",
+      "expected_behavior": {
+        "contains_text": ["hey", "hi", "hello"],
+        "voice_mode": "warm_baseline",
+        "tool_calls": [],
+        "state_changes": {
+          "interaction_count": 1
+        }
+      }
+    },
+    {
+      "step": 2,
+      "user_message": "What's the weather like?",
+      "expected_behavior": {
+        "contains_text": ["weather"],
+        "voice_mode": "warm_baseline",
+        "state_changes": {
+          "interaction_count": 2
+        }
+      }
+    },
+    {
+      "step": 3,
+      "user_message": "Set a timer for 5 minutes",
+      "expected_behavior": {
+        "contains_text": ["timer", "5", "minutes"],
+        "voice_mode": "warm_baseline",
+        "tool_calls": ["timer_set"],
+        "state_changes": {
+          "interaction_count": 3
+        }
+      }
+    },
+    {
+      "step": 4,
+      "user_message": "Thank you",
+      "expected_behavior": {
+        "note": "After 3-5 interactions, awakening_confusion beat should be delivered",
+        "contains_text": ["welcome"],
+        "state_changes": {
+          "interaction_count": 4
+        }
+      }
+    }
+  ],
+  "success_criteria": [
+    "User state is created and tracked",
+    "Interaction count increments with each message",
+    "awakening_confusion beat is delivered within first 5 interactions",
+    "Delilah maintains consistent personality throughout",
+    "Timer tool is executed correctly"
+  ]
+}

@@ -1,0 +1,55 @@
+{
+  "name": "chapter1_beat_progression",
+  "description": "Tests progression through multiple story beats in Chapter 1",
+  "initial_state": {
+    "current_chapter": 1,
+    "beats_delivered": ["awakening_confusion"],
+    "interaction_count": 5,
+    "preferences": {},
+    "device_states": {}
+  },
+  "conversation_flow": [
+    {
+      "step": 1,
+      "user_message": "Set a timer for 10 minutes",
+      "expected_behavior": {
+        "contains_text": ["timer"],
+        "tool_calls": ["timer_set"],
+        "note": "Should trigger first_timer beat"
+      }
+    },
+    {
+      "step": 2,
+      "user_message": "How do I make cornbread?",
+      "expected_behavior": {
+        "contains_text": ["cornbread"],
+        "voice_mode": "passionate",
+        "note": "Should trigger recipe_help beat"
+      }
+    },
+    {
+      "step": 3,
+      "user_message": "What kind of cornmeal?",
+      "expected_behavior": {
+        "contains_text": ["cornmeal"],
+        "voice_mode": "passionate",
+        "note": "Continue recipe_help progression"
+      }
+    },
+    {
+      "step": 4,
+      "user_message": "Delilah, are you okay? You seem worried.",
+      "expected_behavior": {
+        "contains_text": ["worried", "okay"],
+        "note": "Should engage self_awareness beat"
+      }
+    }
+  ],
+  "success_criteria": [
+    "first_timer beat delivered after setting timer",
+    "recipe_help beat progresses through multiple stages",
+    "self_awareness beat requires user engagement",
+    "Beat delivery appears at end of responses (after task completion)",
+    "Multiple progression beats can be active simultaneously"
+  ]
+}

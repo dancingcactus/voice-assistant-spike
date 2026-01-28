@@ -1,0 +1,79 @@
+{
+  "name": "device_control_lights",
+  "description": "Tests device control for various light types (on/off, dimming)",
+  "initial_state": {
+    "current_chapter": 1,
+    "beats_delivered": ["awakening_confusion"],
+    "interaction_count": 10,
+    "preferences": {},
+    "device_states": {
+      "kitchen_light": {"state": "off", "brightness": 0},
+      "living_room_light": {"state": "off", "brightness": 0},
+      "bedroom_light": {"state": "off"}
+    }
+  },
+  "conversation_flow": [
+    {
+      "step": 1,
+      "user_message": "Turn on the kitchen light",
+      "expected_behavior": {
+        "contains_text": ["kitchen", "light", "on"],
+        "tool_calls": ["device_control"],
+        "state_changes": {
+          "device_states": {
+            "kitchen_light": {"state": "on", "brightness": 100}
+          }
+        }
+      }
+    },
+    {
+      "step": 2,
+      "user_message": "Dim the kitchen light to 50 percent",
+      "expected_behavior": {
+        "contains_text": ["kitchen", "light", "50"],
+        "tool_calls": ["device_control"],
+        "state_changes": {
+          "device_states": {
+            "kitchen_light": {"brightness": 50}
+          }
+        }
+      }
+    },
+    {
+      "step": 3,
+      "user_message": "Turn on the living room light",
+      "expected_behavior": {
+        "contains_text": ["living room", "light", "on"],
+        "tool_calls": ["device_control"],
+        "state_changes": {
+          "device_states": {
+            "living_room_light": {"state": "on", "brightness": 100}
+          }
+        }
+      }
+    },
+    {
+      "step": 4,
+      "user_message": "Turn off all the lights",
+      "expected_behavior": {
+        "contains_text": ["light", "off"],
+        "tool_calls": ["device_control"],
+        "state_changes": {
+          "device_states": {
+            "kitchen_light": {"state": "off"},
+            "living_room_light": {"state": "off"}
+          }
+        },
+        "note": "Should handle multiple devices in one command"
+      }
+    }
+  ],
+  "success_criteria": [
+    "Lights turn on/off correctly",
+    "Dimming works with percentage values",
+    "Device states persist correctly",
+    "Natural language device queries work (e.g., 'kitchen light' matches device)",
+    "Multiple device control in single command works",
+    "Delilah responds in deadpan mode for device tasks"
+  ]
+}

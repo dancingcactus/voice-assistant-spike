@@ -85,11 +85,18 @@ audio_dir.mkdir(exist_ok=True)
 app.mount("/audio", StaticFiles(directory=str(audio_dir)), name="audio")
 
 # Import and register routers
-from api.websocket import router as websocket_router, memory_manager
+from api.websocket import router as websocket_router, memory_manager, conversation_manager
 from api.tts_api import router as tts_router, set_tts_provider
 
 app.include_router(websocket_router)
 app.include_router(tts_router)
+
+# Test API (Phase 8) - only enabled if ENABLE_TEST_API=true
+if os.getenv("ENABLE_TEST_API", "false").lower() == "true":
+    from api.test_api import router as test_router, set_managers
+    set_managers(conversation_manager, memory_manager)
+    app.include_router(test_router)
+    print("✅ Test API enabled")
 
 # Startup event to initialize memory manager periodic flush
 @app.on_event("startup")
@@ -99,7 +106,6 @@ async def startup_event():
     print("✅ Memory Manager periodic flush started")
 
     # Register TTS provider with TTS API if available
-    from api.websocket import conversation_manager
     if conversation_manager.tts_provider:
         set_tts_provider(conversation_manager.tts_provider)
         print("✅ TTS provider registered with TTS API")
@@ -112,11 +118,6 @@ async def shutdown_event():
     await memory_manager.flush_dirty_users()
     print("✅ Memory Manager flushed and stopped")
 
-# Test API will be added in Phase 8
-# from .api.test_api import router as test_router
-# if os.getenv("ENABLE_TEST_API", "false").lower() == "true":
-#     app.include_router(test_router, prefix="/api/test", tags=["testing"])
-
 @app.get("/")
 async def root():
     """Root endpoint - API status"""
@@ -124,7 +125,7 @@ async def root():
         "name": "Aperture Assist API",
         "version": "0.1.0",
         "status": "online",
-        "phase": "6 - TTS Integration (Voice Input & Audio Output)"
+        "phase": "8 - Testing/Automation API"
     }
 
 @app.get("/health")
@@ -143,13 +144,11 @@ if __name__ == "__main__":
     print("=" * 50)
     print(f"🌐 Server: http://localhost:{port}")
     print(f"📚 API Docs: http://localhost:{port}/docs")
-    print(f"🤖 Phase 7: Memory & State")
-    print(f"   - Persistent user state & preferences")
-    print(f"   - 30-minute conversation history window")
-    print(f"   - Story progress persistence")
-    print(f"   - Device state persistence")
-    print(f"   - Delilah with 6 voice modes + TTS")
-    print(f"   - Timer & device management")
+    print(f"🤖 Phase 8: Testing/Automation API")
+    print(f"   - Programmatic conversation testing")
+    print(f"   - State inspection and manipulation")
+    print(f"   - Test scenario loading")
+    print(f"   - Full Phase 1-7 features")
     print("=" * 50)
     print("💡 Press Ctrl+C to stop\n")
     
