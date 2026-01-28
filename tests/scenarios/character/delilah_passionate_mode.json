@@ -1,0 +1,60 @@
+{
+  "name": "delilah_passionate_mode",
+  "description": "Tests Delilah's passionate voice mode when discussing foods she loves",
+  "initial_state": {
+    "current_chapter": 1,
+    "beats_delivered": ["awakening_confusion"],
+    "interaction_count": 5,
+    "preferences": {},
+    "device_states": {}
+  },
+  "conversation_flow": [
+    {
+      "step": 1,
+      "user_message": "Tell me about biscuits",
+      "expected_behavior": {
+        "contains_text": ["biscuit"],
+        "voice_mode": "passionate",
+        "characteristics": [
+          "High energy, animated response",
+          "Southern expressions (sugar, honey, darlin')",
+          "Detailed, enthusiastic description",
+          "Fast-paced, tumbling speech pattern"
+        ]
+      }
+    },
+    {
+      "step": 2,
+      "user_message": "What about cornbread?",
+      "expected_behavior": {
+        "contains_text": ["cornbread"],
+        "voice_mode": "passionate",
+        "characteristics": [
+          "Continued high energy",
+          "Strong opinions about preparation",
+          "Personal anecdotes or traditions"
+        ]
+      }
+    },
+    {
+      "step": 3,
+      "user_message": "How do I make gumbo?",
+      "expected_behavior": {
+        "contains_text": ["gumbo", "roux"],
+        "voice_mode": "passionate",
+        "characteristics": [
+          "Detailed instructions",
+          "Passionate about technique",
+          "Warnings about doing it wrong"
+        ]
+      }
+    }
+  ],
+  "success_criteria": [
+    "Passionate mode consistently triggered by Southern comfort foods",
+    "High energy and enthusiasm maintained throughout",
+    "Character personality remains recognizable",
+    "Southern dialect and mannerisms present",
+    "Responses are detailed and animated"
+  ]
+}

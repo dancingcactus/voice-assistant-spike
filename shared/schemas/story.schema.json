@@ -1,0 +1,233 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Story Beat and Chapter Schema",
+  "description": "JSON schema for story beats and chapter progression in the Aperture Assist system",
+  "definitions": {
+    "variant": {
+      "type": "object",
+      "required": ["delivery", "content"],
+      "properties": {
+        "delivery": {
+          "type": "string",
+          "enum": ["append", "replace"],
+          "description": "How to deliver this beat: append to task response or replace it entirely"
+        },
+        "content": {
+          "type": "string",
+          "description": "The text content of the story beat"
+        }
+      }
+    },
+    "trigger": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["interaction_count", "tool_use", "user_engagement", "time_based", "condition"],
+          "description": "Type of trigger for this beat"
+        },
+        "min_interactions": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Minimum number of interactions before beat can trigger"
+        },
+        "max_interactions": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Maximum number of interactions before beat must trigger"
+        },
+        "tool_name": {
+          "type": "string",
+          "description": "Name of tool that triggers this beat"
+        },
+        "keywords": {
+          "type": "array",
+          "items": {"type": "string"},
+          "description": "Keywords that can trigger this beat"
+        },
+        "requires_direct_address": {
+          "type": "boolean",
+          "description": "Whether user must directly address the character"
+        }
+      }
+    },
+    "stage": {
+      "type": "object",
+      "required": ["stage", "variants"],
+      "properties": {
+        "stage": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Stage number in progression"
+        },
+        "variants": {
+          "type": "object",
+          "required": ["brief", "standard", "full"],
+          "properties": {
+            "brief": {"$ref": "#/definitions/variant"},
+            "standard": {"$ref": "#/definitions/variant"},
+            "full": {"$ref": "#/definitions/variant"}
+          }
+        }
+      }
+    },
+    "beat": {
+      "type": "object",
+      "required": ["id", "type", "required", "priority", "trigger"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z_]+$",
+          "description": "Unique identifier for this beat"
+        },
+        "type": {
+          "type": "string",
+          "enum": ["one_shot", "progression"],
+          "description": "Beat type: one_shot fires once, progression has multiple stages"
+        },
+        "required": {
+          "type": "boolean",
+          "description": "Whether this beat is required for chapter completion"
+        },
+        "priority": {
+          "type": "string",
+          "enum": ["early", "normal", "high", "low"],
+          "description": "Priority for beat delivery"
+        },
+        "trigger": {
+          "$ref": "#/definitions/trigger"
+        },
+        "variants": {
+          "type": "object",
+          "description": "Variants for one-shot beats",
+          "properties": {
+            "brief": {"$ref": "#/definitions/variant"},
+            "standard": {"$ref": "#/definitions/variant"},
+            "full": {"$ref": "#/definitions/variant"}
+          }
+        },
+        "stages": {
+          "type": "array",
+          "description": "Stages for progression beats",
+          "items": {"$ref": "#/definitions/stage"}
+        },
+        "conditions": {
+          "type": "object",
+          "description": "Additional conditions for beat delivery",
+          "additionalProperties": true
+        }
+      }
+    },
+    "chapter": {
+      "type": "object",
+      "required": ["id", "title", "description", "completion_criteria", "unlocks"],
+      "properties": {
+        "id": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Chapter number"
+        },
+        "title": {
+          "type": "string",
+          "description": "Chapter title"
+        },
+        "description": {
+          "type": "string",
+          "description": "Chapter description"
+        },
+        "completion_criteria": {
+          "type": "object",
+          "required": ["required_beats", "minimum_interactions", "minimum_time_elapsed_hours"],
+          "properties": {
+            "required_beats": {
+              "type": "array",
+              "items": {"type": "string"},
+              "description": "Beat IDs required for completion"
+            },
+            "required_beat_stages": {
+              "type": "object",
+              "description": "Specific stages required for progression beats",
+              "additionalProperties": {"type": "integer"}
+            },
+            "minimum_interactions": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Minimum number of interactions required"
+            },
+            "minimum_time_elapsed_hours": {
+              "type": "number",
+              "minimum": 0,
+              "description": "Minimum time elapsed in hours"
+            }
+          }
+        },
+        "unlocks": {
+          "type": "object",
+          "properties": {
+            "next_chapter": {
+              "type": "integer",
+              "description": "Next chapter ID"
+            },
+            "characters": {
+              "type": "array",
+              "items": {"type": "string"},
+              "description": "Available characters in this chapter"
+            },
+            "capabilities": {
+              "type": "array",
+              "items": {"type": "string"},
+              "description": "Capabilities unlocked in this chapter"
+            }
+          }
+        },
+        "prerequisites": {
+          "type": "object",
+          "properties": {
+            "previous_chapter": {
+              "type": "integer",
+              "description": "Previous chapter that must be completed"
+            }
+          }
+        }
+      }
+    }
+  },
+  "oneOf": [
+    {
+      "type": "object",
+      "title": "Chapter Beats File",
+      "required": ["chapter", "title", "description", "beats"],
+      "properties": {
+        "chapter": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "title": {"type": "string"},
+        "description": {"type": "string"},
+        "beats": {
+          "type": "array",
+          "items": {"$ref": "#/definitions/beat"}
+        }
+      }
+    },
+    {
+      "type": "object",
+      "title": "Chapters File",
+      "required": ["chapters"],
+      "properties": {
+        "chapters": {
+          "type": "array",
+          "items": {"$ref": "#/definitions/chapter"}
+        },
+        "metadata": {
+          "type": "object",
+          "properties": {
+            "version": {"type": "string"},
+            "last_updated": {"type": "string"}
+          }
+        }
+      }
+    }
+  ]
+}

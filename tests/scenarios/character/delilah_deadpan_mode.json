@@ -1,0 +1,63 @@
+{
+  "name": "delilah_deadpan_mode",
+  "description": "Tests Delilah's deadpan voice mode for non-food tasks",
+  "initial_state": {
+    "current_chapter": 1,
+    "beats_delivered": ["awakening_confusion"],
+    "interaction_count": 5,
+    "preferences": {},
+    "device_states": {
+      "kitchen_light": {"state": "off", "brightness": 0}
+    }
+  },
+  "conversation_flow": [
+    {
+      "step": 1,
+      "user_message": "Turn on the kitchen light",
+      "expected_behavior": {
+        "contains_text": ["kitchen", "light", "on"],
+        "voice_mode": "deadpan",
+        "tool_calls": ["device_control"],
+        "characteristics": [
+          "Flat, minimal response",
+          "Efficient, get-it-done tone",
+          "Possibly a brief 'sugar' or 'honey' but unimpressed",
+          "Task completed without enthusiasm"
+        ]
+      }
+    },
+    {
+      "step": 2,
+      "user_message": "What time is it?",
+      "expected_behavior": {
+        "contains_text": ["time"],
+        "voice_mode": "deadpan",
+        "characteristics": [
+          "Brief, factual response",
+          "No elaboration",
+          "Minimal personality"
+        ]
+      }
+    },
+    {
+      "step": 3,
+      "user_message": "Set the thermostat to 72 degrees",
+      "expected_behavior": {
+        "contains_text": ["thermostat", "72"],
+        "voice_mode": "deadpan",
+        "tool_calls": ["device_control"],
+        "characteristics": [
+          "Confirmation without excitement",
+          "Functional, not emotional"
+        ]
+      }
+    }
+  ],
+  "success_criteria": [
+    "Deadpan mode triggered by non-food tasks",
+    "Responses are brief and efficient",
+    "Personality is muted but still present (subtle Southern touches)",
+    "Clear contrast with passionate mode",
+    "Tools executed correctly despite low energy"
+  ]
+}

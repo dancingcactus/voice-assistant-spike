@@ -1,0 +1,52 @@
+{
+  "name": "unknown_device",
+  "description": "Tests graceful handling of requests for non-existent devices",
+  "initial_state": {
+    "current_chapter": 1,
+    "beats_delivered": ["awakening_confusion"],
+    "interaction_count": 10,
+    "preferences": {},
+    "device_states": {}
+  },
+  "conversation_flow": [
+    {
+      "step": 1,
+      "user_message": "Turn on the flux capacitor",
+      "expected_behavior": {
+        "contains_text": ["flux capacitor", "don't", "not", "can't", "sorry"],
+        "tool_calls": [],
+        "characteristics": [
+          "Graceful error handling",
+          "No system crash or exception",
+          "Helpful response explaining device not found",
+          "Maintains character voice"
+        ]
+      }
+    },
+    {
+      "step": 2,
+      "user_message": "What devices do you have?",
+      "expected_behavior": {
+        "contains_text": ["light", "thermostat"],
+        "tool_calls": ["device_list"],
+        "note": "Should list available devices"
+      }
+    },
+    {
+      "step": 3,
+      "user_message": "Turn on the holodeck",
+      "expected_behavior": {
+        "contains_text": ["holodeck", "don't", "not"],
+        "tool_calls": [],
+        "note": "Consistent error handling for unknown devices"
+      }
+    }
+  ],
+  "success_criteria": [
+    "System handles unknown device gracefully without crashing",
+    "Error messages are helpful and in-character",
+    "User can recover and continue conversation",
+    "Device list tool provides helpful alternative",
+    "No tool execution attempted for non-existent devices"
+  ]
+}
