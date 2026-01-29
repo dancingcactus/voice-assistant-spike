@@ -2,18 +2,19 @@
  * Observability Dashboard - Home Page
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { apiClient, type UserSummary } from '../services/api';
 import { StoryBeatTool } from './StoryBeatTool';
 import { MemoryTool } from './MemoryTool';
 import UserTestingTool from './UserTestingTool';
 import { ToolCallsTool } from './ToolCallsTool';
+import { CharacterTool } from './CharacterTool';
 import './Dashboard.css';
 
 export function Dashboard() {
-  const [currentView, setCurrentView] = useState<'home' | 'story' | 'memory' | 'users' | 'toolcalls'>('home');
-  const [selectedUserId, setSelectedUserId] = useState<string>('default_user');
+  const [currentView, setCurrentView] = useState<'home' | 'story' | 'memory' | 'users' | 'toolcalls' | 'characters'>('home');
+  const [selectedUserId, setSelectedUserId] = useState<string>('');
 
   const { data: health, isLoading: healthLoading } = useQuery({
     queryKey: ['health'],
@@ -24,6 +25,14 @@ export function Dashboard() {
     queryKey: ['users'],
     queryFn: () => apiClient.listUsers(),
   });
+
+  // Initialize selectedUserId to first available user (preferably user_justin) when users load
+  useEffect(() => {
+    if (!selectedUserId && users && users.length > 0) {
+      const userJustin = users.find((u: UserSummary) => u.user_id === 'user_justin');
+      setSelectedUserId(userJustin?.user_id || users[0].user_id);
+    }
+  }, [users, selectedUserId]);
 
   if (healthLoading || usersLoading) {
     return (
@@ -46,6 +55,7 @@ export function Dashboard() {
   }
 
   const userJustin = users?.find((u: UserSummary) => u.user_id === 'user_justin');
+  const selectedUser = users?.find((u: UserSummary) => u.user_id === selectedUserId);
 
   return (
     <div className="dashboard">
@@ -82,10 +92,34 @@ export function Dashboard() {
           >
             Tool Calls
           </button>
+          <button
+            className={currentView === 'characters' ? 'active' : ''}
+            onClick={() => setCurrentView('characters')}
+          >
+            Characters
+          </button>
         </nav>
-        <div className="health-indicator">
-          <span className={`status-dot ${health?.status === 'ok' ? 'healthy' : 'error'}`}></span>
-          <span>{health?.status === 'ok' ? 'Connected' : 'Error'}</span>
+        <div className="header-controls">
+          <div className="user-selector">
+            <label htmlFor="user-select">User:</label>
+            <select
+              id="user-select"
+              value={selectedUserId}
+              onChange={(e) => setSelectedUserId(e.target.value)}
+              className="user-select"
+            >
+              {users?.map((user: UserSummary) => (
+                <option key={user.user_id} value={user.user_id}>
+                  {user.user_id}
+                  {user.user_id === 'user_justin' ? ' (Production)' : ''}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="health-indicator">
+            <span className={`status-dot ${health?.status === 'ok' ? 'healthy' : 'error'}`}></span>
+            <span>{health?.status === 'ok' ? 'Connected' : 'Error'}</span>
+          </div>
         </div>
       </header>
 
@@ -97,6 +131,8 @@ export function Dashboard() {
         <UserTestingTool />
       ) : currentView === 'toolcalls' ? (
         <ToolCallsTool userId={selectedUserId} />
+      ) : currentView === 'characters' ? (
+        <CharacterTool userId={selectedUserId} />
       ) : (
         <div className="dashboard-content">
           <section className="info-card">
@@ -159,8 +195,8 @@ export function Dashboard() {
             <li>✅ Milestone 2: Story Beat Tool (Complete!)</li>
             <li>✅ Milestone 3: Memory Tool (Complete!)</li>
             <li>✅ Milestone 4: User Testing Tool (Complete!)</li>
-            <li>⏸️ Milestone 5: Tool Calls Inspection (Coming soon)</li>
-            <li>⏸️ Milestone 6: Character Tool (Coming soon)</li>
+            <li>✅ Milestone 5: Tool Calls Inspection (Complete!)</li>
+            <li>✅ Milestone 6: Character Tool (Complete!)</li>
             <li>⏸️ Milestone 7: Polish & Integration (Coming soon)</li>
           </ul>
         </section>

@@ -257,6 +257,104 @@ export interface ToolCallStatistics {
   recent_errors: ToolCallLog[];
 }
 
+// Character interfaces
+export interface CharacterSummary {
+  id: string;
+  name: string;
+  nickname?: string;
+  role: string;
+  description?: string;
+  num_voice_modes: number;
+  num_capabilities: number;
+  has_story_arc: boolean;
+  has_tool_instructions: boolean;
+}
+
+export interface VoiceMode {
+  id: string;
+  name: string;
+  triggers: string[];
+  characteristics: string[];
+  example_phrases: string[];
+  response_style: string;
+}
+
+export interface Personality {
+  core_traits: string[];
+  speech_patterns: string[];
+  mannerisms?: string[];
+}
+
+export interface ContextAwareness {
+  remembers?: string[];
+  tracks?: string[];
+}
+
+export interface StoryArc {
+  chapter_1?: string;
+  internal_conflict?: string;
+  coping_mechanism?: string;
+}
+
+export interface CharacterRelationship {
+  dynamic: string;
+  interaction_style: string;
+  running_gags?: string[];
+}
+
+export interface Character {
+  id: string;
+  name: string;
+  nickname?: string;
+  role: string;
+  description?: string;
+  personality: Personality;
+  voice_modes: VoiceMode[];
+  context_awareness?: ContextAwareness;
+  tool_instructions?: Record<string, Record<string, any>>;
+  story_arc?: StoryArc;
+  capabilities: string[];
+  relationships?: Record<string, CharacterRelationship>;
+}
+
+export interface VoiceModeSelection {
+  mode: VoiceMode;
+  confidence: number;
+  reasoning?: string;
+}
+
+export interface SystemPromptRequest {
+  voice_mode_id?: string;
+  user_id?: string;
+}
+
+export interface SystemPromptResponse {
+  character_id: string;
+  character_name: string;
+  prompt: string;
+  token_estimate: number;
+}
+
+export interface PromptSection {
+  text: string;
+  token_estimate: number;
+}
+
+export interface PromptBreakdown {
+  character_id: string;
+  character_name: string;
+  sections: Record<string, PromptSection>;
+  total_token_estimate: number;
+}
+
+export interface CharacterStatistics {
+  character_id: string;
+  character_name: string;
+  total_interactions: number;
+  most_used_voice_mode: string;
+  average_response_length: number;
+}
+
 class ApiClient {
   private baseUrl: string;
   private authToken: string;
@@ -421,6 +519,79 @@ class ApiClient {
 
   async getAvailableCharacters(userId: string): Promise<{ characters: string[] }> {
     return this.request<{ characters: string[] }>(`/tool-calls/metadata/characters?user_id=${userId}`);
+  }
+
+  // Character endpoints
+  async listCharacters(): Promise<{ characters: CharacterSummary[] }> {
+    return this.request<{ characters: CharacterSummary[] }>('/characters');
+  }
+
+  async getCharacter(characterId: string): Promise<Character> {
+    return this.request<Character>(`/characters/${characterId}`);
+  }
+
+  async getCharacterVoiceModes(characterId: string): Promise<{ voice_modes: VoiceMode[] }> {
+    return this.request<{ voice_modes: VoiceMode[] }>(`/characters/${characterId}/voice-modes`);
+  }
+
+  async testVoiceModeSelection(
+    characterId: string,
+    userInput: string,
+    context?: Record<string, any>
+  ): Promise<VoiceModeSelection> {
+    const params = new URLSearchParams({ user_input: userInput });
+    if (context) {
+      params.append('context', JSON.stringify(context));
+    }
+    return this.request<VoiceModeSelection>(
+      `/characters/${characterId}/test-voice-mode?${params.toString()}`,
+      { method: 'POST' }
+    );
+  }
+
+  async getSystemPrompt(
+    characterId: string,
+    request: SystemPromptRequest
+  ): Promise<SystemPromptResponse> {
+    return this.request<SystemPromptResponse>(`/characters/${characterId}/system-prompt`, {
+      method: 'POST',
+      body: JSON.stringify(request),
+    });
+  }
+
+  async getPromptBreakdown(
+    characterId: string,
+    voiceModeId?: string,
+    userId?: string
+  ): Promise<PromptBreakdown> {
+    const params = new URLSearchParams();
+    if (voiceModeId) params.append('voice_mode_id', voiceModeId);
+    if (userId) params.append('user_id', userId);
+    return this.request<PromptBreakdown>(
+      `/characters/${characterId}/prompt-breakdown?${params.toString()}`
+    );
+  }
+
+  async getCharacterStatistics(
+    characterId: string,
+    userId?: string
+  ): Promise<CharacterStatistics> {
+    const params = new URLSearchParams();
+    if (userId) params.append('user_id', userId);
+    return this.request<CharacterStatistics>(
+      `/characters/${characterId}/statistics?${params.toString()}`
+    );
+  }
+
+  async getCharacterToolInstructions(
+    characterId: string,
+    toolName?: string
+  ): Promise<{ tool_instructions: Record<string, any> }> {
+    const params = new URLSearchParams();
+    if (toolName) params.append('tool_name', toolName);
+    return this.request<{ tool_instructions: Record<string, any> }>(
+      `/characters/${characterId}/tool-instructions?${params.toString()}`
+    );
   }
 }
 

@@ -17,6 +17,7 @@ from .story_access import StoryAccessLayer
 from .memory_access import MemoryAccessor
 from .user_testing_access import UserTestingAccessor
 from .tool_call_access import ToolCallDataAccess
+from .character_access import CharacterAccessLayer
 from .tool_call_models import (
     ToolCallLog,
     ToolCallFilter,
@@ -58,6 +59,7 @@ story_dal = StoryAccessLayer(project_root=str(project_root))
 memory_dal = MemoryAccessor(data_dir=str(data_dir))
 user_testing_dal = UserTestingAccessor(data_dir=str(data_dir))
 tool_call_dal = ToolCallDataAccess(data_dir=str(data_dir))
+character_dal = CharacterAccessLayer(project_root=project_root)
 
 
 # Authentication
@@ -746,12 +748,238 @@ async def get_tool_call_detail(
     return tool_call
 
 
+# Character Endpoints
+
+class CharacterSummary(BaseModel):
+    id: str
+    name: str
+    nickname: Optional[str] = None
+    role: str
+    description: Optional[str] = None
+    num_voice_modes: int
+    num_capabilities: int
+    has_story_arc: bool
+    has_tool_instructions: bool
+
+
+class VoiceModeResponse(BaseModel):
+    id: str
+    name: str
+    triggers: List[str]
+    characteristics: List[str]
+    example_phrases: List[str]
+    response_style: str
+
+
+class VoiceModeSelectionResponse(BaseModel):
+    mode: VoiceModeResponse
+    confidence: float
+    reasoning: Optional[str] = None
+
+
+class SystemPromptRequest(BaseModel):
+    voice_mode_id: Optional[str] = None
+    user_id: Optional[str] = None  # For memory context
+
+
+class SystemPromptResponse(BaseModel):
+    character_id: str
+    character_name: str
+    prompt: str
+    token_estimate: int
+
+
+class PromptBreakdownResponse(BaseModel):
+    character_id: str
+    character_name: str
+    sections: Dict[str, Dict[str, Any]]
+    total_token_estimate: int
+
+
+@app.get("/characters")
+async def list_characters(authorization: Optional[str] = Header(None)):
+    """List all available characters with summary info."""
+    verify_token(authorization)
+
+    characters = character_dal.list_characters()
+    return {"characters": [CharacterSummary(**char) for char in characters]}
+
+
+@app.get("/characters/{character_id}")
+async def get_character(
+    character_id: str,
+    authorization: Optional[str] = Header(None)
+):
+    """Get full character definition."""
+    verify_token(authorization)
+
+    character = character_dal.get_character(character_id)
+    if not character:
+        raise HTTPException(status_code=404, detail=f"Character {character_id} not found")
+
+    return character.dict()
+
+
+@app.get("/characters/{character_id}/voice-modes")
+async def get_character_voice_modes(
+    character_id: str,
+    authorization: Optional[str] = Header(None)
+):
+    """Get all voice modes for a character."""
+    verify_token(authorization)
+
+    voice_modes = character_dal.get_voice_modes(character_id)
+    if voice_modes is None:
+        raise HTTPException(status_code=404, detail=f"Character {character_id} not found")
+
+    return {"voice_modes": [VoiceModeResponse(**mode.dict()) for mode in voice_modes]}
+
+
+@app.post("/characters/{character_id}/test-voice-mode")
+async def test_voice_mode_selection(
+    character_id: str,
+    user_input: str,
+    context: Optional[Dict[str, Any]] = None,
+    authorization: Optional[str] = Header(None)
+):
+    """Test voice mode selection for given user input."""
+    verify_token(authorization)
+
+    selection = character_dal.test_voice_mode_selection(character_id, user_input, context)
+    if selection is None:
+        raise HTTPException(status_code=404, detail=f"Character {character_id} not found")
+
+    return VoiceModeSelectionResponse(
+        mode=VoiceModeResponse(**selection.mode.dict()),
+        confidence=selection.confidence,
+        reasoning=selection.reasoning
+    )
+
+
+@app.post("/characters/{character_id}/system-prompt")
+async def get_system_prompt(
+    character_id: str,
+    request: SystemPromptRequest,
+    authorization: Optional[str] = Header(None)
+):
+    """Build system prompt for a character with optional user context."""
+    verify_token(authorization)
+
+    # Get memory context if user_id provided
+    memory_context = None
+    if request.user_id:
+        try:
+            memories = memory_dal.load_memories(request.user_id)
+            # Group memories by category
+            memory_context = {}
+            for memory in memories:
+                category = memory.category
+                if category not in memory_context:
+                    memory_context[category] = []
+                memory_context[category].append(memory)
+        except Exception as e:
+            # User not found or no memories - continue without context
+            pass
+
+    prompt = character_dal.build_system_prompt(
+        character_id,
+        voice_mode_id=request.voice_mode_id,
+        memory_context=memory_context
+    )
+
+    if prompt is None:
+        raise HTTPException(status_code=404, detail=f"Character {character_id} not found")
+
+    character = character_dal.get_character(character_id)
+    token_estimate = character_dal.count_prompt_tokens(prompt)
+
+    return SystemPromptResponse(
+        character_id=character_id,
+        character_name=character.name,
+        prompt=prompt,
+        token_estimate=token_estimate
+    )
+
+
+@app.get("/characters/{character_id}/prompt-breakdown")
+async def get_prompt_breakdown(
+    character_id: str,
+    voice_mode_id: Optional[str] = None,
+    user_id: Optional[str] = None,
+    authorization: Optional[str] = Header(None)
+):
+    """Get detailed breakdown of system prompt sections with token counts."""
+    verify_token(authorization)
+
+    # Get memory context if user_id provided
+    memory_context = None
+    if user_id:
+        try:
+            memories = memory_dal.load_memories(user_id)
+            # Group memories by category
+            memory_context = {}
+            for memory in memories:
+                category = memory.category
+                if category not in memory_context:
+                    memory_context[category] = []
+                memory_context[category].append(memory)
+        except Exception as e:
+            pass
+
+    breakdown = character_dal.get_prompt_breakdown(
+        character_id,
+        voice_mode_id=voice_mode_id,
+        memory_context=memory_context
+    )
+
+    if breakdown is None:
+        raise HTTPException(status_code=404, detail=f"Character {character_id} not found")
+
+    return PromptBreakdownResponse(**breakdown)
+
+
+@app.get("/characters/{character_id}/statistics")
+async def get_character_statistics(
+    character_id: str,
+    user_id: Optional[str] = None,
+    authorization: Optional[str] = Header(None)
+):
+    """Get usage statistics for a character."""
+    verify_token(authorization)
+
+    stats = character_dal.get_character_statistics(character_id, user_id)
+    if stats is None:
+        raise HTTPException(status_code=404, detail=f"Character {character_id} not found")
+
+    return stats
+
+
+@app.get("/characters/{character_id}/tool-instructions")
+async def get_character_tool_instructions(
+    character_id: str,
+    tool_name: Optional[str] = None,
+    authorization: Optional[str] = Header(None)
+):
+    """Get tool usage instructions for a character."""
+    verify_token(authorization)
+
+    instructions = character_dal.get_tool_instructions(character_id, tool_name)
+    if instructions is None:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Character {character_id} not found or has no tool instructions"
+        )
+
+    return {"tool_instructions": instructions}
+
+
 @app.on_event("startup")
 async def startup_event():
     """Run on application startup."""
     print("🚀 Observability API starting...")
     print(f"📁 Data directory: {data_dir}")
     print(f"👥 Users found: {len(dal.list_users())}")
+    print(f"👤 Characters found: {len(character_dal.list_characters())}")
     print("✅ Ready!")
 
 
