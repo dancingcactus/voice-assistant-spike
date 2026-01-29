@@ -2,9 +2,10 @@
 import json
 import logging
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Dict, Optional, List, Any
 
 from models.character import Character, VoiceMode, VoiceModeSelection
+from models.user_state import Memory
 
 logger = logging.getLogger(__name__)
 
@@ -122,7 +123,10 @@ class CharacterSystem:
         )
 
     def build_system_prompt(
-        self, character_id: str, voice_mode: Optional[VoiceMode] = None
+        self,
+        character_id: str,
+        voice_mode: Optional[VoiceMode] = None,
+        memory_context: Optional[Dict[str, List[Memory]]] = None
     ) -> str:
         """
         Build a comprehensive system prompt for the character.
@@ -130,6 +134,7 @@ class CharacterSystem:
         Args:
             character_id: ID of the character
             voice_mode: Specific voice mode to use (optional)
+            memory_context: Dict of memory lists grouped by category (optional)
 
         Returns:
             System prompt string for the LLM
@@ -180,6 +185,91 @@ class CharacterSystem:
                 prompt_parts.append(
                     f"Coping Mechanism: {character.story_arc.coping_mechanism}"
                 )
+
+        # Add memory context section
+        if memory_context:
+            prompt_parts.append("\n\n## What You Know About This User")
+
+            # Dietary Restrictions (CRITICAL - always show first)
+            dietary = memory_context.get("dietary_restrictions", [])
+            if dietary:
+                prompt_parts.append("\n### ⚠️  DIETARY RESTRICTIONS (CRITICAL)")
+                for memory in dietary:
+                    prompt_parts.append(f"- {memory.content}")
+                prompt_parts.append(
+                    "**IMPORTANT**: ALWAYS consider these restrictions in ANY food recommendation. "
+                    "If uncertain, ask before suggesting."
+                )
+
+            # Preferences
+            prefs = memory_context.get("preferences", [])
+            if prefs:
+                prompt_parts.append("\n### Preferences")
+                for memory in sorted(prefs, key=lambda m: m.importance, reverse=True):
+                    prompt_parts.append(f"- {memory.content}")
+
+            # Relationships
+            relationships = memory_context.get("relationships", [])
+            if relationships:
+                prompt_parts.append("\n### Family & Relationships")
+                for memory in relationships:
+                    prompt_parts.append(f"- {memory.content}")
+
+            # Facts
+            facts = memory_context.get("facts", [])
+            if facts:
+                prompt_parts.append("\n### Facts About User")
+                for memory in sorted(facts, key=lambda m: m.importance, reverse=True)[:5]:
+                    prompt_parts.append(f"- {memory.content}")
+
+            # Events (only show upcoming/recent)
+            events = memory_context.get("events", [])
+            if events:
+                prompt_parts.append("\n### Upcoming Events & Schedule")
+                for memory in sorted(events, key=lambda m: m.importance, reverse=True)[:3]:
+                    prompt_parts.append(f"- {memory.content}")
+
+        # Add tool instructions if present
+        if character.tool_instructions:
+            prompt_parts.append("\n\n## Tool Usage Guidelines")
+
+            for tool_name, instructions in character.tool_instructions.items():
+                prompt_parts.append(f"\n### Using the '{tool_name}' Tool")
+
+                if 'general_guidance' in instructions:
+                    prompt_parts.append(f"\n{instructions['general_guidance']}")
+
+                if 'when_to_use' in instructions:
+                    prompt_parts.append("\n**When to use this tool:**")
+                    for condition in instructions['when_to_use']:
+                        prompt_parts.append(f"- {condition}")
+
+                if 'when_NOT_to_use' in instructions:
+                    prompt_parts.append("\n**When NOT to use:**")
+                    for condition in instructions['when_NOT_to_use']:
+                        prompt_parts.append(f"- {condition}")
+
+                if 'examples' in instructions and len(instructions['examples']) > 0:
+                    prompt_parts.append("\n**Examples:**")
+                    for i, ex in enumerate(instructions['examples'][:3], 1):  # Show first 3
+                        prompt_parts.append(f"\n{i}. User: \"{ex['user_says']}\"")
+                        prompt_parts.append(f"   Action: {ex['action']}")
+                        if 'calls' in ex and len(ex['calls']) > 0:
+                            call = ex['calls'][0]  # Show first call as example
+                            prompt_parts.append(
+                                f"   Example call: category=\"{call['category']}\", "
+                                f"importance={call['importance']}"
+                            )
+
+                if 'importance_guidelines' in instructions:
+                    prompt_parts.append("\n**Importance Ratings:**")
+                    guidelines = instructions['importance_guidelines']
+                    for level in ['10', '9', '8', '7', '5', '3']:
+                        if level in guidelines:
+                            prompt_parts.append(f"- {level}: {guidelines[level]}")
+
+                if 'mama_bear_mode_integration' in instructions:
+                    prompt_parts.append(f"\n**Special Note:** {instructions['mama_bear_mode_integration']}")
 
         # Add voice mode instructions
         if voice_mode:

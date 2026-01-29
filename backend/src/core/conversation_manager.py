@@ -163,6 +163,32 @@ class ConversationManager:
         """
         char_id = character_id or self.default_character
 
+        # Load user memories
+        from observability.memory_access import MemoryAccessor
+        memory_accessor = MemoryAccessor(str(Path(__file__).parent.parent.parent / "data"))
+        memories = memory_accessor.get_all_memories(context.user_id)
+
+        # Group memories by category
+        memory_context = {
+            "dietary_restrictions": [],
+            "preferences": [],
+            "facts": [],
+            "relationships": [],
+            "events": []
+        }
+
+        for memory in memories:
+            if memory.category == "dietary_restriction":
+                memory_context["dietary_restrictions"].append(memory)
+            elif memory.category == "preference":
+                memory_context["preferences"].append(memory)
+            elif memory.category == "fact":
+                memory_context["facts"].append(memory)
+            elif memory.category == "relationship":
+                memory_context["relationships"].append(memory)
+            elif memory.category == "event":
+                memory_context["events"].append(memory)
+
         # If we have a user message, select the appropriate voice mode
         if user_message:
             voice_mode_selection = self.character_system.select_voice_mode(
@@ -176,11 +202,11 @@ class ConversationManager:
                     f"{voice_mode_selection.reasoning}"
                 )
                 return self.character_system.build_system_prompt(
-                    char_id, voice_mode_selection.mode
+                    char_id, voice_mode_selection.mode, memory_context=memory_context
                 )
 
         # Fallback to character prompt without specific voice mode
-        return self.character_system.build_system_prompt(char_id)
+        return self.character_system.build_system_prompt(char_id, memory_context=memory_context)
 
     def _manage_history(self, context: ConversationContext):
         """

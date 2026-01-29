@@ -1,5 +1,5 @@
 """Character models for personality and voice mode management."""
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Any
 from pydantic import BaseModel, Field
 
 
@@ -52,6 +52,7 @@ class Character(BaseModel):
     voice_modes: List[VoiceMode] = Field(..., min_items=1)
 
     context_awareness: Optional[ContextAwareness] = Field(default=None)
+    tool_instructions: Optional[Dict[str, Dict[str, Any]]] = Field(default=None, description="Instructions for using tools")
     story_arc: Optional[StoryArc] = Field(default=None)
     capabilities: List[str] = Field(..., min_items=1)
     relationships: Optional[Dict[str, CharacterRelationship]] = Field(default=None)

@@ -18,6 +18,7 @@ from core.memory_manager import MemoryManager
 from integrations.tts_integration import create_tts_provider
 from tools.timer_tool import TimerTool
 from tools.device_tool import DeviceTool
+from tools.memory_tool import MemoryTool
 import os
 
 logger = logging.getLogger(__name__)
@@ -33,6 +34,7 @@ logger.info(f"Memory Manager initialized (data_dir: {data_dir})")
 tool_system = ToolSystem()
 tool_system.register_tool(TimerTool())
 tool_system.register_tool(DeviceTool())
+tool_system.register_tool(MemoryTool())
 
 logger.info(f"Registered tools: {tool_system.list_tools()}")
 
@@ -131,8 +133,9 @@ async def websocket_endpoint(websocket: WebSocket):
                 if message_data.get("type") == "user_message":
                     user_text = message_data.get("data", {}).get("text", "")
                     input_mode = message_data.get("data", {}).get("input_mode", "chat")  # "voice" or "chat"
+                    user_id = message_data.get("data", {}).get("user_id", "user_justin")  # Get user_id from message
 
-                    logger.info(f"📨 Received from {session_id}: {user_text} (mode: {input_mode})")
+                    logger.info(f"📨 Received from {session_id} (user: {user_id}): {user_text} (mode: {input_mode})")
 
                     # Send typing indicator
                     await manager.send_message(
@@ -146,6 +149,7 @@ async def websocket_endpoint(websocket: WebSocket):
                     # Get response from ConversationManager (with LLM)
                     result = await conversation_manager.handle_user_message(
                         session_id=session_id,
+                        user_id=user_id,
                         user_message=user_text,
                         input_mode=input_mode
                     )
