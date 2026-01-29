@@ -8,11 +8,12 @@ import { apiClient, type UserSummary } from '../services/api';
 import { StoryBeatTool } from './StoryBeatTool';
 import { MemoryTool } from './MemoryTool';
 import UserTestingTool from './UserTestingTool';
+import { ToolCallsTool } from './ToolCallsTool';
 import './Dashboard.css';
 
 export function Dashboard() {
-  const [currentView, setCurrentView] = useState<'home' | 'story' | 'memory' | 'users'>('home');
-  const [selectedUserId, setSelectedUserId] = useState<string>('user_justin');
+  const [currentView, setCurrentView] = useState<'home' | 'story' | 'memory' | 'users' | 'toolcalls'>('home');
+  const [selectedUserId, setSelectedUserId] = useState<string>('default_user');
 
   const { data: health, isLoading: healthLoading } = useQuery({
     queryKey: ['health'],
@@ -75,6 +76,12 @@ export function Dashboard() {
           >
             User Testing
           </button>
+          <button
+            className={currentView === 'toolcalls' ? 'active' : ''}
+            onClick={() => setCurrentView('toolcalls')}
+          >
+            Tool Calls
+          </button>
         </nav>
         <div className="health-indicator">
           <span className={`status-dot ${health?.status === 'ok' ? 'healthy' : 'error'}`}></span>
@@ -88,6 +95,8 @@ export function Dashboard() {
         <MemoryTool userId={selectedUserId} />
       ) : currentView === 'users' ? (
         <UserTestingTool />
+      ) : currentView === 'toolcalls' ? (
+        <ToolCallsTool userId={selectedUserId} />
       ) : (
         <div className="dashboard-content">
           <section className="info-card">

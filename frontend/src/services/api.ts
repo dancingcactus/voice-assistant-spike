@@ -2,7 +2,7 @@
  * API Client for Observability Dashboard
  */
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api/v1';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 const API_AUTH_TOKEN = import.meta.env.VITE_API_AUTH_TOKEN || 'dev_token_12345';
 
 export interface UserSummary {
@@ -192,6 +192,71 @@ export interface CreateTestUserRequest {
   user_id?: string;
 }
 
+export type ToolCallStatus = 'success' | 'error' | 'timeout';
+
+export interface ToolCallLog {
+  call_id: string;
+  session_id?: string;
+  interaction_id?: string;
+  timestamp: string;
+  duration_ms: number;
+  tool_name: string;
+  character?: string;
+  user_id: string;
+  request: Record<string, any>;
+  response: Record<string, any>;
+  status: ToolCallStatus;
+  error_message?: string;
+  reasoning?: string;
+  conversation_context?: string;
+  is_replay: boolean;
+  replayed_from?: string;
+}
+
+export interface ToolCallFilterOptions {
+  tool_name?: string;
+  character?: string;
+  status?: ToolCallStatus;
+  limit?: number;
+  offset?: number;
+}
+
+export interface ToolUsageStats {
+  tool_name: string;
+  total_calls: number;
+  success_count: number;
+  error_count: number;
+  success_rate: number;
+  avg_duration_ms: number;
+  min_duration_ms: number;
+  max_duration_ms: number;
+  last_used?: string;
+}
+
+export interface CharacterUsageStats {
+  character: string;
+  total_calls: number;
+  success_count: number;
+  error_count: number;
+  success_rate: number;
+  most_used_tool?: string;
+  avg_duration_ms: number;
+}
+
+export interface ToolCallStatistics {
+  total_calls: number;
+  total_successes: number;
+  total_errors: number;
+  overall_success_rate: number;
+  avg_duration_ms: number;
+  earliest_call?: string;
+  latest_call?: string;
+  by_tool: ToolUsageStats[];
+  by_character: CharacterUsageStats[];
+  slowest_calls: ToolCallLog[];
+  recent_errors: ToolCallLog[];
+}
+
 class ApiClient {
   private baseUrl: string;
   private authToken: string;
@@ -326,6 +391,36 @@ class ApiClient {
     return this.request<any>(`/users/${userId}/export`, {
       method: 'POST',
     });
+  }
+
+  // Tool Call endpoints
+  async listToolCalls(userId: string, filters?: ToolCallFilterOptions): Promise<ToolCallLog[]> {
+    const params = new URLSearchParams({ user_id: userId });
+    if (filters?.tool_name) params.append('tool_name', filters.tool_name);
+    if (filters?.character) params.append('character', filters.character);
+    if (filters?.status) params.append('status', filters.status);
+    if (filters?.limit !== undefined) params.append('limit', filters.limit.toString());
+    if (filters?.offset !== undefined) params.append('offset', filters.offset.toString());
+
+    return this.request<ToolCallLog[]>(`/tool-calls?${params.toString()}`);
+  }
+
+  async getToolCallDetail(callId: string, userId: string): Promise<ToolCallLog> {
+    return this.request<ToolCallLog>(`/tool-calls/${callId}?user_id=${userId}`);
+  }
+
+  async getToolCallStatistics(userId: string, hours?: number): Promise<ToolCallStatistics> {
+    const params = new URLSearchParams({ user_id: userId });
+    if (hours !== undefined) params.append('hours', hours.toString());
+    return this.request<ToolCallStatistics>(`/tool-calls/stats?${params.toString()}`);
+  }
+
+  async getAvailableTools(userId: string): Promise<{ tools: string[] }> {
+    return this.request<{ tools: string[] }>(`/tool-calls/metadata/tools?user_id=${userId}`);
+  }
+
+  async getAvailableCharacters(userId: string): Promise<{ characters: string[] }> {
+    return this.request<{ characters: string[] }>(`/tool-calls/metadata/characters?user_id=${userId}`);
   }
 }
 

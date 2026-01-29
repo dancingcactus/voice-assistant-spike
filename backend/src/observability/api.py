@@ -16,6 +16,15 @@ from .data_access import DataAccessLayer
 from .story_access import StoryAccessLayer
 from .memory_access import MemoryAccessor
 from .user_testing_access import UserTestingAccessor
+from .tool_call_access import ToolCallDataAccess
+from .tool_call_models import (
+    ToolCallLog,
+    ToolCallFilter,
+    ToolCallStatus,
+    ToolCallStatistics,
+    ReplayRequest,
+    ReplayResult,
+)
 
 
 # Configuration
@@ -48,6 +57,7 @@ dal = DataAccessLayer(data_dir=str(data_dir))
 story_dal = StoryAccessLayer(project_root=str(project_root))
 memory_dal = MemoryAccessor(data_dir=str(data_dir))
 user_testing_dal = UserTestingAccessor(data_dir=str(data_dir))
+tool_call_dal = ToolCallDataAccess(data_dir=str(data_dir))
 
 
 # Authentication
@@ -640,6 +650,100 @@ async def export_user_data(
         return export_data
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
+
+
+# Tool Call Endpoints
+
+class ToolCallFilterRequest(BaseModel):
+    """Query parameters for filtering tool calls"""
+    tool_name: Optional[str] = None
+    character: Optional[str] = None
+    status: Optional[ToolCallStatus] = None
+    start_time: Optional[datetime] = None
+    end_time: Optional[datetime] = None
+    limit: int = 100
+    offset: int = 0
+
+
+@app.get("/tool-calls", response_model=List[ToolCallLog])
+async def list_tool_calls(
+    user_id: str,
+    tool_name: Optional[str] = None,
+    character: Optional[str] = None,
+    status: Optional[ToolCallStatus] = None,
+    limit: int = 100,
+    offset: int = 0,
+    authorization: Optional[str] = Header(None)
+):
+    """List tool calls with optional filtering."""
+    verify_token(authorization)
+
+    filters = ToolCallFilter(
+        user_id=user_id,
+        tool_name=tool_name,
+        character=character,
+        status=status,
+        limit=limit,
+        offset=offset
+    )
+
+    tool_calls = tool_call_dal.get_tool_calls(user_id, filters)
+    return tool_calls
+
+
+@app.get("/tool-calls/stats", response_model=ToolCallStatistics)
+async def get_tool_call_statistics(
+    user_id: str,
+    hours: Optional[int] = None,
+    authorization: Optional[str] = Header(None)
+):
+    """Get aggregate statistics for tool calls."""
+    verify_token(authorization)
+
+    from datetime import timedelta
+    time_range = timedelta(hours=hours) if hours else None
+    stats = tool_call_dal.get_statistics(user_id, time_range)
+    return stats
+
+
+@app.get("/tool-calls/metadata/tools")
+async def get_available_tools(
+    user_id: str,
+    authorization: Optional[str] = Header(None)
+):
+    """Get list of all tool names that have been called."""
+    verify_token(authorization)
+
+    tool_names = tool_call_dal.get_all_tool_names(user_id)
+    return {"tools": tool_names}
+
+
+@app.get("/tool-calls/metadata/characters")
+async def get_available_characters(
+    user_id: str,
+    authorization: Optional[str] = Header(None)
+):
+    """Get list of all characters that have made tool calls."""
+    verify_token(authorization)
+
+    characters = tool_call_dal.get_all_characters(user_id)
+    return {"characters": characters}
+
+
+@app.get("/tool-calls/{call_id}", response_model=ToolCallLog)
+async def get_tool_call_detail(
+    call_id: str,
+    user_id: str,
+    authorization: Optional[str] = Header(None)
+):
+    """Get detailed information about a specific tool call."""
+    verify_token(authorization)
+
+    tool_call = tool_call_dal.get_tool_call_by_id(user_id, call_id)
+    if not tool_call:
+        raise HTTPException(status_code=404, detail=f"Tool call {call_id} not found")
+
+    return tool_call
 
 
 @app.on_event("startup")

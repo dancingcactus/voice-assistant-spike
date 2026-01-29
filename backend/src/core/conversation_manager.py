@@ -10,6 +10,8 @@ Responsibilities:
 
 import logging
 import json
+import uuid
+import time
 from typing import List, Dict, Any, Optional
 from datetime import datetime
 
@@ -22,8 +24,28 @@ from core.tool_system import ToolSystem
 from core.story_engine import StoryEngine
 from core.memory_manager import MemoryManager
 from tools.tool_base import ToolContext
+from pathlib import Path
 
 logger = logging.getLogger(__name__)
+
+# Import observability modules with error handling
+try:
+    import sys
+    # Ensure src directory is in path for observability imports
+    src_dir = Path(__file__).parent.parent
+    if str(src_dir) not in sys.path:
+        sys.path.insert(0, str(src_dir))
+
+    from observability.tool_call_access import ToolCallDataAccess
+    from observability.tool_call_models import ToolCallLog, ToolCallStatus
+    OBSERVABILITY_AVAILABLE = True
+    logger.info("Tool call logging enabled")
+except ImportError as e:
+    logger.warning(f"Tool call logging unavailable: {e}")
+    OBSERVABILITY_AVAILABLE = False
+    ToolCallDataAccess = None
+    ToolCallLog = None
+    ToolCallStatus = None
 
 
 class ConversationManager:
@@ -68,11 +90,19 @@ class ConversationManager:
         # Store active conversations by session_id (in-memory for current session)
         self.conversations: Dict[str, ConversationContext] = {}
 
+        # Initialize tool call logger if observability is available
+        if OBSERVABILITY_AVAILABLE:
+            data_dir = Path(__file__).parent.parent.parent / "data"
+            self.tool_call_logger = ToolCallDataAccess(data_dir=str(data_dir))
+        else:
+            self.tool_call_logger = None
+
         logger.info(
             f"Conversation Manager initialized "
             f"(max_history={max_history}, default_character={default_character}, "
             f"max_tool_calls={max_tool_calls}, tts={self.tts_provider is not None}, "
-            f"memory={self.memory_manager is not None})"
+            f"memory={self.memory_manager is not None}, "
+            f"tool_logging={self.tool_call_logger is not None})"
         )
 
     def get_or_create_conversation(
@@ -285,12 +315,74 @@ class ConversationManager:
                         metadata=context.metadata
                     )
 
+                    # Start timing
+                    start_time = time.time()
+                    call_id = f"call_{uuid.uuid4().hex[:12]}"
+                    timestamp = datetime.now()
+
                     # Execute tool
-                    result = await self.tool_system.execute_tool(
-                        tool_name,
-                        tool_context,
-                        arguments
-                    )
+                    try:
+                        result = await self.tool_system.execute_tool(
+                            tool_name,
+                            tool_context,
+                            arguments
+                        )
+
+                        # Calculate duration
+                        duration_ms = int((time.time() - start_time) * 1000)
+
+                        # Determine status
+                        from tools.tool_base import ToolResultStatus
+                        status = ToolCallStatus.SUCCESS if result.status == ToolResultStatus.SUCCESS else ToolCallStatus.ERROR
+
+                        # Log the tool call if logger is available
+                        if self.tool_call_logger and OBSERVABILITY_AVAILABLE:
+                            try:
+                                log_entry = ToolCallLog(
+                                    call_id=call_id,
+                                    timestamp=timestamp,
+                                    duration_ms=duration_ms,
+                                    tool_name=tool_name,
+                                    character=self.default_character,
+                                    user_id=user_id,
+                                    request=arguments,
+                                    response=result.data or {"message": result.message},
+                                    status=status,
+                                    error_message=result.error if result.error else None,
+                                    session_id=session_id,
+                                )
+                                self.tool_call_logger.append_tool_call(log_entry)
+                                logger.info(f"✅ Logged tool call: {call_id} - {tool_name}")
+                            except Exception as log_error:
+                                logger.error(f"Failed to log tool call: {log_error}", exc_info=True)
+
+                    except Exception as e:
+                        # Calculate duration even on error
+                        duration_ms = int((time.time() - start_time) * 1000)
+
+                        # Log the failed tool call if logger is available
+                        if self.tool_call_logger and OBSERVABILITY_AVAILABLE:
+                            try:
+                                log_entry = ToolCallLog(
+                                    call_id=call_id,
+                                    timestamp=timestamp,
+                                    duration_ms=duration_ms,
+                                    tool_name=tool_name,
+                                    character=self.default_character,
+                                    user_id=user_id,
+                                    request=arguments,
+                                    response={"error": str(e)},
+                                    status=ToolCallStatus.ERROR,
+                                    error_message=str(e),
+                                    session_id=session_id,
+                                )
+                                self.tool_call_logger.append_tool_call(log_entry)
+                                logger.info(f"✅ Logged failed tool call: {call_id} - {tool_name}")
+                            except Exception as log_error:
+                                logger.error(f"Failed to log tool call error: {log_error}", exc_info=True)
+
+                        # Re-raise the exception
+                        raise
 
                     # Notify Story Engine about tool execution
                     self.story_engine.on_tool_executed(user_id, tool_name)
