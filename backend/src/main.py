@@ -70,6 +70,15 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:5173",
         "http://localhost:5174",  # Vite dev server (alternate port)
+        "http://localhost:5175",
+        "http://localhost:5176",
+        "http://localhost:5177",
+        "http://localhost:5178",
+        "http://localhost:5179",
+        "http://localhost:5180",
+        "http://localhost:5181",
+        "http://localhost:5182",
+        "http://localhost:5183",  # Vite dev server (additional ports)
         "http://localhost:3000"   # Express dev server
     ],
     allow_credentials=True,

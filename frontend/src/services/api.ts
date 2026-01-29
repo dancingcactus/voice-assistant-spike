@@ -2,7 +2,8 @@
  * API Client for Observability Dashboard
  */
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+// Observability API is mounted at /api/v1
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api/v1';
 const API_AUTH_TOKEN = import.meta.env.VITE_API_AUTH_TOKEN || 'dev_token_12345';
 
 export interface UserSummary {

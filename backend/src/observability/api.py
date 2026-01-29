@@ -43,15 +43,8 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# Configure CORS - must be before other middleware
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # Allow all origins for development
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-    expose_headers=["*"],
-)
+# Note: CORS is handled by the main app when this is mounted as a sub-application
+# Do not add CORS middleware here to avoid conflicts
 
 # Initialize data access layers
 dal = DataAccessLayer(data_dir=str(data_dir))
