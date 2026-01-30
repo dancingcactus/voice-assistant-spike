@@ -14,14 +14,17 @@ Successfully restored the main chat interface and fixed the observability dashbo
 ## What Was Fixed
 
 ### 1. **Observability API Not Mounted** ✅
+
 **Problem:** The observability API (Phase 1.5) was never integrated into the main FastAPI application.
 
 **Solution:**
+
 - Mounted the observability FastAPI sub-app in [main.py:139-142](backend/src/main.py#L139-L142)
 - Placed after all main route definitions to avoid route conflicts
 - Removed `/api/v1/` prefix from all observability routes (they were duplicated)
 
 **Changes:**
+
 ```python
 # backend/src/main.py (line 139-142)
 from observability.api import app as observability_app
@@ -30,20 +33,25 @@ print("✅ Observability API mounted at /api/v1")
 ```
 
 ### 2. **Route Prefix Duplication** ✅
+
 **Problem:** Observability API routes had `/api/v1/` prefix, and were being mounted at `/api/v1/`, creating paths like `/api/v1/api/v1/health`.
 
 **Solution:**
+
 - Removed `/api/v1/` prefix from ALL routes in [observability/api.py](backend/src/observability/api.py)
 - Routes now work correctly: `http://localhost:8000/api/v1/health` ✅
 
 **Example Changes:**
+
 ```python
 # Before: @app.get("/api/v1/health")
 # After:  @app.get("/health")
 ```
 
 ### 3. **Updated Phase Information** ✅
+
 **Changes:**
+
 - Updated main API root endpoint to reflect Phase 1.5
 - Updated startup banner to show observability features
 
@@ -52,7 +60,8 @@ print("✅ Observability API mounted at /api/v1")
 ## Verified Working Components
 
 ### ✅ Chat Interface
-- **URL:** http://localhost:5173/
+
+- **URL:** <http://localhost:5173/>
 - **Status:** Connected and responding
 - **WebSocket:** Working (`ws://localhost:8000/ws`)
 - **Character:** Delilah responding correctly with personality
@@ -61,11 +70,12 @@ print("✅ Observability API mounted at /api/v1")
 - **Voice Mode:** warm baseline ✅
 
 ### ✅ Observability Dashboard
-- **URL:** http://localhost:5173/observability
-- **Status:** Fully operational
-- **API Base:** http://localhost:8000/api/v1
 
-#### Working Tools:
+- **URL:** <http://localhost:5173/observability>
+- **Status:** Fully operational
+- **API Base:** <http://localhost:8000/api/v1>
+
+#### Working Tools
 
 1. **Story Beat Tool** ✅
    - Shows all chapters (3 total)
@@ -110,12 +120,14 @@ All endpoints responding correctly:
 ## Current System State
 
 ### Backend
+
 - **Running:** ✅ Port 8000
 - **Command:** `python -m backend.src.main`
 - **Auto-reload:** Enabled
 - **Phase:** 1.5 - Observability Dashboard
 
 ### Frontend
+
 - **Running:** ✅ Port 5173
 - **Command:** `npm run dev`
 - **Routes:**
@@ -123,6 +135,7 @@ All endpoints responding correctly:
   - `/observability` - Dashboard
 
 ### User Profile (user_justin)
+
 - **Current Chapter:** Chapter 1 - Awakening
 - **Progress:** 5/8 beats delivered (62%)
 - **Interactions:** 47
@@ -134,6 +147,7 @@ All endpoints responding correctly:
 ## Testing Performed
 
 ### Manual Testing ✅
+
 1. ✅ Backend health endpoints
 2. ✅ Frontend chat interface
 3. ✅ WebSocket connection
@@ -144,10 +158,12 @@ All endpoints responding correctly:
 8. ✅ User listing and profile display
 
 ### Automated Testing ✅
+
 - Test script: [test_chat_and_observability.sh](../../tests/scripts/test_chat_and_observability.sh)
 - All endpoints responding with HTTP 200
 
 ### Playwright Testing ✅
+
 - Browser automation working
 - Page navigation verified
 - Component rendering confirmed
@@ -158,7 +174,8 @@ All endpoints responding correctly:
 
 You are now ready to implement **Milestone 5: Tool Calls Inspection** from the [Implementation Plan](docs/technical/phase1.5/IMPLEMENTATION_PLAN.md).
 
-### Milestone 5 Requirements:
+### Milestone 5 Requirements
+
 1. **Backend:**
    - Tool call event logger
    - Tool call query endpoints with filtering
@@ -183,6 +200,7 @@ You are now ready to implement **Milestone 5: Tool Calls Inspection** from the [
 ## Outstanding Items
 
 ### Known Issue: WebSocket User ID Tracking
+
 **Status:** 🔶 Non-blocking for testing
 
 **Issue:** WebSocket calls `handle_user_message()` without explicit `user_id` parameter, defaulting to "default_user".
@@ -190,11 +208,13 @@ You are now ready to implement **Milestone 5: Tool Calls Inspection** from the [
 **Location:** [backend/src/api/websocket.py:147](backend/src/api/websocket.py#L147)
 
 **Impact:**
+
 - All WebSocket conversations currently use default user
 - Observability tools work with `user_justin` (file-based)
 - No immediate blocking issue for single-user testing
 
 **Suggested Fix (Future):**
+
 ```python
 # In websocket.py endpoint
 result = await conversation_manager.handle_user_message(
@@ -210,6 +230,7 @@ result = await conversation_manager.handle_user_message(
 ## Useful Commands
 
 ### Start Development Environment
+
 ```bash
 # Terminal 1: Backend
 cd backend
@@ -222,6 +243,7 @@ npm run dev
 ```
 
 ### Test Endpoints
+
 ```bash
 # Health check
 curl http://localhost:8000/api/v1/health
@@ -236,10 +258,11 @@ curl -H "Authorization: Bearer dev_token_12345" \
 ```
 
 ### Access URLs
-- **Chat Interface:** http://localhost:5173/
-- **Observability Dashboard:** http://localhost:5173/observability
-- **API Documentation:** http://localhost:8000/docs
-- **API Root:** http://localhost:8000/
+
+- **Chat Interface:** <http://localhost:5173/>
+- **Observability Dashboard:** <http://localhost:5173/observability>
+- **API Documentation:** <http://localhost:8000/docs>
+- **API Root:** <http://localhost:8000/>
 
 ---
 

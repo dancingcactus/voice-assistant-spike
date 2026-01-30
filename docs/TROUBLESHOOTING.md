@@ -5,6 +5,7 @@
 ### Issue: Chat Interface Won't Connect + Character Tool Shows "No Characters Found"
 
 **Symptoms:**
+
 - Chat interface shows disconnected status
 - WebSocket connection errors (403 Forbidden)
 - Character Tool displays "No characters found" message
@@ -12,11 +13,13 @@
 
 **Root Cause:**
 The system has two components that need to work together:
+
 1. **Main Server** (`src/main.py`) - Runs on port 8000, provides WebSocket for chat + mounts observability API
 2. **Observability API** (`src/observability/api.py`) - Should be mounted at `/api/v1` inside main server, NOT run standalone
 
 **The Problem:**
 Running the observability API standalone with:
+
 ```bash
 python -m uvicorn src.observability.api:app --reload --port 8000
 ```
@@ -26,11 +29,13 @@ This conflicts with the main server and doesn't provide the WebSocket endpoint n
 **Solution:**
 
 1. **Kill any standalone observability API processes:**
+
 ```bash
 lsof -ti:8000 | xargs kill -9
 ```
 
-2. **Start only the main server:**
+1. **Start only the main server:**
+
 ```bash
 cd backend
 source venv/bin/activate
@@ -38,14 +43,16 @@ python src/main.py
 ```
 
 This will:
+
 - ✅ Start main server on port 8000
 - ✅ Mount observability API at `/api/v1`
 - ✅ Provide WebSocket endpoint at `ws://localhost:8000/ws`
 - ✅ Serve both chat interface and observability dashboard
 
-3. **Ensure frontend is configured correctly:**
+1. **Ensure frontend is configured correctly:**
 
 Check `frontend/.env`:
+
 ```
 VITE_API_BASE_URL=http://localhost:8000/api/v1
 VITE_API_AUTH_TOKEN=dev_token_12345
@@ -53,7 +60,7 @@ VITE_API_AUTH_TOKEN=dev_token_12345
 
 **NOT** ~~`http://localhost:8001`~~ or ~~`http://localhost:8000`~~ (missing `/api/v1`)
 
-4. **Verify it's working:**
+1. **Verify it's working:**
 
 ```bash
 # Test main server
@@ -72,10 +79,12 @@ curl -H "Authorization: Bearer dev_token_12345" \
 ## Server Architecture
 
 ### Port Mapping
+
 - **8000** - Main server (with observability API mounted at `/api/v1`)
 - **5173** - Frontend (Vite dev server)
 
 ### API Routes
+
 - `GET /health` - Main server health check
 - `GET /` - Main server root
 - `WebSocket /ws` - Chat interface WebSocket
@@ -88,6 +97,7 @@ curl -H "Authorization: Bearer dev_token_12345" \
 ### Correct Startup Sequence
 
 1. **Backend:**
+
 ```bash
 cd backend
 source venv/bin/activate
@@ -95,6 +105,7 @@ python src/main.py
 ```
 
 Expected output:
+
 ```
 ✅ Loaded OpenAI key from backend/.env
 ✅ Environment variables validated
@@ -104,13 +115,15 @@ Expected output:
 🌐 Server: http://localhost:8000
 ```
 
-2. **Frontend:**
+1. **Frontend:**
+
 ```bash
 cd frontend
 npm run dev
 ```
 
 Expected output:
+
 ```
 VITE v5.x.x ready in xxx ms
 ➜ Local: http://localhost:5173/
@@ -123,6 +136,7 @@ VITE v5.x.x ready in xxx ms
 When things aren't working:
 
 ### 1. Check Running Processes
+
 ```bash
 # Check what's running on port 8000
 lsof -i:8000
@@ -131,6 +145,7 @@ lsof -i:8000
 ```
 
 ### 2. Check Frontend Configuration
+
 ```bash
 cat frontend/.env
 
@@ -140,6 +155,7 @@ cat frontend/.env
 ```
 
 ### 3. Test API Endpoints
+
 ```bash
 # Main server
 curl http://localhost:8000/health
@@ -154,13 +170,17 @@ curl -H "Authorization: Bearer dev_token_12345" \
 ```
 
 ### 4. Check Browser Console
+
 Open DevTools (F12) → Console tab:
+
 - ✅ Should see: "✅ WebSocket connected"
 - ❌ Should NOT see: 403 Forbidden errors
 - ❌ Should NOT see: Failed to fetch errors
 
 ### 5. Check Server Logs
+
 Look for these messages in the terminal running `python src/main.py`:
+
 ```
 ✅ WebSocket connected: [uuid]
 INFO: connection open
@@ -176,6 +196,7 @@ INFO: 127.0.0.1:xxx - "GET /api/v1/characters HTTP/1.1" 200 OK
 **Cause:** Frontend caching or stale connection
 
 **Solution:**
+
 1. Hard refresh browser (Cmd+Shift+R / Ctrl+Shift+R)
 2. Clear browser cache
 3. Restart frontend dev server
@@ -185,6 +206,7 @@ INFO: 127.0.0.1:xxx - "GET /api/v1/characters HTTP/1.1" 200 OK
 **Cause:** Multiple server instances competing for port 8000
 
 **Solution:**
+
 ```bash
 # Kill everything on port 8000
 lsof -ti:8000 | xargs kill -9
@@ -199,6 +221,7 @@ cd backend && source venv/bin/activate && python src/main.py
 
 **Solution:**
 Check `frontend/.env` has `/api/v1` in the base URL:
+
 ```
 VITE_API_BASE_URL=http://localhost:8000/api/v1  # ← Must include /api/v1
 ```
@@ -222,6 +245,7 @@ To avoid these issues in the future:
 
 4. **Port conflicts**
    - Before starting, check no other process is using port 8000:
+
    ```bash
    lsof -i:8000
    ```
@@ -273,6 +297,7 @@ wait
 ```
 
 Usage:
+
 ```bash
 chmod +x restart_servers.sh
 ./restart_servers.sh
@@ -283,11 +308,13 @@ chmod +x restart_servers.sh
 ## Support
 
 If you encounter issues not covered here, check:
+
 1. Server logs (terminal running `python src/main.py`)
 2. Browser console (F12 → Console tab)
 3. Network tab (F12 → Network tab) for failed requests
 
 For Character Tool specific issues, run the test script:
+
 ```bash
 ./tests/scripts/test_milestone7_character_tool.sh
 ```

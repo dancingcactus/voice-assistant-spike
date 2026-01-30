@@ -5,6 +5,7 @@
 ## What Was Built
 
 ### Backend (FastAPI)
+
 - ✅ FastAPI application structure in [backend/src/observability/](../../../backend/src/observability/)
 - ✅ Data access layer with file locking ([data_access.py](../../../backend/src/observability/data_access.py:22))
 - ✅ Health check endpoint (`GET /api/v1/health`)
@@ -14,6 +15,7 @@
 - ✅ Bearer token authentication
 
 ### Frontend (React + TypeScript + Vite)
+
 - ✅ React Query integration for data fetching
 - ✅ React Router for navigation
 - ✅ API client with TypeScript types ([api.ts](../../../frontend/src/services/api.ts:11))
@@ -21,6 +23,7 @@
 - ✅ Environment configuration with .env file
 
 ### Test Data
+
 - ✅ Created `user_justin` profile with realistic data
 - ✅ Sample story progress (5 beats delivered)
 - ✅ User preferences and interaction history
@@ -30,6 +33,7 @@
 ### Starting the Services
 
 **Terminal 1 - Backend:**
+
 ```bash
 cd backend
 source venv/bin/activate
@@ -37,6 +41,7 @@ python -m uvicorn src.observability.api:app --reload --port 8000
 ```
 
 **Terminal 2 - Frontend:**
+
 ```bash
 cd frontend
 npm run dev
@@ -45,17 +50,20 @@ npm run dev
 ### Testing Backend API
 
 **Health Check:**
+
 ```bash
 curl http://localhost:8000/api/v1/health
 ```
 
 **List Users:**
+
 ```bash
 curl -H "Authorization: Bearer dev_token_12345" \
      http://localhost:8000/api/v1/users
 ```
 
 **Get User Details:**
+
 ```bash
 curl -H "Authorization: Bearer dev_token_12345" \
      http://localhost:8000/api/v1/users/user_justin
@@ -102,20 +110,26 @@ backend/data/users/
 ## Technical Highlights
 
 ### File Locking Implementation
+
 Uses Python's `fcntl` for safe concurrent file access:
+
 ```python
 with self._lock_file(file_path, 'r') as f:
     return json.load(f)
 ```
 
 ### API Authentication
+
 Simple bearer token auth for development:
+
 ```python
 Authorization: Bearer dev_token_12345
 ```
 
 ### React Query Integration
+
 Automatic caching and refetching:
+
 ```typescript
 const { data: users } = useQuery({
   queryKey: ['users'],
@@ -132,6 +146,7 @@ None! Everything works as expected.
 Ready to proceed to **Milestone 2: Story Beat Tool**
 
 This will add:
+
 - Story beat viewing and filtering
 - Chapter flow diagrams
 - Beat triggering for testing

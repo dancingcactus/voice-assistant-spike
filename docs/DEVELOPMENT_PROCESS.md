@@ -19,6 +19,7 @@ This document defines the development methodology for the Aperture Assist voice 
 ### Purpose
 
 This methodology ensures:
+
 - Consistent documentation across all phases
 - Testable increments at every level
 - Clear completion criteria
@@ -35,15 +36,18 @@ Development is organized into three hierarchical layers, each with specific comp
 **Definition:** Customer-facing feature deliveries that combine multiple phases into a cohesive version.
 
 **Version Numbering:**
+
 - **Major releases** (x.0): Significant new capabilities (e.g., v2.0 - Multi-character panel)
 - **Minor releases** (x.x): Feature additions within current capabilities (e.g., v1.5 - Observability tools)
 
 **Examples:**
+
 - v1.0: Core single-character system with Delilah
 - v1.5: Developer observability and testing infrastructure
 - v2.0: Multi-character panel with Hank and Cave
 
 **Completion Criteria:**
+
 - ✅ All phases in release are complete
 - ✅ All automated tests passing
 - ✅ Manual testing performed and documented
@@ -57,22 +61,26 @@ Development is organized into three hierarchical layers, each with specific comp
 **Definition:** Testable feature sets that deliver user-facing value. Each phase represents a cohesive set of functionality that can be demonstrated and validated.
 
 **Phase Numbering:**
+
 - **Integer phases** (1, 2, 3): Major feature areas
 - **Decimal phases** (1.5, 2.5): Intermediate features or supporting infrastructure
 
 **Phase Relationships:**
+
 - **Sibling phases** (Phase 2, Phase 3): Independent peer features
   - Folder structure: `docs/technical/phase2/`, `docs/technical/phase3/`
 - **Sub-phases** (Phase 2, Phase 2.5): Dependent or supporting features
   - Folder structure: `docs/technical/phase2/`, `docs/technical/phase2/phase2.5/`
 
 **Examples:**
+
 - Phase 1: Core conversation system with Delilah
 - Phase 1.5: Observability and testing tools
 - Phase 2: Multi-character coordination
 - Phase 2.5: Advanced character relationship tracking (sub-phase of 2)
 
 **Completion Criteria:**
+
 - ✅ All milestones in phase complete
 - ✅ End-to-end tests written and passing
 - ✅ Manual testing guide complete
@@ -85,11 +93,13 @@ Development is organized into three hierarchical layers, each with specific comp
 **Definition:** Single, testable chunks of work that can be completed and verified independently. Each milestone adds one demonstrable capability to the system.
 
 **Examples:**
+
 - Milestone 4: User Testing Tool (from Phase 1.5)
 - Milestone 5: Tool Calls Inspection (from Phase 1.5)
 - Milestone 6: Memory Extraction System (from Phase 1.5)
 
 **Completion Criteria:**
+
 - ✅ Code complete and working
 - ✅ E2E Playwright tests written and passing
 - ✅ AI validation executed (AI runs manual test steps)
@@ -99,6 +109,7 @@ Development is organized into three hierarchical layers, each with specific comp
 - ✅ One git commit on phase branch
 
 **Milestone Size Guideline:**
+
 - Target: 1-3 days of work maximum
 - If growing beyond this, break into sub-milestones
 - Each milestone should have a single, clear acceptance test
@@ -110,13 +121,16 @@ Development is organized into three hierarchical layers, each with specific comp
 ### Branch Strategy
 
 **Phase Branches:**
+
 - Create when starting a new phase: `git checkout -b phase2`
 - One branch per phase (e.g., `phase1.5`, `phase2`, `phase2.5`)
 - Long-lived until phase complete
 
 **Milestone Commits:**
+
 - One commit per completed milestone
 - Commit message format:
+
   ```
   Complete Milestone X: [Milestone Name] for Phase Y
 
@@ -135,6 +149,7 @@ Development is organized into three hierarchical layers, each with specific comp
   ```
 
 **Example:**
+
 ```bash
 # Start Phase 2
 git checkout -b phase2
@@ -164,16 +179,19 @@ git tag phase2-complete
 ### Tagging Strategy
 
 **Phase Tags:**
+
 - Format: `phase[number]-complete`
 - Created when all milestones in phase are done
 - Examples: `phase1.5-complete`, `phase2-complete`
 
 **Release Tags:**
+
 - Format: `v[major].[minor].[patch]`
 - Created when creating an official release
 - Examples: `v1.0.0`, `v1.5.0`, `v2.0.0`
 
 **Tagging Commands:**
+
 ```bash
 # Tag completed phase
 git tag phase2-complete
@@ -188,6 +206,7 @@ git push --tags
 ### Merging Strategy
 
 **Phase to Main:**
+
 - Merge phase branch to `main` or a release branch when phase complete
 - Can defer merge until release creation
 - Use merge commit (not rebase) to preserve history
@@ -208,6 +227,7 @@ git push
 This project prioritizes E2E tests over unit tests during early development to ensure user-facing functionality works correctly.
 
 **Rationale:**
+
 - Early lifecycle project with changing architecture
 - User experience is primary success metric
 - E2E tests provide most confidence in feature completeness
@@ -218,6 +238,7 @@ This project prioritizes E2E tests over unit tests during early development to e
 **Location:** `tests/e2e/`
 
 **Organization:**
+
 ```
 tests/e2e/
 ├── phase1.5/
@@ -233,11 +254,13 @@ tests/e2e/
 **Test Framework:** Playwright
 
 **Coverage Requirements:**
+
 - Every user-facing feature must have E2E test coverage
 - Critical paths must be tested end-to-end
 - Tests must verify both UI and backend integration
 
 **Example E2E Test Structure:**
+
 ```typescript
 // tests/e2e/phase2/milestone1_bidding.spec.ts
 import { test, expect } from '@playwright/test';
@@ -272,6 +295,7 @@ When a milestone completion checklist says "AI executed manual test steps", it m
 4. **Edge Cases:** The AI identifies and documents any unexpected behavior
 
 **AI Testing Process:**
+
 ```markdown
 1. AI reads TESTING_GUIDE.md for milestone
 2. AI executes each test step using available tools (Playwright, Bash, etc.)
@@ -282,6 +306,7 @@ When a milestone completion checklist says "AI executed manual test steps", it m
 ```
 
 **Example AI Test Report:**
+
 ```markdown
 ### Milestone 4: User Testing Tool - AI Validation Results
 
@@ -309,12 +334,14 @@ When a milestone completion checklist says "AI executed manual test steps", it m
 **Documentation Location:** Each phase's `TESTING_GUIDE.md`
 
 **Required Elements:**
+
 - Prerequisites (services, data, configuration)
 - Step-by-step test procedures
 - Expected results for each step
 - Troubleshooting common issues
 
 **Example Manual Test:**
+
 ```markdown
 ### Test 2: Memory Extraction
 
@@ -402,17 +429,20 @@ docs/technical/phaseN/
 ### Documentation Timing
 
 **During Development:**
+
 - Create PRD, Architecture, Implementation Plan before coding
 - Update Implementation Plan as milestones complete
 - Write completion reports for complex milestones (optional)
 
 **After Phase Completion:**
+
 - Update USER_GUIDE.md with new features
 - Update TROUBLESHOOTING.md with solutions found
 - Update API_SPECIFICATION.md if APIs added
 - Create phase completion summary (optional)
 
 **At Release:**
+
 - Write RELEASE_NOTES.md in release folder
 - Update CHANGELOG.md with all changes
 - Move phase folders to `docs/releases/vX.X/`
@@ -424,11 +454,13 @@ docs/technical/phaseN/
 ### Sibling Phases (Independent)
 
 **When to Use:**
+
 - Features are independent and don't depend on each other
 - Can be developed in parallel by different developers
 - Example: Phase 2 (Multi-character) and Phase 3 (Web search)
 
 **Folder Structure:**
+
 ```
 docs/technical/
 ├── phase2/              # Multi-character coordination
@@ -442,23 +474,27 @@ docs/technical/
 ```
 
 **Git Strategy:**
+
 - Separate branches: `phase2`, `phase3`
 - Can be developed simultaneously
 - Merge to main independently when complete
 
 **Dependency Tracking:**
+
 - Document in Implementation Plan if one phase must complete before another
 - Example: "Phase 3 requires Phase 2 agent system to be complete"
 
 ### Sub-Phases (Dependent)
 
 **When to Use:**
+
 - Feature is extension or enhancement of parent phase
 - Discovered during parent phase implementation
 - Tightly coupled to parent functionality
 - Example: Phase 2.5 (Advanced relationship tracking) builds on Phase 2
 
 **Folder Structure:**
+
 ```
 docs/technical/
 └── phase2/                    # Multi-character coordination
@@ -472,12 +508,14 @@ docs/technical/
 ```
 
 **Git Strategy:**
+
 - Use same branch as parent: `phase2`
 - Milestones from both phases committed to same branch
 - Tag sub-phase completion: `phase2.5-complete`
 - Tag parent phase when both complete: `phase2-complete`
 
 **When to Choose Sub-Phase vs New Phase:**
+
 - **Sub-phase (2.5)** if:
   - Cannot function without parent phase
   - Extends parent functionality
@@ -502,11 +540,13 @@ Follow these steps when multiple phases are ready to ship:
    - Phase tags created
 
 2. **Create Release Folder**
+
    ```bash
    mkdir -p docs/releases/v2.0
    ```
 
 3. **Move Phase Folders**
+
    ```bash
    mv docs/technical/phase2 docs/releases/v2.0/
    mv docs/technical/phase3 docs/releases/v2.0/
@@ -525,12 +565,14 @@ Follow these steps when multiple phases are ready to ship:
    - Link to release notes and phase docs
 
 6. **Create Git Tag**
+
    ```bash
    git tag v2.0.0 -m "Release v2.0: Multi-character panel"
    git push --tags
    ```
 
 7. **Merge to Main** (if not already done)
+
    ```bash
    git checkout main
    git merge phase2 --no-ff
@@ -570,12 +612,14 @@ Phase 1.5 serves as a reference implementation of this development process.
 
 ### What Was Built
 
-**Phase 1.5: Observability & Testing Tools**
+#### Phase 1.5: Observability & Testing Tools
+
 - 7 milestones completed over ~2 weeks
 - Full developer dashboard for inspecting system state
 - Released as v1.5.0
 
 **Milestones:**
+
 1. Foundation & Data Access
 2. Story Beat Tool
 3. Memory Tool
@@ -713,6 +757,7 @@ git push --tags
 ## Templates
 
 All phase templates are available in:
+
 - **Location:** `docs/templates/PHASE_TEMPLATE/`
 - **Files:** PRD.md, ARCHITECTURE.md, IMPLEMENTATION_PLAN.md, TESTING_GUIDE.md
 
@@ -723,6 +768,7 @@ See individual template files for detailed structure and guidance.
 ## Changelog
 
 ### 1.0 - 2026-01-29
+
 - Initial version documenting three-layer structure
 - Git workflow defined
 - Testing strategy established

@@ -32,6 +32,7 @@
 ### Starting the Dashboard
 
 **Terminal 1 - Backend API:**
+
 ```bash
 cd backend
 source venv/bin/activate  # On Windows: venv\Scripts\activate
@@ -39,13 +40,15 @@ python -m uvicorn src.observability.api:app --reload --port 8000
 ```
 
 **Terminal 2 - Frontend:**
+
 ```bash
 cd frontend
 npm run dev
 ```
 
 **Access the Dashboard:**
-- Open http://localhost:5173/observability (or the port shown by Vite)
+
+- Open <http://localhost:5173/observability> (or the port shown by Vite)
 - You should see the home page with quick actions
 
 ### First-Time Setup
@@ -63,20 +66,24 @@ npm run dev
 The home page provides a high-level overview of the system:
 
 **Quick Actions**
+
 - Click any tool card to navigate
 - Keyboard shortcuts: Press `1-6` for direct navigation
 
 **Current User Profile**
+
 - Shows selected user's chapter, interaction count
 - Production users marked with green badge
 
 **System Overview**
+
 - Total users count
 - Available tools count (6)
 - Active characters count
 - Milestones completion status
 
 **All Users**
+
 - Click any user card to switch context
 - Production users cannot be deleted
 - Test users show without badge
@@ -84,6 +91,7 @@ The home page provides a high-level overview of the system:
 ### Navigation
 
 **Top Navigation Bar:**
+
 - Home (1) - Dashboard overview
 - Story Beats (2) - Story progression tool
 - Memories (3) - Memory management
@@ -92,6 +100,7 @@ The home page provides a high-level overview of the system:
 - Characters (6) - Character configuration
 
 **Header Controls:**
+
 - User selector dropdown
 - Help button (?) - Shows keyboard shortcuts
 - Health indicator (green = connected)
@@ -107,6 +116,7 @@ View, trigger, and manage story beats for testing narrative progression.
 ### Key Features
 
 **Beat List View**
+
 - All beats for current chapter
 - Status indicators:
   - ✅ Delivered
@@ -115,6 +125,7 @@ View, trigger, and manage story beats for testing narrative progression.
   - ⏸️ Not yet triggered
 
 **Beat Details**
+
 - Name and ID
 - Required vs optional
 - Prerequisites list
@@ -123,11 +134,13 @@ View, trigger, and manage story beats for testing narrative progression.
 - Delivery history with timestamps
 
 **Beat Triggers**
+
 - Click "Trigger Now" to queue a beat
 - Beat will deliver in next interaction
 - Use "Mark as Undelivered" to reset
 
 **Flow Diagram**
+
 - Visual representation of chapter structure
 - Shows dependencies between beats
 - Required beats in green, optional in blue
@@ -135,11 +148,13 @@ View, trigger, and manage story beats for testing narrative progression.
 ### Common Tasks
 
 **View Story Progress**
+
 1. Navigate to Story Beats (press `2`)
 2. See your current chapter and completion %
 3. Check which beats you've experienced
 
 **Test a New Beat**
+
 1. Find an undelivered optional beat
 2. Click "Trigger Now"
 3. Go to main chat interface
@@ -148,6 +163,7 @@ View, trigger, and manage story beats for testing narrative progression.
 6. Return to tool, verify beat now shows as delivered
 
 **Debug Beat Prerequisites**
+
 1. Click on locked beat
 2. View "Prerequisites" section
 3. Check which beats must be delivered first
@@ -164,12 +180,14 @@ Create, view, edit, and delete user memories. Essential for testing memory-based
 ### Key Features
 
 **Memory List**
+
 - All memories for selected user
 - Filterable by category, importance, verification status
 - Searchable by content
 - Sortable by recency, importance, access count
 
 **Memory Categories**
+
 - 📝 Fact - Objective information
 - ❤️ Preference - User likes/dislikes
 - ⚠️ Dietary Restriction - Allergies, food requirements
@@ -180,11 +198,13 @@ Create, view, edit, and delete user memories. Essential for testing memory-based
 - 📚 Knowledge - Skills, expertise
 
 **Importance Scale**
+
 - 1-10 rating
 - Higher importance = more likely to load in context
 - Importance ≥ 3 typically loaded
 
 **Memory Fields**
+
 - Content (required) - The actual memory text
 - Category (required) - Classification
 - Importance (1-10) - Priority
@@ -195,11 +215,13 @@ Create, view, edit, and delete user memories. Essential for testing memory-based
 ### Common Tasks
 
 **View All Memories**
+
 1. Navigate to Memories (press `3`)
 2. See complete list sorted by recency
 3. Use search box to filter by text
 
 **Create a New Memory**
+
 1. Click "+ New Memory" button (or press `N`)
 2. Fill in content: "Loves testing observability tools"
 3. Select category: Preference
@@ -210,6 +232,7 @@ Create, view, edit, and delete user memories. Essential for testing memory-based
 8. Memory appears in list
 
 **Edit Existing Memory**
+
 1. Find memory in list
 2. Click "Edit" button
 3. Update any fields
@@ -217,11 +240,13 @@ Create, view, edit, and delete user memories. Essential for testing memory-based
 5. Updated timestamp shown
 
 **Delete Memory**
+
 1. Click "Delete" on memory
 2. Confirm in dialog (shows memory content)
 3. Memory removed from list
 
 **View Context Preview**
+
 1. Click "View Context" button
 2. See which memories would load in character prompt
 3. Check estimated token count
@@ -238,12 +263,14 @@ Create isolated test users for testing different story scenarios without affecti
 ### Key Features
 
 **User List**
+
 - All users (production + test)
 - Production users have green "PRODUCTION" badge
 - Test users can be deleted
 - Click user card to view details or switch
 
 **User Creation Wizard**
+
 - Auto-generated unique names (e.g., TestUser_Riley_8273)
 - Choose starting chapter
 - Add initial memories from templates
@@ -251,6 +278,7 @@ Create isolated test users for testing different story scenarios without affecti
 - Auto-switch option
 
 **User State Summary**
+
 - Profile info (created date, interactions)
 - Story progress (chapter, beats completed)
 - Memory count
@@ -258,6 +286,7 @@ Create isolated test users for testing different story scenarios without affecti
 - Tags
 
 **User Deletion**
+
 - Shows impact preview (memories, story data, tool calls)
 - Confirmation required
 - Production users protected (cannot delete user_justin)
@@ -266,6 +295,7 @@ Create isolated test users for testing different story scenarios without affecti
 ### Common Tasks
 
 **Create Test User for Chapter 2**
+
 1. Navigate to User Testing (press `4`)
 2. Click "+ Create User"
 3. Name auto-generates
@@ -279,12 +309,14 @@ Create isolated test users for testing different story scenarios without affecti
 9. Context switches to new user across all tools
 
 **Switch Between Users**
+
 1. Open User Testing tool
 2. Click "Switch to User" on desired user
 3. All tools update to show that user's data
 4. Top-right dropdown reflects change
 
 **Export User Data**
+
 1. Click "Export Data" on user
 2. JSON file downloads
 3. Contains complete user state:
@@ -294,6 +326,7 @@ Create isolated test users for testing different story scenarios without affecti
    - Tool call history
 
 **Delete Test User**
+
 1. Click "Delete" on test user
 2. Confirmation shows:
    - User name
@@ -315,17 +348,20 @@ Debug tool execution, inspect performance, and replay API calls.
 ### Key Features
 
 **Tool Call Timeline**
+
 - Chronological list of all tool calls
 - Shows timestamp, tool name, duration, status
 - Character who made the call
 
 **Filters**
+
 - By tool name (set_timer, get_recipe, etc.)
 - By character (Delilah, Hank, etc.)
 - By time range (last hour, last 24h, last week)
 - By status (success, error)
 
 **Call Details**
+
 - Full request JSON (pretty-printed)
 - Full response JSON
 - Duration in milliseconds
@@ -333,11 +369,13 @@ Debug tool execution, inspect performance, and replay API calls.
 - Error messages with stack trace (if failed)
 
 **Replay Functionality**
+
 - Replay with same parameters
 - Edit parameters and retry
 - Creates new log entry marked as "Replay of evt_XXX"
 
 **Statistics**
+
 - Total calls
 - Success rate
 - Average duration
@@ -349,6 +387,7 @@ Debug tool execution, inspect performance, and replay API calls.
 ### Common Tasks
 
 **Find Slow Tool Calls**
+
 1. Navigate to Tool Calls (press `5`)
 2. Sort by "Duration" column (click header)
 3. Identify calls > 2000ms
@@ -356,6 +395,7 @@ Debug tool execution, inspect performance, and replay API calls.
 5. Inspect request to understand why slow
 
 **Debug Failed Call**
+
 1. Filter by status: "Error"
 2. Find recent failure
 3. Expand details
@@ -366,6 +406,7 @@ Debug tool execution, inspect performance, and replay API calls.
 8. Verify now succeeds
 
 **Analyze Tool Usage**
+
 1. Scroll to Statistics section
 2. Review "Most Used Tools"
 3. Check success rates
@@ -383,11 +424,13 @@ Inspect character configurations, test voice modes, and debug system prompts.
 ### Key Features
 
 **Character Selector**
+
 - Browse all available characters
 - Shows active vs locked status
 - Interaction count per character
 
 **Overview Tab**
+
 - Personality traits
 - Speech patterns and mannerisms
 - Capabilities list
@@ -395,6 +438,7 @@ Inspect character configurations, test voice modes, and debug system prompts.
 - Character metadata
 
 **Voice Modes Tab**
+
 - Interactive voice mode tester
 - Input test phrase, see which mode selected
 - Confidence scoring
@@ -403,6 +447,7 @@ Inspect character configurations, test voice modes, and debug system prompts.
 - Example phrases for each mode
 
 **System Prompt Tab**
+
 - Generate full system prompt
 - Select specific voice mode or all modes
 - Token count estimation
@@ -415,6 +460,7 @@ Inspect character configurations, test voice modes, and debug system prompts.
 - Full prompt preview
 
 **Tool Instructions Tab**
+
 - Character-specific tool guidelines
 - When to use / when NOT to use
 - Importance rating scales
@@ -423,6 +469,7 @@ Inspect character configurations, test voice modes, and debug system prompts.
 ### Common Tasks
 
 **Test Voice Mode Selection**
+
 1. Navigate to Characters (press `6`)
 2. Select "Delilah" from sidebar
 3. Go to "Voice Modes" tab
@@ -432,6 +479,7 @@ Inspect character configurations, test voice modes, and debug system prompts.
 7. Read reasoning: "Selected due to allergy/dietary concern"
 
 **Generate System Prompt**
+
 1. Go to "System Prompt" tab
 2. Select voice mode (or "All modes")
 3. Click "Generate Prompt"
@@ -440,6 +488,7 @@ Inspect character configurations, test voice modes, and debug system prompts.
 6. Copy sections for testing
 
 **Review Tool Instructions**
+
 1. Go to "Tool Instructions" tab
 2. See list of available tools
 3. Click tool card (e.g., save_memory)
@@ -468,12 +517,15 @@ Inspect character configurations, test voice modes, and debug system prompts.
 ### In-Tool Shortcuts
 
 **Memory Tool:**
+
 - `N` - Create new memory (planned)
 
 **User Testing Tool:**
+
 - `N` - Create new user (planned)
 
 **Story Beat Tool:**
+
 - `F` - Open filters (planned)
 - `D` - Switch to diagram view (planned)
 
@@ -492,6 +544,7 @@ Inspect character configurations, test voice modes, and debug system prompts.
 **Goal:** Test if Chapter 2 beats deliver correctly
 
 **Steps:**
+
 1. **Create test user** (User Testing tool)
    - Starting chapter: Chapter 2
    - Initial memories: vegetarian, loves spicy
@@ -531,6 +584,7 @@ Inspect character configurations, test voice modes, and debug system prompts.
 **Goal:** Verify important memories load in character context
 
 **Steps:**
+
 1. **Create high-importance memory**
    - Content: "Prefers detailed error messages"
    - Importance: 9
@@ -556,6 +610,7 @@ Inspect character configurations, test voice modes, and debug system prompts.
 **Goal:** Identify slow tool calls affecting UX
 
 **Steps:**
+
 1. **Review statistics** (Tool Calls tool)
    - Check average duration
    - Look at "Top 5 Slowest Calls"
@@ -589,6 +644,7 @@ Inspect character configurations, test voice modes, and debug system prompts.
 **Symptom:** `ModuleNotFoundError` or import errors
 
 **Solution:**
+
 ```bash
 cd backend
 source venv/bin/activate
@@ -600,6 +656,7 @@ pip install -r requirements.txt
 **Symptom:** Red error card, "Unable to connect to API"
 
 **Solution:**
+
 1. Verify backend is running: `curl http://localhost:8000/health`
 2. Check CORS configuration in backend
 3. Verify `.env` file has correct `VITE_API_BASE_URL`
@@ -610,6 +667,7 @@ pip install -r requirements.txt
 **Symptom:** Empty lists, loading spinner indefinitely
 
 **Solution:**
+
 1. Check browser console for errors (F12)
 2. Verify user has data files in `backend/data/users/`
 3. Check API logs for errors
@@ -621,6 +679,7 @@ pip install -r requirements.txt
 **Symptom:** Pressing `1-6` doesn't navigate
 
 **Solution:**
+
 1. Make sure you're not focused in an input field
 2. Click somewhere on the page to lose input focus
 3. Try again
@@ -631,6 +690,7 @@ pip install -r requirements.txt
 **Symptom:** No users in dropdown
 
 **Solution:**
+
 1. Verify `backend/data/users/` directory exists
 2. Check at least one `.json` file exists
 3. Restart backend
@@ -641,6 +701,7 @@ pip install -r requirements.txt
 **Symptom:** Tool Calls tool shows no data
 
 **Solution:**
+
 1. Verify `backend/data/tool_calls.jsonl` exists
 2. Check file has entries: `tail backend/data/tool_calls.jsonl`
 3. Make a test tool call via main chat
@@ -651,6 +712,7 @@ pip install -r requirements.txt
 **Symptom:** Click save but changes don't persist
 
 **Solution:**
+
 1. Check browser console for API errors
 2. Verify file lock not stuck: `ls backend/data/*.lock`
 3. Remove stale locks: `rm backend/data/*.lock`
@@ -662,6 +724,7 @@ pip install -r requirements.txt
 **Symptom:** Wrong voice mode selected for test input
 
 **Solution:**
+
 1. Go to Character Tool > Voice Modes tab
 2. Test with various inputs
 3. Check triggers list for each mode
@@ -699,12 +762,15 @@ pip install -r requirements.txt
 ## API Reference
 
 ### Base URL
+
 ```
 http://localhost:8000
 ```
 
 ### Authentication
+
 All requests require header:
+
 ```
 Authorization: Bearer dev_token_12345
 ```
@@ -712,30 +778,35 @@ Authorization: Bearer dev_token_12345
 ### Core Endpoints
 
 **Health Check**
+
 ```
 GET /health
 Response: {"status": "ok", "timestamp": "...", "version": "1.0.0"}
 ```
 
 **List Users**
+
 ```
 GET /users
 Response: [{"user_id": "user_justin", "current_chapter": 1, ...}, ...]
 ```
 
 **User Details**
+
 ```
 GET /users/{user_id}
 Response: {"user_id": "...", "profile": {...}, "story_progress": {...}}
 ```
 
 **List Memories**
+
 ```
 GET /memory/users/{user_id}
 Response: [{"id": "mem_123", "content": "...", "category": "fact", ...}, ...]
 ```
 
 **Create Memory**
+
 ```
 POST /memory/users/{user_id}
 Body: {
@@ -747,7 +818,7 @@ Body: {
 }
 ```
 
-For complete API documentation, visit: http://localhost:8000/docs
+For complete API documentation, visit: <http://localhost:8000/docs>
 
 ---
 
@@ -875,13 +946,14 @@ Tool Calls Inspector lets you replay API calls:
 ### Getting Help
 
 - **Check this guide first** - Most common issues covered
-- **Review API docs** - http://localhost:8000/docs
+- **Review API docs** - <http://localhost:8000/docs>
 - **Check backend logs** - `tail -f backend/logs/app.log`
 - **Browser console** - F12 > Console tab for frontend errors
 
 ### Reporting Issues
 
 When reporting a bug, include:
+
 1. **What you were doing** - Specific steps
 2. **What you expected** - Desired behavior
 3. **What actually happened** - Actual behavior

@@ -9,11 +9,13 @@ When starting a new phase (e.g., Phase 2, Phase 3, Phase 2.5), copy this entire 
 ## Template Files
 
 ### 1. PRD.md (Product Requirements Document)
+
 **Purpose:** Define what we're building and why
 
 **When to create:** Before any coding begins
 
 **Key sections:**
+
 - Executive summary and success metrics
 - User experience goals
 - Functional and non-functional requirements
@@ -22,6 +24,7 @@ When starting a new phase (e.g., Phase 2, Phase 3, Phase 2.5), copy this entire 
 - Open questions and risks
 
 **Fill-in approach:**
+
 - Replace `[Phase Name]` with actual phase name (e.g., "Multi-Character Coordination")
 - Replace all `[placeholders]` with specific content
 - Delete example text and replace with actual requirements
@@ -30,11 +33,13 @@ When starting a new phase (e.g., Phase 2, Phase 3, Phase 2.5), copy this entire 
 ---
 
 ### 2. ARCHITECTURE.md (Technical Architecture)
+
 **Purpose:** Define how we'll build it
 
 **When to create:** After PRD is approved, before coding begins
 
 **Key sections:**
+
 - System overview and design principles
 - Component architecture with diagrams
 - Data models and storage strategy
@@ -43,6 +48,7 @@ When starting a new phase (e.g., Phase 2, Phase 3, Phase 2.5), copy this entire 
 - Technology stack and dependencies
 
 **Fill-in approach:**
+
 - Use PRD as source of requirements
 - Define technical approach for each functional requirement
 - Create diagrams for complex flows
@@ -52,11 +58,13 @@ When starting a new phase (e.g., Phase 2, Phase 3, Phase 2.5), copy this entire 
 ---
 
 ### 3. IMPLEMENTATION_PLAN.md (Milestone Tracking)
+
 **Purpose:** Break work into milestones and track progress
 
 **When to create:** After architecture is defined, before coding begins
 
 **Key sections:**
+
 - Milestone breakdown (what gets built in each)
 - Completion checklists for each milestone
 - Success criteria and testing requirements
@@ -64,6 +72,7 @@ When starting a new phase (e.g., Phase 2, Phase 3, Phase 2.5), copy this entire 
 - Blockers and discoveries
 
 **Fill-in approach:**
+
 - Break phase into 2-5 milestones (target: 1-3 days each)
 - For each milestone, list backend/frontend components and API endpoints
 - Link to PRD (requirements) and Architecture (design)
@@ -73,11 +82,13 @@ When starting a new phase (e.g., Phase 2, Phase 3, Phase 2.5), copy this entire 
 ---
 
 ### 4. TESTING_GUIDE.md (Manual Testing Procedures)
+
 **Purpose:** Document step-by-step testing instructions
 
 **When to create:** During implementation, updated per milestone
 
 **Key sections:**
+
 - Prerequisites (services, data, environment)
 - Test procedures for each milestone
 - Expected vs actual results
@@ -85,6 +96,7 @@ When starting a new phase (e.g., Phase 2, Phase 3, Phase 2.5), copy this entire 
 - Troubleshooting guide
 
 **Fill-in approach:**
+
 - Write test procedures as features are implemented
 - Include happy path, error handling, and edge cases
 - Provide exact commands and expected outputs
@@ -120,6 +132,7 @@ cd docs/technical/phase2
 ### Step 3: Fill Out in Order
 
 **Week 1: Planning**
+
 1. Fill out PRD.md
    - Define requirements and user stories
    - Establish success metrics
@@ -137,11 +150,12 @@ cd docs/technical/phase2
 
 **Week 2+: Implementation**
 4. Fill out TESTING_GUIDE.md (per milestone)
-   - Write test procedures as features are built
-   - Document expected behavior
-   - Include troubleshooting steps
 
-5. Update IMPLEMENTATION_PLAN.md (ongoing)
+- Write test procedures as features are built
+- Document expected behavior
+- Include troubleshooting steps
+
+1. Update IMPLEMENTATION_PLAN.md (ongoing)
    - Mark milestones complete
    - Track actual vs planned time
    - Document blockers and discoveries
@@ -185,6 +199,7 @@ PHASE_TEMPLATE/
 See [Phase 1.5](../../technical/phase1.5/) for a real-world example of these templates in use.
 
 **What to reference:**
+
 - [PRD.md](../../technical/phase1.5/PRD.md) - Observability tools requirements
 - [ARCHITECTURE.md](../../technical/phase1.5/ARCHITECTURE.md) - FastAPI + React design
 - [IMPLEMENTATION_PLAN.md](../../technical/phase1.5/IMPLEMENTATION_PLAN.md) - 7 milestones tracked
@@ -223,6 +238,7 @@ These templates are **starting points**, not rigid requirements. Feel free to:
 ## Questions?
 
 See [DEVELOPMENT_PROCESS.md](../../DEVELOPMENT_PROCESS.md) for:
+
 - Complete development methodology
 - Git workflow details
 - Testing strategy

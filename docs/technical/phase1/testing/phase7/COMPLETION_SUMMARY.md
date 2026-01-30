@@ -31,6 +31,7 @@
 ### Integration Points
 
 **Modified Files:**
+
 - `backend/src/core/conversation_manager.py` - Saves/loads conversation history
 - `backend/src/core/story_engine.py` - Persists story progress
 - `backend/src/api/websocket.py` - Initializes Memory Manager
@@ -41,9 +42,11 @@
 ## Test Coverage
 
 ### Automated Tests ✅
+
 **File:** `backend/test_memory.py` (236 lines)
 
 All 6 tests passing:
+
 1. ✅ User preferences persist across restarts
 2. ✅ Story state persistence (beats, chapters)
 3. ✅ Conversation history management (30-min window)
@@ -96,6 +99,7 @@ From [PROJECT_PLAN_PHASE1.md](docs/technical/phase1/PROJECT_PLAN_PHASE1.md):
 ## Usage Examples
 
 ### Add User Preferences
+
 ```python
 from core.memory_manager import MemoryManager
 
@@ -105,12 +109,14 @@ mm.save_user_state('user_123', force=True)
 ```
 
 ### Load User State
+
 ```python
 state = mm.load_user_state('user_123')
 print(state.preferences.dietary_restrictions)  # ['peanuts']
 ```
 
 ### Conversation History
+
 ```python
 from models.message import Message
 
@@ -122,6 +128,7 @@ history = mm.get_conversation_history('user_123')
 ```
 
 ### Device States
+
 ```python
 mm.update_device_state(
     'user_123',
@@ -138,18 +145,22 @@ device = mm.get_device_state('user_123', 'kitchen_light')
 ## Architecture Decisions
 
 ### Storage Format: JSON
+
 **Why:** Human-readable, easy debugging, simple migration path
 **Alternative considered:** SQLite (deferred to later phase)
 
 ### 30-Minute Window
+
 **Why:** Balances context retention with storage/token costs
 **Future:** Summarization for older context (Phase 10+)
 
 ### Periodic Flush (60 seconds)
+
 **Why:** Balances data safety with I/O performance
 **Tunable:** Can adjust interval via `_flush_interval`
 
 ### In-Memory Cache
+
 **Why:** Reduces disk reads for active sessions
 **Trade-off:** Memory usage scales with concurrent users (acceptable for MVP)
 
@@ -158,19 +169,23 @@ device = mm.get_device_state('user_123', 'kitchen_light')
 ## Performance Characteristics
 
 ### Read Operations
+
 - **First load:** ~5-10ms (disk read + JSON parse)
 - **Subsequent loads:** <1ms (in-memory cache)
 
 ### Write Operations
+
 - **Mark dirty:** <1ms (just flag update)
 - **Force save:** ~5-10ms (JSON serialize + disk write)
 - **Periodic flush:** ~5-10ms per dirty user
 
 ### Memory Usage
+
 - **Per user:** ~10-50KB (depending on conversation history)
 - **100 concurrent users:** ~1-5MB total
 
 ### File Size
+
 - **Typical user:** 1-3KB JSON
 - **Heavy user:** 5-10KB JSON (with full conversation history)
 
@@ -189,17 +204,20 @@ device = mm.get_device_state('user_123', 'kitchen_light')
 ## Future Enhancements (Not in Phase 7)
 
 ### Near-term (Phase 8-9)
+
 - State inspection API for testing
 - Reset/clear endpoints
 - Export user data (GDPR compliance)
 
 ### Medium-term (Phase 10+)
+
 - Conversation summarization (compress old history)
 - SQLite migration for better querying
 - Backup/restore functionality
 - State versioning
 
 ### Long-term
+
 - Multi-device sync
 - Cloud storage option
 - Encryption at rest
@@ -210,17 +228,20 @@ device = mm.get_device_state('user_123', 'kitchen_light')
 ## Testing Recommendations
 
 ### For Development
+
 1. Run `python test_memory.py` before commits
 2. Use `interactive_memory_test.py` for manual exploration
 3. Check data files occasionally: `cat data/users/*.json`
 
 ### For QA
+
 1. Follow `MANUAL_TEST_SCRIPT.md` completely
 2. Test across browser restarts
 3. Test across backend restarts
 4. Verify data files created
 
 ### For Demo
+
 1. Start with fresh state: `rm data/users/*.json`
 2. Show allergy memory across restart
 3. Show device state persistence
@@ -231,12 +252,14 @@ device = mm.get_device_state('user_123', 'kitchen_light')
 ## Documentation
 
 **User Guides:**
+
 - `START_TESTING_HERE.md` - Quick start for testing
 - `MANUAL_TEST_SCRIPT.md` - Comprehensive manual test scenarios
 - `QUICK_TEST_COMMANDS.md` - Copy/paste commands reference
 - `TESTING_PHASE7.md` - Full testing guide with explanations
 
 **Code Documentation:**
+
 - All modules have docstrings
 - All public methods documented
 - Type hints throughout
@@ -246,6 +269,7 @@ device = mm.get_device_state('user_123', 'kitchen_light')
 ## Metrics
 
 ### Lines of Code
+
 - Memory Manager: 271 lines
 - User State Models: 98 lines
 - Test Suite: 236 lines
@@ -253,6 +277,7 @@ device = mm.get_device_state('user_123', 'kitchen_light')
 - **Total: ~655 lines**
 
 ### Files Created
+
 - 2 new modules (memory_manager.py, user_state.py)
 - 2 test files (test_memory.py, interactive_memory_test.py)
 - 4 documentation files
@@ -260,6 +285,7 @@ device = mm.get_device_state('user_123', 'kitchen_light')
 - **Total: 9 new files**
 
 ### Test Coverage
+
 - 6 automated tests (100% passing)
 - 9 manual test scenarios
 - ~50 individual test steps
@@ -269,6 +295,7 @@ device = mm.get_device_state('user_123', 'kitchen_light')
 ## Next Phase: Phase 8 - Testing/Automation API
 
 **Goals:**
+
 - Programmatic control for automated testing
 - State inspection endpoints
 - Test scenario framework

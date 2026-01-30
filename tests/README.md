@@ -29,18 +29,21 @@ The `scripts/` directory contains automated test scripts for validating Phase 1.
 ## Running Tests
 
 ### Backend API Tests
+
 ```bash
 # Run from project root
 ./tests/scripts/test_milestone5_tool_calls.sh
 ```
 
 ### End-to-End Tests
+
 ```bash
 # Run from project root
 ./tests/scripts/run_e2e_tests.sh
 ```
 
 ### Python Unit Tests
+
 ```bash
 # Run from project root
 pytest tests/
@@ -49,6 +52,7 @@ pytest tests/
 ## Prerequisites
 
 All test scripts require:
+
 - Backend server running on `http://localhost:8000`
 - Valid authorization token (default: `dev_token_12345`)
 - Test data generated (see individual milestone docs)
@@ -56,5 +60,6 @@ All test scripts require:
 ## Documentation
 
 For detailed testing guides, see:
+
 - [docs/technical/phase1.5/](../docs/technical/phase1.5/) - Milestone-specific testing guides
 - [docs/TROUBLESHOOTING.md](../docs/TROUBLESHOOTING.md) - Common issues and solutions

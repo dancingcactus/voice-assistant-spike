@@ -18,6 +18,7 @@ They serve different purposes and cannot share the same port.
 ## Starting All Services
 
 ### Terminal 1: Chat Backend (Port 8000)
+
 ```bash
 cd backend
 source venv/bin/activate
@@ -25,6 +26,7 @@ python -m uvicorn src.main:app --reload --port 8000
 ```
 
 ### Terminal 2: Observability API (Port 8001)
+
 ```bash
 cd backend
 source venv/bin/activate
@@ -32,6 +34,7 @@ python -m uvicorn src.observability.api:app --reload --port 8001
 ```
 
 ### Terminal 3: Frontend (Port 5173)
+
 ```bash
 cd frontend
 npm run dev
@@ -39,18 +42,19 @@ npm run dev
 
 ## Accessing the Applications
 
-- **Chat Interface**: http://localhost:5173/
-- **Observability Dashboard**: http://localhost:5173/observability
-- **Chat Backend Health**: http://localhost:8000/health
-- **Observability API Health**: http://localhost:8001/health
-- **OpenAPI Docs (Chat)**: http://localhost:8000/docs
-- **OpenAPI Docs (Observability)**: http://localhost:8001/docs
+- **Chat Interface**: <http://localhost:5173/>
+- **Observability Dashboard**: <http://localhost:5173/observability>
+- **Chat Backend Health**: <http://localhost:8000/health>
+- **Observability API Health**: <http://localhost:8001/health>
+- **OpenAPI Docs (Chat)**: <http://localhost:8000/docs>
+- **OpenAPI Docs (Observability)**: <http://localhost:8001/docs>
 
 ## Frontend Configuration
 
 The frontend knows which port to use based on the `.env` file:
 
 **`/frontend/.env`**:
+
 ```env
 VITE_API_BASE_URL=http://localhost:8001
 VITE_API_AUTH_TOKEN=dev_token_12345
@@ -70,24 +74,30 @@ VITE_API_AUTH_TOKEN=dev_token_12345
 ## Troubleshooting
 
 ### Chat interface not connecting
+
 **Problem**: WebSocket connection fails
 **Solution**: Ensure chat backend is running on port 8000
+
 ```bash
 curl http://localhost:8000/health
 # Should return: {"status":"healthy","environment":"development"}
 ```
 
 ### Observability dashboard not loading
+
 **Problem**: 404 errors in browser console
 **Solution**: Ensure observability API is running on port 8001
+
 ```bash
 curl http://localhost:8001/health
 # Should return: {"status":"ok","timestamp":"...","version":"1.0.0"}
 ```
 
 ### Port already in use
+
 **Problem**: `Address already in use` error
 **Solution**: Kill existing processes
+
 ```bash
 # Find process on port 8000
 lsof -ti:8000 | xargs kill -9
@@ -100,8 +110,10 @@ lsof -ti:5173 | xargs kill -9
 ```
 
 ### Frontend uses wrong API port
+
 **Problem**: Observability dashboard tries to connect to port 8000
 **Solution**: Update `/frontend/.env` and restart frontend
+
 ```bash
 # Edit .env to use port 8001
 # Then restart:
@@ -130,8 +142,9 @@ npm run dev
 ```
 
 Then open:
-- Chat: http://localhost:5173/
-- Dashboard: http://localhost:5173/observability
+
+- Chat: <http://localhost:5173/>
+- Dashboard: <http://localhost:5173/observability>
 
 ## Current Status
 

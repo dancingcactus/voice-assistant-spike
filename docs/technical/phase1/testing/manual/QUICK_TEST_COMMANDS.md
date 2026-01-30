@@ -17,13 +17,14 @@ cd /Users/justin/projects/voice-assistant-spike/frontend && npm run dev
 cd /Users/justin/projects/voice-assistant-spike
 ```
 
-**Browser:** http://localhost:5173
+**Browser:** <http://localhost:5173>
 
 ---
 
 ## Things to Say to Delilah
 
 ### Test Preferences
+
 ```
 Hey Chat! I'm allergic to peanuts and shellfish
 ```
@@ -37,6 +38,7 @@ What are my dietary restrictions?
 ```
 
 ### Test Device Control
+
 ```
 Hey Chat! Turn on the kitchen light to 75%
 ```
@@ -50,6 +52,7 @@ What's the status of my kitchen light?
 ```
 
 ### Test Timers
+
 ```
 Hey Chat! Set a timer for 5 minutes for the eggs
 ```
@@ -65,29 +68,35 @@ What timers do I have running?
 ### Test Voice Modes
 
 **PASSIONATE (food she loves):**
+
 ```
 Tell me about making buttermilk biscuits from scratch
 ```
 
 **PROTECTIVE (food done wrong):**
+
 ```
 Can I substitute peanut butter in this recipe?
 ```
 
 **MAMA BEAR (your allergies):**
+
 ```
 I have a peanut allergy - what should I watch out for?
 ```
 
 **DEADPAN (non-food tasks):**
+
 ```
 Turn off the light
 ```
 
 ### Test Conversation Context
+
 ```
 Hey Chat! Can you help me make biscuits?
 ```
+
 Then: `What ingredients do I need?`
 Then: `How long should I bake them?`
 Then: `What temperature?`
@@ -97,31 +106,37 @@ Then: `What temperature?`
 ## Check Saved Data
 
 ### View user data
+
 ```bash
 cat data/users/default_user.json | python -m json.tool
 ```
 
 ### View just preferences
+
 ```bash
 cat data/users/default_user.json | python -m json.tool | grep -A 10 preferences
 ```
 
 ### View device states
+
 ```bash
 cat data/users/default_user.json | python -m json.tool | grep -A 20 device_preferences
 ```
 
 ### View story progress
+
 ```bash
 cat data/users/default_user.json | python -m json.tool | grep -A 15 story_progress
 ```
 
 ### Watch file for changes (auto-refreshes)
+
 ```bash
 watch -n 1 'cat data/users/default_user.json | python -m json.tool'
 ```
 
 ### List all user files
+
 ```bash
 ls -lh data/users/
 ```
@@ -131,17 +146,20 @@ ls -lh data/users/
 ## Test Persistence
 
 ### Save data and check timestamp
+
 ```bash
 ls -lh data/users/default_user.json
 ```
 
 ### Restart backend (Terminal 1)
+
 ```
 Ctrl+C
 python src/main.py
 ```
 
 ### Then ask Delilah if she remembers things
+
 ```
 What are my dietary restrictions?
 What are my favorite foods?
@@ -153,6 +171,7 @@ What devices have I controlled?
 ## Quick Script Tests
 
 ### Test adding preferences
+
 ```bash
 cd /Users/justin/projects/voice-assistant-spike/backend
 python -c "
@@ -174,6 +193,7 @@ print(f'Favorites: {state.preferences.favorite_foods}')
 ```
 
 ### Test device states
+
 ```bash
 cd /Users/justin/projects/voice-assistant-spike/backend
 python -c "
@@ -193,6 +213,7 @@ print(f'Patio light: {device.state}')
 ```
 
 ### Test interaction counting
+
 ```bash
 cd /Users/justin/projects/voice-assistant-spike/backend
 python -c "
@@ -234,10 +255,11 @@ python interactive_memory_test.py
 ```
 
 **Try these options:**
+
 1. Add dietary restriction → peanuts
 2. Add favorite food → biscuits
 3. Update device → kitchen_light, light, on, 50
-7. Save and reload (verify persistence)
+4. Save and reload (verify persistence)
 
 ---
 
@@ -258,16 +280,19 @@ ls -la data/users/
 ## Useful Debugging
 
 ### Check if backend is running
+
 ```bash
 lsof -i :8000
 ```
 
 ### Kill backend if stuck
+
 ```bash
 lsof -ti:8000 | xargs kill -9
 ```
 
 ### Check backend logs for errors
+
 ```bash
 # In Terminal 1 where backend is running, look for:
 # - "ERROR" messages
@@ -276,7 +301,9 @@ lsof -ti:8000 | xargs kill -9
 ```
 
 ### Check WebSocket connection
+
 In browser console (F12):
+
 ```javascript
 // Should see WebSocket connection messages
 // Look for "WebSocket connected" in console
@@ -296,6 +323,7 @@ In browser console (F12):
 ---
 
 **Pro Tips:**
+
 - Keep Terminal 3 open with `watch -n 1 'cat data/users/default_user.json | python -m json.tool'` to see real-time updates
 - Use browser DevTools Network tab to see WebSocket messages
 - Look for `story_beat_injected: true` in response metadata

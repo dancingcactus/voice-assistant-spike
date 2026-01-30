@@ -98,12 +98,14 @@ The observability system maintains clear boundaries between read-only inspection
 ### 3. Modular Tool Design
 
 Each tool is an independent module with:
+
 - Dedicated API endpoints
 - Self-contained UI components
 - Shared data access layer
 - Consistent UX patterns
 
 This enables:
+
 - Parallel development
 - Easy testing
 - Incremental deployment
@@ -130,6 +132,7 @@ All system actions are logged for observability:
 ```
 
 Events are:
+
 - Append-only (immutable)
 - Timestamped with microsecond precision
 - Indexed for fast querying
@@ -209,6 +212,7 @@ Events are:
 #### Frontend (React)
 
 **Responsibilities:**
+
 - Render tool interfaces
 - Handle user interactions
 - Validate input before submission
@@ -217,6 +221,7 @@ Events are:
 - Show confirmations for destructive operations
 
 **Key Features:**
+
 - Component-based architecture (reusable UI elements)
 - State management with React Context or Zustand
 - Real-time updates via polling (Phase 1.5) or WebSocket (future)
@@ -226,6 +231,7 @@ Events are:
 #### API Gateway (FastAPI)
 
 **Responsibilities:**
+
 - Route HTTP requests to appropriate services
 - Validate request schemas
 - Authenticate requests (dev mode: simple token)
@@ -235,6 +241,7 @@ Events are:
 - Rate limit to prevent abuse
 
 **Key Features:**
+
 - OpenAPI/Swagger documentation auto-generated
 - Pydantic models for request/response validation
 - CORS configuration for local development
@@ -246,6 +253,7 @@ Events are:
 Each service encapsulates business logic for its domain:
 
 **StoryService:**
+
 - Load chapter/beat configurations
 - Query user progress
 - Update chapter state
@@ -253,12 +261,14 @@ Each service encapsulates business logic for its domain:
 - Generate flow diagrams
 
 **CharacterService:**
+
 - Load character configurations
 - Render system prompts
 - Query character state
 - Preview character behavior
 
 **MemoryService:**
+
 - Query user memories
 - Create/update/delete memories
 - Categorize memories
@@ -266,12 +276,14 @@ Each service encapsulates business logic for its domain:
 - Retrieve memories for context
 
 **UserService:**
+
 - Create/delete test users
 - Switch active user
 - Export/import user state
 - Query user metadata
 
 **ToolCallService:**
+
 - Log tool calls
 - Query tool call history
 - Replay tool calls
@@ -280,6 +292,7 @@ Each service encapsulates business logic for its domain:
 #### Data Access Layer
 
 **Responsibilities:**
+
 - Abstract file system operations
 - Ensure atomic writes (temp file + rename)
 - Implement file locking for concurrent access
@@ -489,6 +502,7 @@ JSONL format (one JSON object per line) for append-only logging:
 #### Read Operations
 
 **Query Patterns:**
+
 - Get user by ID
 - Get all memories for user
 - Get story beats for chapter
@@ -496,6 +510,7 @@ JSONL format (one JSON object per line) for append-only logging:
 - Get character configuration
 
 **Optimization:**
+
 - Cache frequently accessed data (character configs, story state)
 - Lazy load large datasets (tool call history)
 - Paginate list results
@@ -504,6 +519,7 @@ JSONL format (one JSON object per line) for append-only logging:
 #### Write Operations
 
 **Mutation Patterns:**
+
 - Update user chapter
 - Create/update/delete memory
 - Mark beat as delivered
@@ -511,6 +527,7 @@ JSONL format (one JSON object per line) for append-only logging:
 - Create/delete test user
 
 **Safety:**
+
 - Validate before write
 - Atomic file operations (temp + rename)
 - File locking for concurrent access
@@ -592,11 +609,13 @@ PUT    /api/v1/users/active
 #### Get User Progress
 
 **Request:**
+
 ```
 GET /api/v1/story/users/user_justin/progress
 ```
 
 **Response:**
+
 ```json
 {
   "user_id": "user_justin",
@@ -620,6 +639,7 @@ GET /api/v1/story/users/user_justin/progress
 #### Create Memory
 
 **Request:**
+
 ```
 POST /api/v1/memory/users/user_justin
 Content-Type: application/json
@@ -635,6 +655,7 @@ Content-Type: application/json
 ```
 
 **Response:**
+
 ```json
 {
   "memory_id": "mem_003",
@@ -651,11 +672,13 @@ Content-Type: application/json
 #### Trigger Story Beat
 
 **Request:**
+
 ```
 POST /api/v1/story/users/user_justin/beats/awakening_confusion/trigger
 ```
 
 **Response:**
+
 ```json
 {
   "beat_id": "awakening_confusion",
@@ -669,6 +692,7 @@ POST /api/v1/story/users/user_justin/beats/awakening_confusion/trigger
 ### Error Handling
 
 **Standard Error Response:**
+
 ```json
 {
   "error": {
@@ -685,6 +709,7 @@ POST /api/v1/story/users/user_justin/beats/awakening_confusion/trigger
 ```
 
 **Error Codes:**
+
 - `400 BAD_REQUEST`: Invalid input
 - `404 NOT_FOUND`: Resource doesn't exist
 - `409 CONFLICT`: State conflict (e.g., beat already delivered)
@@ -915,12 +940,14 @@ Destructive operations show confirmation:
 **Phase 1.5 Assumption**: Tools run on developer's local machine
 
 **Access Control:**
+
 - Simple token-based auth (env variable)
 - No user authentication required
 - Tools bind to localhost only
 - CORS restricted to localhost origins
 
 **Future Considerations:**
+
 - OAuth for team access
 - Role-based permissions
 - Production read-only mode
@@ -931,6 +958,7 @@ Destructive operations show confirmation:
 **Preventing Production Impact:**
 
 1. **Environment Detection**
+
    ```python
    if os.getenv('ENVIRONMENT') == 'production':
        raise RuntimeError("Observability tools disabled in production")
@@ -951,6 +979,7 @@ Destructive operations show confirmation:
 **Preventing Data Corruption:**
 
 1. **Atomic Writes**
+
    ```python
    # Write to temp file, then rename (atomic operation)
    temp_path = f"{file_path}.tmp.{uuid.uuid4()}"
@@ -960,6 +989,7 @@ Destructive operations show confirmation:
    ```
 
 2. **File Locking**
+
    ```python
    from filelock import FileLock
 
@@ -969,6 +999,7 @@ Destructive operations show confirmation:
    ```
 
 3. **Schema Validation**
+
    ```python
    from pydantic import BaseModel, ValidationError
 
@@ -985,11 +1016,13 @@ Destructive operations show confirmation:
 ### Development Setup
 
 **Prerequisites:**
+
 - Python 3.10+
 - Node.js 18+
 - npm or yarn
 
 **Backend Setup:**
+
 ```bash
 cd backend
 python -m venv venv
@@ -999,6 +1032,7 @@ python -m uvicorn observability.api:app --reload --port 8000
 ```
 
 **Frontend Setup:**
+
 ```bash
 cd frontend
 npm install
@@ -1068,6 +1102,7 @@ frontend/
 ### Logging & Monitoring
 
 **Application Logging:**
+
 ```python
 import logging
 
@@ -1082,11 +1117,13 @@ logger.error(f"Failed to trigger beat {beat_id}", exc_info=True)
 ```
 
 **Request Logging:**
+
 - All API requests logged with timestamp, endpoint, user, duration
 - Failed requests logged with full error details
 - Tool operations logged for audit trail
 
 **Performance Monitoring:**
+
 - Track API response times
 - Monitor file I/O operations
 - Alert on slow queries (>1s)
@@ -1135,12 +1172,14 @@ logger.error(f"Failed to trigger beat {beat_id}", exc_info=True)
 ### Week 1: Foundation
 
 **Goals:**
+
 - Establish basic architecture
 - Data access layer working
 - API framework set up
 - Frontend scaffolding complete
 
 **Deliverables:**
+
 1. Data Access Layer
    - File readers/writers with validation
    - File locking implementation
@@ -1165,6 +1204,7 @@ logger.error(f"Failed to trigger beat {beat_id}", exc_info=True)
    - List users
 
 **Success Criteria:**
+
 - Can create/delete test users via API
 - Frontend displays user list
 - Active user persists in UI
@@ -1172,11 +1212,13 @@ logger.error(f"Failed to trigger beat {beat_id}", exc_info=True)
 ### Week 2: Core Tools
 
 **Goals:**
+
 - Build Story Beat Tool
 - Build Memory Tool
 - Build Tool Calls Inspection
 
 **Deliverables:**
+
 1. Story Beat Tool
    - View all chapters/beats
    - Filter by chapter
@@ -1198,6 +1240,7 @@ logger.error(f"Failed to trigger beat {beat_id}", exc_info=True)
    - Search functionality
 
 **Success Criteria:**
+
 - Can navigate story beats and trigger delivery
 - Can create/edit/delete memories
 - Can inspect tool call history with full details
@@ -1205,11 +1248,13 @@ logger.error(f"Failed to trigger beat {beat_id}", exc_info=True)
 ### Week 3: Advanced Features
 
 **Goals:**
+
 - Build Character Tool
 - Add story flow diagrams
 - Enhance User Testing Tool
 
 **Deliverables:**
+
 1. Character Tool
    - View character configurations
    - Display system prompts
@@ -1232,6 +1277,7 @@ logger.error(f"Failed to trigger beat {beat_id}", exc_info=True)
    - Tool call replay
 
 **Success Criteria:**
+
 - Can inspect character prompts and state
 - Can view visual flow diagrams
 - Can export/restore user state
@@ -1239,12 +1285,14 @@ logger.error(f"Failed to trigger beat {beat_id}", exc_info=True)
 ### Week 4: Polish
 
 **Goals:**
+
 - UI/UX refinements
 - Performance optimizations
 - Documentation
 - Testing
 
 **Deliverables:**
+
 1. UI Improvements
    - Keyboard shortcuts
    - Improved layouts
@@ -1271,6 +1319,7 @@ logger.error(f"Failed to trigger beat {beat_id}", exc_info=True)
    - E2E tests for critical paths
 
 **Success Criteria:**
+
 - All tools feel fast and responsive
 - Comprehensive documentation available
 - Test coverage >70%

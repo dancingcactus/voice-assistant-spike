@@ -131,64 +131,73 @@ All API endpoints tested successfully:
 Manual testing performed:
 
 ✅ **Navigation**
-   - Story Beats tab appears in header
-   - Clicking tab loads Story Beat Tool
-   - Smooth transition between views
+
+- Story Beats tab appears in header
+- Clicking tab loads Story Beat Tool
+- Smooth transition between views
 
 ✅ **Chapter Selection**
-   - All chapters display in sidebar
-   - Current chapter highlighted
-   - Locked chapters disabled
-   - Click to select chapter
+
+- All chapters display in sidebar
+- Current chapter highlighted
+- Locked chapters disabled
+- Click to select chapter
 
 ✅ **Beat List**
-   - All beats display with correct status
-   - Status filters work (all/delivered/ready/locked)
-   - Color coding matches status
-   - Click to open beat details
+
+- All beats display with correct status
+- Status filters work (all/delivered/ready/locked)
+- Color coding matches status
+- Click to open beat details
 
 ✅ **Beat Details Modal**
-   - Opens when clicking beat card
-   - Shows all configuration
-   - Displays all variants/stages
-   - Trigger buttons functional
-   - Close button works
+
+- Opens when clicking beat card
+- Shows all configuration
+- Displays all variants/stages
+- Trigger buttons functional
+- Close button works
 
 ✅ **Mermaid Diagram**
-   - Renders correctly
-   - Shows beat dependencies
-   - Color-coded by required status
-   - Scrollable if large
+
+- Renders correctly
+- Shows beat dependencies
+- Color-coded by required status
+- Scrollable if large
 
 ✅ **Beat Triggering**
-   - Trigger button appears for each variant
-   - Confirmation dialog shown
-   - Success feedback displayed
-   - Beat list updates automatically
-   - User data persisted
+
+- Trigger button appears for each variant
+- Confirmation dialog shown
+- Success feedback displayed
+- Beat list updates automatically
+- User data persisted
 
 ## Files Created/Modified
 
 ### Created
+
 - `backend/src/observability/story_access.py` (238 lines)
 - `frontend/src/components/StoryBeatTool.tsx` (356 lines)
 - `frontend/src/components/StoryBeatTool.css` (470 lines)
 - `docs/technical/phase1.5/MILESTONE_2_COMPLETE.md` (this file)
 
 ### Modified
+
 - `backend/src/observability/api.py` (+165 lines)
 - `frontend/src/services/api.ts` (+84 lines)
 - `frontend/src/components/Dashboard.tsx` (+20 lines)
 - `frontend/src/components/Dashboard.css` (+41 lines)
 
 ### Dependencies Added
+
 - `mermaid` npm package (for diagram rendering)
 
 ## Usage Guide
 
 ### Accessing the Tool
 
-1. Navigate to http://localhost:5173/observability
+1. Navigate to <http://localhost:5173/observability>
 2. Click the "Story Beats" tab in the header
 3. Select a chapter from the sidebar
 4. Browse beats and click for details
@@ -225,17 +234,20 @@ Manual testing performed:
 All features tested successfully with Playwright browser automation:
 
 ✅ **Page Load**
+
 - Frontend loads without errors
 - Story Beats tab visible in navigation
 - No console errors
 
 ✅ **Story Beat Tool Display**
+
 - Chapter list displays correctly (3 chapters)
 - Chapter 1 marked as current with blue highlight
 - Chapters 2-3 locked and disabled
 - Progress summary accurate (Chapter 1, 4/4 beats, 47 interactions)
 
 ✅ **Beat List**
+
 - All 4 beats displayed for Chapter 1
 - Status badges correct (all show "delivered")
 - Required badges visible on appropriate beats
@@ -243,18 +255,21 @@ All features tested successfully with Playwright browser automation:
 - Delivery info displays timestamps and variants
 
 ✅ **Filters**
+
 - "All (4)" button works - shows all beats
 - "Delivered (4)" button works - filters to delivered only
 - Filter buttons highlight when active
 - Beat count accurate in each filter
 
 ✅ **Mermaid Diagram**
+
 - Chapter flow diagram renders successfully
 - Shows all beat names (Awakening Confusion, First Timer, Recipe Help, Self Awareness)
 - Diagram shows dependencies with arrows
 - Color coding visible (blue for required, gray for optional)
 
 ✅ **Beat Detail Modal**
+
 - Modal opens when clicking beat card
 - All beat metadata displayed
 - Trigger conditions shown as JSON
@@ -265,6 +280,7 @@ All features tested successfully with Playwright browser automation:
 - Close button (×) works correctly
 
 ✅ **User Interaction**
+
 - Click to open modal: Working
 - Click outside to close: Not tested (but × button works)
 - Filter buttons: Working
@@ -277,13 +293,13 @@ All features tested successfully with Playwright browser automation:
 
 2. **Single User View**: Currently hardcoded to `user_justin`. Multi-user selection to be added in future milestone.
 
-2. **No Undo**: Beat triggering cannot be undone through UI (must edit JSON directly).
+3. **No Undo**: Beat triggering cannot be undone through UI (must edit JSON directly).
 
-3. **Limited Diagram Interactivity**: Mermaid diagram is static, cannot click on beats to navigate.
+4. **Limited Diagram Interactivity**: Mermaid diagram is static, cannot click on beats to navigate.
 
-4. **No Beat Deletion**: Cannot remove beat deliveries, only add them.
+5. **No Beat Deletion**: Cannot remove beat deliveries, only add them.
 
-5. **Progression Stage Display**: Progression beats show all stages at once rather than current stage only.
+6. **Progression Stage Display**: Progression beats show all stages at once rather than current stage only.
 
 ## Success Criteria Met
 
@@ -310,9 +326,11 @@ Estimated duration: 3-4 days
 ## Screenshots
 
 ### Story Beat Tool Main View
+
 ![Story Beat Tool](.playwright-mcp/milestone2_story_beat_tool.png)
 
 Shows:
+
 - Chapter navigation sidebar with Chapter 1 active
 - Beat list with 4 beats (all delivered)
 - Status filters (All/Delivered/Ready/Locked)
@@ -320,9 +338,11 @@ Shows:
 - Progress summary at top (Chapter 1, 4/4 beats, 47 interactions)
 
 ### Beat Detail Modal
+
 ![Beat Detail Modal](.playwright-mcp/milestone2_beat_detail_modal.png)
 
 Shows:
+
 - Beat metadata (Type, Priority, Required, Status)
 - Trigger conditions (interaction_count based)
 - Additional conditions (not_during_emergency, user_seems_receptive)

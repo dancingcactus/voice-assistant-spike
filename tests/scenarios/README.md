@@ -42,15 +42,19 @@ Test scenarios are JSON files with the following structure:
 ## Scenario Types
 
 ### Story Scenarios (`story/`)
+
 Test story progression, beat delivery, and chapter unlocks.
 
 ### Character Scenarios (`character/`)
+
 Test character consistency, voice modes, and personality.
 
 ### Tool Scenarios (`tools/`)
+
 Test tool execution (timers, devices, recipes).
 
 ### Edge Case Scenarios (`edge-cases/`)
+
 Test error handling, edge cases, and recovery.
 
 ## Running Scenarios
@@ -87,6 +91,7 @@ curl -X POST http://localhost:8000/api/test/reset/test-user
 (To be implemented in future phases)
 
 Test runners can:
+
 - Load scenarios from JSON
 - Execute conversation flows
 - Validate responses against expectations

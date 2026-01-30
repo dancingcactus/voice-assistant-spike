@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Planned
+
 - Phase 2: Multi-character coordination with Hank
 - Phase 3: Three-way panel discussions with Cave
 - Advanced context management and memory retrieval
@@ -16,11 +17,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-**Phase 1.5: Observability & Testing Tools**
+#### Phase 1.5: Observability & Testing Tools
 
 Complete developer dashboard for inspecting, testing, and debugging the voice assistant system.
 
-**Milestone 4: User Testing Tool**
+#### Milestone 4: User Testing Tool
+
 - User lifecycle management (create, switch, delete test users)
 - Test user creation with auto-generated IDs and customizable starting state
 - Production user protection (cannot delete production users like user_justin)
@@ -29,7 +31,8 @@ Complete developer dashboard for inspecting, testing, and debugging the voice as
 - Multi-user support across all observability tools
 - Active user switcher in dashboard header with persistence
 
-**Milestone 5: Tool Calls Inspection**
+#### Milestone 5: Tool Calls Inspection
+
 - JSONL-based tool call logging system for append-only event tracking
 - Timeline view with chronological display of all tool executions
 - Advanced filtering by tool name, character, status (success/error), and time range
@@ -41,7 +44,8 @@ Complete developer dashboard for inspecting, testing, and debugging the voice as
 - Performance metrics including slowest calls identification
 - Recent error tracking for troubleshooting
 
-**Milestone 6: Memory Extraction & Retrieval System**
+#### Milestone 6: Memory Extraction & Retrieval System
+
 - Automatic memory extraction from conversations using AI
 - `save_memory` tool for characters to capture user information
 - Memory retrieval in system prompts with category grouping
@@ -56,7 +60,8 @@ Complete developer dashboard for inspecting, testing, and debugging the voice as
 - Memory access tracking (last_accessed, access_count)
 - Integration with conversation flow for context enrichment
 
-**Milestone 7: Character Tool**
+#### Milestone 7: Character Tool
+
 - Character configuration inspection for all defined characters
 - System prompt viewing with full user context
 - Voice mode triggers and characteristics display
@@ -69,7 +74,8 @@ Complete developer dashboard for inspecting, testing, and debugging the voice as
 - TTS configuration display
 - Locked vs unlocked character indication
 
-**Infrastructure & Foundation**
+#### Infrastructure & Foundation
+
 - FastAPI observability API with Bearer token authentication
 - React + TypeScript frontend with Vite
 - React Query for data fetching and caching
@@ -103,17 +109,19 @@ Complete developer dashboard for inspecting, testing, and debugging the voice as
 
 ### Added
 
-**Phase 1: Core Voice Assistant System**
+#### Phase 1: Core Voice Assistant System
 
 Foundation for narrative-driven voice assistant with character Delilah Mae.
 
-**Core Systems**
+#### Core Systems
+
 - FastAPI backend with WebSocket communication
 - React frontend for chat interface
 - User state management with JSON persistence
 - Configuration system for characters, story, and tools
 
-**Character System**
+#### Character System
+
 - Character model with personality traits and voice modes
 - Delilah Mae "Lila" character with 6 distinct voice modes:
   - PASSIONATE: High energy for foods she loves
@@ -126,7 +134,8 @@ Foundation for narrative-driven voice assistant with character Delilah Mae.
 - Character-specific capabilities and specializations
 - TTS integration with ElevenLabs for natural speech
 
-**Story Engine**
+#### Story Engine
+
 - Story beat tracking and delivery system
 - Chapter progression with unlock criteria
 - Beat types: one_shot and progression
@@ -135,7 +144,8 @@ Foundation for narrative-driven voice assistant with character Delilah Mae.
 - User story progress persistence
 - Beat delivery history with timestamps
 
-**Tool System**
+#### Tool System
+
 - Function calling integration with Claude API
 - Tool registration and execution framework
 - Built-in tools:
@@ -145,7 +155,8 @@ Foundation for narrative-driven voice assistant with character Delilah Mae.
   - `cooking_advice`: Provide cooking tips and techniques
 - Tool result handling and error management
 
-**Conversation Flow**
+#### Conversation Flow
+
 - LLM integration with Claude API (claude-3-5-sonnet)
 - System prompt generation with character context
 - Message history management with token budgeting
@@ -153,14 +164,16 @@ Foundation for narrative-driven voice assistant with character Delilah Mae.
 - Story beat integration in responses
 - Tool call orchestration
 
-**Memory & State**
+#### Memory & State
+
 - User profile management
 - Interaction tracking and statistics
 - Persistent state across conversations
 - Chapter and beat progress tracking
 - Memory migration from preferences
 
-**Testing Infrastructure**
+#### Testing Infrastructure
+
 - Comprehensive E2E testing suite
 - API endpoint tests
 - WebSocket communication tests
@@ -170,7 +183,8 @@ Foundation for narrative-driven voice assistant with character Delilah Mae.
 
 ### Technical Details
 
-**Backend Stack**
+#### Backend Stack
+
 - Python 3.11+
 - FastAPI for REST and WebSocket APIs
 - Anthropic Claude API for LLM
@@ -178,13 +192,15 @@ Foundation for narrative-driven voice assistant with character Delilah Mae.
 - Pydantic for data validation
 - File-based JSON storage
 
-**Frontend Stack**
+#### Frontend Stack
+
 - React 18
 - TypeScript
 - Vite for build tooling
 - WebSocket for real-time communication
 
-**Development Tools**
+#### Development Tools
+
 - pytest for testing
 - shell scripts for E2E validation
 - Virtual environment for Python dependencies
@@ -193,6 +209,7 @@ Foundation for narrative-driven voice assistant with character Delilah Mae.
 ## [0.1.0] - 2026-01-20
 
 ### Added
+
 - Initial project structure
 - Character design documents
 - Story arc planning (11 chapters)

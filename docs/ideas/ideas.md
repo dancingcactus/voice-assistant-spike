@@ -8,4 +8,4 @@
 
 ## Story arcs that Could improve
 
-- Lila is scard but she has already made the decision that helping out. She needs to come to this conclusion slowly over time. 
+- Lila is scard but she has already made the decision that helping out. She needs to come to this conclusion slowly over time.

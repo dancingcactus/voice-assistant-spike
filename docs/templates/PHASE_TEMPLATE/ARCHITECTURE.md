@@ -38,6 +38,7 @@ Example:
 3. **[Technical Goal 3]** - [Description]
 
 Example:
+
 1. **Low Latency** - Agent selection completes in < 100ms
 2. **Extensibility** - Easy to add new agents without modifying core
 3. **Fault Tolerance** - System degrades gracefully if agent unavailable
@@ -59,10 +60,12 @@ Example:
 **Rationale:** [Why we're following this principle]
 
 **Implications:**
+
 - [How this affects design decisions]
 - [Trade-offs accepted]
 
 **Example:**
+
 ```
 Principle: Fail-Safe Defaults
 Description: System assumes single-agent mode if coordination fails
@@ -115,6 +118,7 @@ Implications:
 **Purpose:** [What this component does]
 
 **Responsibilities:**
+
 - [Responsibility 1]
 - [Responsibility 2]
 - [Responsibility 3]
@@ -122,6 +126,7 @@ Implications:
 **Interfaces:**
 
 **Input:**
+
 ```typescript
 interface ComponentInput {
   field1: type;
@@ -130,6 +135,7 @@ interface ComponentInput {
 ```
 
 **Output:**
+
 ```typescript
 interface ComponentOutput {
   result: type;
@@ -138,15 +144,18 @@ interface ComponentOutput {
 ```
 
 **Dependencies:**
+
 - **[Component/Service]**: [What it needs and why]
 - **[Component/Service]**: [What it needs and why]
 
 **Error Handling:**
+
 - [How errors are detected]
 - [How errors are reported]
 - [Fallback behavior]
 
 **Example Usage:**
+
 ```python
 # Example code showing how to use this component
 from components import Component1
@@ -172,6 +181,7 @@ result = component.process(input_data)
 **Purpose:** [What this model represents]
 
 **Schema:**
+
 ```typescript
 interface ModelName {
   // Required fields
@@ -188,13 +198,16 @@ interface ModelName {
 ```
 
 **Validation Rules:**
+
 - [Rule 1 - e.g., "id must be unique"]
 - [Rule 2 - e.g., "field1 required if field2 present"]
 
 **Relationships:**
+
 - **[Related Model]**: [Relationship type and description]
 
 **Example:**
+
 ```json
 {
   "id": "agent_delilah",
@@ -218,6 +231,7 @@ interface ModelName {
 **Storage Strategy:** [File-based JSON | Database | Hybrid]
 
 **File Structure:**
+
 ```
 data/
 ├── [category]/
@@ -230,6 +244,7 @@ data/
 **Persistence Layer:** `[path/to/data_access.py]`
 
 **Key Operations:**
+
 ```python
 # Read operation
 data = accessor.get_by_id(entity_id)
@@ -242,6 +257,7 @@ results = accessor.find_by_criteria(filters)
 ```
 
 **Concurrency Control:**
+
 - [How concurrent access is handled]
 - [Locking strategy if applicable]
 - [Conflict resolution approach]
@@ -261,16 +277,19 @@ results = accessor.find_by_criteria(filters)
 **Purpose:** [What this endpoint does]
 
 **Request:**
+
 ```http
 GET /api/v1/resource?param1=value&param2=value
 Authorization: Bearer {token}
 ```
 
 **Query Parameters:**
+
 - `param1` (optional): [Description, type, default]
 - `param2` (required): [Description, type]
 
 **Response:**
+
 ```json
 {
   "data": [
@@ -288,6 +307,7 @@ Authorization: Bearer {token}
 ```
 
 **Status Codes:**
+
 - `200 OK`: Success
 - `400 Bad Request`: [When this occurs]
 - `401 Unauthorized`: [When this occurs]
@@ -295,6 +315,7 @@ Authorization: Bearer {token}
 - `500 Internal Server Error`: [When this occurs]
 
 **Example:**
+
 ```bash
 curl -H "Authorization: Bearer dev_token_12345" \
   "http://localhost:8000/api/v1/resource?param1=value"
@@ -307,6 +328,7 @@ curl -H "Authorization: Bearer dev_token_12345" \
 **Purpose:** [What this endpoint does]
 
 **Request:**
+
 ```http
 POST /api/v1/resource
 Authorization: Bearer {token}
@@ -319,6 +341,7 @@ Content-Type: application/json
 ```
 
 **Request Body:**
+
 ```typescript
 interface CreateRequest {
   field1: string;
@@ -327,6 +350,7 @@ interface CreateRequest {
 ```
 
 **Response:**
+
 ```json
 {
   "id": "newly_created_id",
@@ -337,12 +361,14 @@ interface CreateRequest {
 ```
 
 **Status Codes:**
+
 - `201 Created`: Success
 - `400 Bad Request`: [Validation errors]
 - `401 Unauthorized`: [Missing/invalid token]
 - `409 Conflict`: [Resource already exists]
 
 **Example:**
+
 ```bash
 curl -X POST http://localhost:8000/api/v1/resource \
   -H "Authorization: Bearer dev_token_12345" \
@@ -359,6 +385,7 @@ curl -X POST http://localhost:8000/api/v1/resource \
 **Purpose:** [What this WebSocket enables]
 
 **Connection:**
+
 ```typescript
 const ws = new WebSocket('ws://localhost:8000/ws/endpoint?token=...');
 ```
@@ -366,6 +393,7 @@ const ws = new WebSocket('ws://localhost:8000/ws/endpoint?token=...');
 **Message Format:**
 
 **Client → Server:**
+
 ```json
 {
   "type": "action_type",
@@ -376,6 +404,7 @@ const ws = new WebSocket('ws://localhost:8000/ws/endpoint?token=...');
 ```
 
 **Server → Client:**
+
 ```json
 {
   "type": "response_type",
@@ -386,6 +415,7 @@ const ws = new WebSocket('ws://localhost:8000/ws/endpoint?token=...');
 ```
 
 **Lifecycle:**
+
 1. Client connects with auth token
 2. Server sends welcome message
 3. Bidirectional message exchange
@@ -404,12 +434,14 @@ const ws = new WebSocket('ws://localhost:8000/ws/endpoint?token=...');
 **Integration Method:** [API | SDK | Direct import]
 
 **Data Flow:**
+
 ```
 [This Phase] → [Request] → [External System]
 [External System] → [Response] → [This Phase]
 ```
 
 **API Contract:**
+
 ```typescript
 interface IntegrationRequest {
   // What we send
@@ -421,11 +453,13 @@ interface IntegrationResponse {
 ```
 
 **Error Handling:**
+
 - [How we handle integration failures]
 - [Retry strategy]
 - [Fallback behavior]
 
 **Example:**
+
 ```python
 # Integration usage
 from integrations import ExternalSystem
@@ -449,12 +483,14 @@ result = client.call_api(request_data)
 #### Backend Dependencies
 
 **Package:** `[package-name]` (version X.Y.Z)
+
 - **Purpose:** [Why we need this]
 - **License:** [MIT | Apache | etc.]
 - **Alternatives Considered:** [Other options and why not chosen]
 - **Installation:** `pip install package-name==X.Y.Z`
 
 **Package:** `[package-name]` (version X.Y.Z)
+
 - [Same structure]
 
 ---
@@ -462,6 +498,7 @@ result = client.call_api(request_data)
 #### Frontend Dependencies
 
 **Package:** `[package-name]` (version X.Y.Z)
+
 - **Purpose:** [Why we need this]
 - **License:** [MIT | Apache | etc.]
 - **Bundle Size:** [XkB gzipped]
@@ -472,11 +509,13 @@ result = client.call_api(request_data)
 ### Infrastructure Requirements
 
 **Development:**
+
 - [Requirement 1 - e.g., "Python 3.11+"]
 - [Requirement 2 - e.g., "Node 18+"]
 - [Requirement 3 - e.g., "PostgreSQL 15" (if database added)]
 
 **Production:**
+
 - [Production-specific requirements]
 
 ---
@@ -488,6 +527,7 @@ result = client.call_api(request_data)
 **Method:** [Bearer Token | OAuth | API Key]
 
 **Flow:**
+
 ```
 1. [Step 1]
 2. [Step 2]
@@ -495,11 +535,13 @@ result = client.call_api(request_data)
 ```
 
 **Token Format:**
+
 ```
 Authorization: Bearer {token}
 ```
 
 **Token Validation:**
+
 - [How tokens are validated]
 - [Token expiration policy]
 - [Refresh mechanism if applicable]
@@ -511,10 +553,12 @@ Authorization: Bearer {token}
 **Access Control:** [RBAC | Attribute-based | Simple ownership]
 
 **Permissions:**
+
 - `[resource]:[action]` - [Who has this permission]
 - `[resource]:[action]` - [Who has this permission]
 
 **Example:**
+
 ```python
 @require_permission("agents:read")
 def list_agents(user_id):
@@ -526,14 +570,17 @@ def list_agents(user_id):
 ### Data Security
 
 **Sensitive Data:**
+
 - [Type of sensitive data]
 - [How it's protected]
 
 **Encryption:**
+
 - **At Rest:** [Yes/No, method]
 - **In Transit:** [TLS version, configuration]
 
 **PII Handling:**
+
 - [What PII is collected]
 - [How it's stored]
 - [Retention policy]
@@ -545,11 +592,13 @@ def list_agents(user_id):
 ### Latency Requirements
 
 **Target Latencies:**
+
 - [Operation 1]: < [X]ms (e.g., "Agent selection: < 100ms")
 - [Operation 2]: < [X]ms
 - [Operation 3]: < [X]ms
 
 **Measurement:**
+
 - [How latency will be measured]
 - [Where metrics will be collected]
 
@@ -558,11 +607,13 @@ def list_agents(user_id):
 ### Throughput Requirements
 
 **Expected Load:**
+
 - [Requests per second]
 - [Concurrent users]
 - [Data volume]
 
 **Scalability:**
+
 - [How system scales]
 - [Bottlenecks identified]
 - [Mitigation strategies]
@@ -572,14 +623,17 @@ def list_agents(user_id):
 ### Caching Strategy
 
 **What to Cache:**
+
 - [Data type 1]: [TTL, invalidation strategy]
 - [Data type 2]: [TTL, invalidation strategy]
 
 **Cache Implementation:**
+
 - **Layer:** [Application | Database | CDN]
 - **Technology:** [Redis | In-memory | Browser]
 
 **Example:**
+
 ```python
 @cache(ttl=300)  # 5 minutes
 def get_agent_config(agent_id):
@@ -591,11 +645,13 @@ def get_agent_config(agent_id):
 ### Optimization Techniques
 
 **Technique 1:** [Name]
+
 - **Problem:** [What we're optimizing]
 - **Solution:** [How we're optimizing it]
 - **Expected Improvement:** [Metrics]
 
 **Technique 2:** [Name]
+
 - [Same structure]
 
 ---
@@ -607,6 +663,7 @@ def get_agent_config(agent_id):
 **Environment:** Development | Staging | Production
 
 **Components:**
+
 ```
 ┌─────────────┐     ┌─────────────┐     ┌─────────────┐
 │   Frontend  │────▶│   Backend   │────▶│   Storage   │
@@ -615,6 +672,7 @@ def get_agent_config(agent_id):
 ```
 
 **Ports:**
+
 - Frontend: [port number]
 - Backend: [port number]
 - WebSocket: [port number]
@@ -624,6 +682,7 @@ def get_agent_config(agent_id):
 ### Configuration Management
 
 **Configuration Files:**
+
 ```
 .env                    # Environment variables
 config/
@@ -633,6 +692,7 @@ config/
 ```
 
 **Key Configuration:**
+
 ```bash
 # .env file
 ENV=development
@@ -645,16 +705,19 @@ LOG_LEVEL=DEBUG
 ### Monitoring & Observability
 
 **Metrics to Track:**
+
 - [Metric 1 - e.g., "Agent selection latency"]
 - [Metric 2 - e.g., "Handoff success rate"]
 - [Metric 3 - e.g., "Error rate by agent"]
 
 **Logging:**
+
 - **Level:** [DEBUG | INFO | WARNING | ERROR]
 - **Format:** [JSON | Structured | Plain text]
 - **Storage:** [Where logs are written]
 
 **Example Log Entry:**
+
 ```json
 {
   "timestamp": "2026-01-29T10:00:00Z",
@@ -674,11 +737,13 @@ LOG_LEVEL=DEBUG
 ### Error Handling
 
 **Error Categories:**
+
 1. **Validation Errors** - [How handled]
 2. **Integration Errors** - [How handled]
 3. **System Errors** - [How handled]
 
 **Error Response Format:**
+
 ```json
 {
   "error": {
@@ -692,6 +757,7 @@ LOG_LEVEL=DEBUG
 ```
 
 **Fallback Behavior:**
+
 - [What system does when errors occur]
 - [User experience during errors]
 
@@ -702,10 +768,12 @@ LOG_LEVEL=DEBUG
 ### Phase Dependencies
 
 **Requires (must complete before starting):**
+
 - [Phase X]: [Specific components or features needed]
 - [Phase Y]: [Specific components or features needed]
 
 **Enables (unblocks after completion):**
+
 - [Phase Z]: [What they can build with this]
 - [Phase W]: [What they can build with this]
 
@@ -717,12 +785,14 @@ LOG_LEVEL=DEBUG
 **To:** [New state]
 
 **Migration Steps:**
+
 1. [Step 1 - e.g., "Add new fields to data model"]
 2. [Step 2 - e.g., "Run migration script"]
 3. [Step 3 - e.g., "Verify data integrity"]
 4. [Step 4 - e.g., "Remove deprecated code"]
 
 **Backward Compatibility:**
+
 - [What remains compatible]
 - [What breaks compatibility]
 - [How to handle breaking changes]
@@ -734,12 +804,14 @@ LOG_LEVEL=DEBUG
 **Approach:** [Big bang | Gradual | Feature flag]
 
 **Phases:**
+
 1. **Development:** [What gets built]
 2. **Testing:** [How it's validated]
 3. **Staging:** [How it's deployed to staging]
 4. **Production:** [How it's deployed to prod]
 
 **Rollback Plan:**
+
 - [How to revert if issues found]
 - [What data needs to be preserved]
 
@@ -752,6 +824,7 @@ LOG_LEVEL=DEBUG
 **Coverage Target:** [X%]
 
 **Key Components to Test:**
+
 - [Component 1]: [What aspects to test]
 - [Component 2]: [What aspects to test]
 
@@ -760,6 +833,7 @@ LOG_LEVEL=DEBUG
 ### Integration Testing
 
 **Test Scenarios:**
+
 1. [Scenario 1 - e.g., "Agent coordination flow"]
 2. [Scenario 2 - e.g., "Error handling across components"]
 3. [Scenario 3 - e.g., "Data persistence"]
@@ -771,6 +845,7 @@ LOG_LEVEL=DEBUG
 **Test Framework:** [Playwright | Cypress | etc.]
 
 **Critical Paths:**
+
 1. [Path 1 - e.g., "User query → Agent selection → Response"]
 2. [Path 2 - e.g., "Multi-agent handoff"]
 
@@ -781,6 +856,7 @@ LOG_LEVEL=DEBUG
 ### Performance Testing
 
 **Load Tests:**
+
 - [Scenario 1]: [Expected throughput]
 - [Scenario 2]: [Expected latency]
 
@@ -798,6 +874,7 @@ LOG_LEVEL=DEBUG
 **Impact:** High | Medium | Low
 
 **Mitigation:**
+
 - [Strategy to reduce risk]
 - [Contingency if risk occurs]
 
@@ -816,11 +893,13 @@ LOG_LEVEL=DEBUG
 ### Potential Enhancements
 
 **Enhancement 1:** [Name]
+
 - **Description:** [What this would add]
 - **Benefit:** [Why we might want it]
 - **When:** [When to consider implementing]
 
 **Enhancement 2:** [Name]
+
 - [Same structure]
 
 ---
@@ -828,11 +907,13 @@ LOG_LEVEL=DEBUG
 ### Known Limitations
 
 **Limitation 1:** [Description]
+
 - **Impact:** [How this affects users or system]
 - **Workaround:** [Temporary solution]
 - **Future Solution:** [How we might address this]
 
 **Limitation 2:** [Description]
+
 - [Same structure]
 
 ---
@@ -869,11 +950,13 @@ LOG_LEVEL=DEBUG
 ## Changelog
 
 ### Version 1.0 - YYYY-MM-DD
+
 - Initial architecture document
 - Core components defined
 - API contracts specified
 
 ### Version 1.1 - YYYY-MM-DD (if applicable)
+
 - [Changes based on implementation learnings]
 - [Updated components or interfaces]
 

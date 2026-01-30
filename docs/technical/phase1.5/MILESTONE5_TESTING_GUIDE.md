@@ -3,18 +3,23 @@
 ## Quick Start
 
 ### 1. Ensure Backend is Running
+
 The backend API should already be running on port 8000. You can verify:
+
 ```bash
 curl http://localhost:8000/health
 ```
 
 ### 2. Ensure Frontend is Running
+
 The frontend should be running on port 5173. Open your browser to:
+
 ```
 http://localhost:5173/observability
 ```
 
 ### 3. Navigate to Tool Calls
+
 Click the **"Tool Calls"** button in the navigation bar at the top.
 
 ---
@@ -83,6 +88,7 @@ Click the **"Tool Calls"** button in the navigation bar at the top.
 ## Sample Data Overview
 
 The test data includes:
+
 - **50 total tool calls** across 7 days
 - **5 unique tools**:
   - `set_timer` (8 calls, 100% success)
@@ -101,12 +107,14 @@ The test data includes:
 ## Expected Behavior
 
 ### Filtering
+
 - Filters should apply instantly
 - Multiple filters work together (AND logic)
 - Clear filters button resets all filters
 - "Refresh" button refetches data
 
 ### Detail Modal
+
 - Opens on click
 - Shows full JSON request/response
 - Copy buttons work
@@ -114,6 +122,7 @@ The test data includes:
 - Can't scroll page while modal is open
 
 ### Statistics
+
 - Numbers should be accurate
 - Tables should be sortable by clicking headers
 - Success rates color-coded:
@@ -122,6 +131,7 @@ The test data includes:
   - Red: < 80%
 
 ### Performance
+
 - Timeline should load quickly (< 500ms)
 - Filtering should be instant (client-side)
 - Statistics calculation should be fast (< 200ms)
@@ -141,20 +151,24 @@ The test data includes:
 ## Troubleshooting
 
 ### "Connection Error" on page load
+
 - **Check backend**: `curl http://localhost:8000/health`
 - **Check frontend**: Browser console for errors
 - **Verify .env**: `/frontend/.env` should have `VITE_API_BASE_URL=http://localhost:8000` (no `/api/v1`)
 
 ### Empty timeline
+
 - **Generate sample data**: `cd backend && python scripts/generate_sample_tool_calls.py`
 - **Verify data file**: Check `/backend/data/tool_logs/user_justin_tool_calls.jsonl` exists
 
 ### Filters not working
+
 - **Check console**: Look for JavaScript errors
 - **Try refresh**: Click the "Refresh" button
 - **Clear cache**: Hard refresh with Cmd+Shift+R (Mac) or Ctrl+Shift+R (Windows)
 
 ### Statistics showing 0
+
 - **Verify data**: Run test script `./tests/scripts/test_milestone5_tool_calls.sh`
 - **Check API**: `curl -H "Authorization: Bearer dev_token_12345" "http://localhost:8000/tool-calls/stats?user_id=user_justin"`
 
@@ -163,30 +177,35 @@ The test data includes:
 ## API Testing Commands
 
 ### List Tool Calls
+
 ```bash
 curl -H "Authorization: Bearer dev_token_12345" \
   "http://localhost:8000/tool-calls?user_id=user_justin&limit=5"
 ```
 
 ### Get Statistics
+
 ```bash
 curl -H "Authorization: Bearer dev_token_12345" \
   "http://localhost:8000/tool-calls/stats?user_id=user_justin"
 ```
 
 ### Filter by Tool
+
 ```bash
 curl -H "Authorization: Bearer dev_token_12345" \
   "http://localhost:8000/tool-calls?user_id=user_justin&tool_name=get_recipe"
 ```
 
 ### Filter by Character
+
 ```bash
 curl -H "Authorization: Bearer dev_token_12345" \
   "http://localhost:8000/tool-calls?user_id=user_justin&character=Delilah"
 ```
 
 ### Get Available Tools
+
 ```bash
 curl -H "Authorization: Bearer dev_token_12345" \
   "http://localhost:8000/tool-calls/metadata/tools?user_id=user_justin"
@@ -221,6 +240,7 @@ Once you've verified everything works:
 ## Feedback Welcome
 
 If you find any issues or have suggestions for improvements:
+
 - UI/UX feedback
 - Performance issues
 - Missing features

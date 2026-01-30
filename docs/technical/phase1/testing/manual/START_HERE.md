@@ -24,31 +24,39 @@ Want to actually use the UI and test manually?
 ### Step 1: Start Everything
 
 **Terminal 1:**
+
 ```bash
 cd backend
 python src/main.py
 ```
+
 Wait for: `✅ Memory Manager periodic flush started`
 
 **Terminal 2:**
+
 ```bash
 cd frontend
 npm run dev
 ```
+
 Wait for: `Local: http://localhost:5173/`
 
 **Terminal 3:** (keep open for checking data)
+
 ```bash
 cd /Users/justin/projects/voice-assistant-spike
 ```
 
 ### Step 2: Open Browser
-Go to: http://localhost:5173
+
+Go to: <http://localhost:5173>
 
 ### Step 3: Follow the Script
+
 Open **[MANUAL_TEST_SCRIPT.md](MANUAL_TEST_SCRIPT.md)** and follow scenarios 1-4.
 
 Each scenario takes 5 minutes and tests a different feature:
+
 1. **User Preferences** - Allergies and favorites
 2. **Device Control** - Lights and thermostats
 3. **Conversation History** - Multi-turn context
@@ -66,6 +74,7 @@ python interactive_memory_test.py
 ```
 
 Try these in order:
+
 1. Add dietary restriction: `peanuts`
 2. Add favorite food: `biscuits`
 3. Add a conversation message
@@ -105,7 +114,7 @@ If she remembers, Phase 7 works!
 
 1. Start backend: `cd backend && python src/main.py`
 2. Start frontend: `cd frontend && npm run dev`
-3. Open http://localhost:5173
+3. Open <http://localhost:5173>
 4. Say: **"Hey Chat! I'm allergic to peanuts"**
 5. Restart backend (Ctrl+C, then restart)
 6. Say: **"Hey Chat! What are my dietary restrictions?"**
@@ -114,19 +123,22 @@ If Delilah says "peanuts" - **Phase 7 works!** 🎉
 
 ---
 
-## Help!
+## Help
 
 **Backend won't start?**
+
 ```bash
 lsof -ti:8000 | xargs kill -9
 ```
 
 **Want to see the data?**
+
 ```bash
 cat data/users/default_user.json | python -m json.tool
 ```
 
 **Want to reset everything?**
+
 ```bash
 rm data/users/*.json
 ```

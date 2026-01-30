@@ -9,6 +9,7 @@
 ## Test Suite Overview
 
 Created comprehensive E2E test suite covering:
+
 - ✅ Complete user journeys
 - ⚠️  Story beat delivery (partial)
 - 🔄 Character voice modes (pending)
@@ -39,11 +40,13 @@ Created comprehensive E2E test suite covering:
 ### ✅ Passing Tests
 
 #### 1. User Journey - First Interaction
+
 **Status**: PASS
 **Test**: `test_first_interaction_journey`
 **Duration**: ~1.7s
 
 Validates:
+
 - Server responds to HTTP requests
 - Response structure is correct (`response_text`, `audio_url`, `tool_calls`, `state`)
 - State tracking works (interaction_count increments)
@@ -57,24 +60,29 @@ Validates:
 ### ⚠️ Issues Discovered
 
 #### 1. Story Beat Delivery - Non-deterministic
+
 **Status**: INTERMITTENT FAIL
 **Tests Affected**:
+
 - `test_awakening_confusion_beat`
 - `test_first_timer_beat`
 - `test_recipe_help_beat`
 
 **Symptoms**:
+
 - Beat delivered to "debug-test" user successfully
 - Same beat NOT delivered to "e2e-test-user" under identical conditions
 - Response includes normal greeting instead of awakening content
 
 **Investigation**:
+
 1. State reset works correctly (`beats_delivered: {}` after reset)
 2. Beat definition has condition: `"user_seems_receptive": true`
 3. Condition may not be implemented or uses non-deterministic heuristic
 4. LLM may be inconsistent in beat injection
 
 **Response Example (when beat WORKS)**:
+
 ```
 "Well, hey there, sugar! How can I help you today?
 
@@ -83,12 +91,14 @@ Like I woke up just now, when you started talkin' to me."
 ```
 
 **Response Example (when beat FAILS)**:
+
 ```
 "Well, hello again, sugar! How's everything on your end? If you need any help
 with cookin' or just want to chat, I'm all ears!"
 ```
 
 **Root Cause Hypothesis**:
+
 1. **LLM Temperature**: Claude may be making inconsistent decisions about beat injection
 2. **Missing Condition Check**: `user_seems_receptive` condition not implemented in story engine
 3. **Timing Issue**: Beat injection happens but state update fails race condition
@@ -97,6 +107,7 @@ with cookin' or just want to chat, I'm all ears!"
 **Priority**: HIGH - Story progression is core feature
 
 **Recommended Fix**:
+
 1. Check story_engine.py for condition evaluation logic
 2. Add logging to track beat injection decisions
 3. Consider making awakening beat MORE deterministic (always fire on first interaction)
@@ -195,24 +206,24 @@ The following test classes exist but haven't been fully executed yet:
 
 ### Short-term (Phase 9 completion)
 
-3. **Fix Critical Bugs**
+1. **Fix Critical Bugs**
    - Address any failures from tool/character tests
    - Optimize slow queries if performance fails
    - Handle edge cases gracefully
 
-4. **Documentation Updates**
+2. **Documentation Updates**
    - Update README with test instructions
    - Document known issues
    - Add troubleshooting guide
 
 ### Medium-term (Post Phase 9)
 
-5. **Test Coverage**
+1. **Test Coverage**
    - Add unit tests for Story Engine
    - Add unit tests for Character System
    - Increase test determinism
 
-6. **CI/CD**
+2. **CI/CD**
    - Consider GitHub Actions for automated testing
    - Regression test suite on each commit
 
@@ -256,6 +267,7 @@ curl -s -X POST http://localhost:8000/api/test/reset/test
 From PROJECT_PLAN_PHASE1.md Section 9.4:
 
 ### Technical
+
 - ✅ System responds to voice and text input (text confirmed, voice pending)
 - 🔄 Delilah personality is consistent and recognizable (pending manual validation)
 - ⚠️  All 4 Chapter 1 story beats can be delivered (intermittent)
@@ -265,16 +277,19 @@ From PROJECT_PLAN_PHASE1.md Section 9.4:
 - ✅ Testing API enables automated validation (working well)
 
 ### Performance
+
 - 🔄 90% of simple tasks complete in under 3 seconds (pending benchmark)
 - 🔄 Response time measured and documented (framework ready)
 - 🔄 Token usage per interaction logged (pending verification)
 
 ### Character Quality
+
 - 🔄 95% of responses maintain character voice consistency (pending testing)
 - 🔄 Family members can identify Delilah's personality (pending manual test)
 - 🔄 All 6 voice modes work correctly (pending automated testing)
 
 ### User Experience
+
 - 🔄 Users complete at least one multi-turn story conversation (pending)
 - 🔄 System successfully transitions to Chapter 2 (pending long-run test)
 - ✅ No critical bugs preventing usage (system stable)

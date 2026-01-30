@@ -1330,6 +1330,7 @@ Font Weights:
 ### Component Patterns
 
 #### Cards
+
 - Background: #333333
 - Border: 1px solid #444444
 - Border radius: 8px
@@ -1337,6 +1338,7 @@ Font Weights:
 - Shadow: 0 2px 8px rgba(0, 0, 0, 0.2)
 
 #### Buttons
+
 - Primary: Blue (#60a5fa) with hover darken
 - Secondary: Gray (#666666) with hover lighten
 - Danger: Red (#f87171) with hover darken
@@ -1344,12 +1346,14 @@ Font Weights:
 - Border radius: 6px
 
 #### Tables
+
 - Header: #2a2a2a background
 - Row hover: #333333 background
 - Border: 1px solid #444444
 - Zebra striping: alternate row backgrounds
 
 #### Dialogs
+
 - Overlay: rgba(0, 0, 0, 0.7)
 - Container: #2a2a2a background
 - Max width: 600px
@@ -1371,17 +1375,20 @@ Font Weights:
 ### Layout Adaptations
 
 **Mobile:**
+
 - Single column layout
 - Collapsible sidebars
 - Full-width cards
 - Stacked action buttons
 
 **Tablet:**
+
 - Two-column layout where appropriate
 - Side-by-side filters and actions
 - Larger touch targets
 
 **Desktop:**
+
 - Three-column layouts for list-detail views
 - Sidebars always visible
 - Compact spacing
@@ -1424,16 +1431,19 @@ Easing: cubic-bezier(0.4, 0.0, 0.2, 1)
 ### Interaction Patterns
 
 **Loading States:**
+
 - Skeleton screens for initial load
 - Spinners for quick operations (<2s)
 - Progress bars for long operations (>2s)
 
 **Success/Error Feedback:**
+
 - Toast notifications (auto-dismiss after 3s)
 - Inline validation messages
 - Success checkmarks with animation
 
 **Hover States:**
+
 - Subtle background color change
 - Border highlight
 - Shadow increase

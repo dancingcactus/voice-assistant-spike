@@ -38,20 +38,25 @@ cp .env.example .env
 Then edit `.env` and add your API keys:
 
 #### Get OpenAI API Key
-1. Go to https://platform.openai.com/api-keys
+
+1. Go to <https://platform.openai.com/api-keys>
 2. Create a new API key
 3. Copy it to `OPENAI_API_KEY` in your `.env` file
 
 #### Get ElevenLabs API Key
-1. Go to https://elevenlabs.io/app/settings/api-keys
+
+1. Go to <https://elevenlabs.io/app/settings/api-keys>
 2. Create a new API key
 3. Copy it to `ELEVENLABS_API_KEY` in your `.env` file
 
 #### Voice ID (Already Configured)
+
 The Miss Sally May voice ID is already set in `.env.example`:
+
 - `ELEVENLABS_VOICE_ID=XHqlxleHbYnK8xmft8Vq`
 
 Your `.env` file should look like:
+
 ```
 OPENAI_API_KEY=sk-...
 ELEVENLABS_API_KEY=...
@@ -66,11 +71,12 @@ npm start
 ```
 
 For development with auto-reload:
+
 ```bash
 npm run dev
 ```
 
-The server will start on http://localhost:3000
+The server will start on <http://localhost:3000>
 
 ## Testing Your Setup
 
@@ -81,6 +87,7 @@ npm test
 ```
 
 This will check:
+
 - ✅ Environment variables are set
 - ✅ OpenAI API connection works
 - ✅ ElevenLabs API connection works
@@ -90,13 +97,14 @@ This will check:
 If any test fails, it will show you exactly what's wrong and how to fix it.
 
 **Common issues:**
+
 - **401 errors**: Check your API keys are correct in `.env`
 - **Voice ID errors**: Verify `ELEVENLABS_VOICE_ID=XHqlxleHbYnK8xmft8Vq`
 - **Network errors**: Check your internet connection
 
 ## Usage
 
-1. Open your browser and navigate to http://localhost:3000
+1. Open your browser and navigate to <http://localhost:3000>
 2. Press and hold the "Hold to Talk" button
 3. Speak your message (ask about cooking, recipes, or anything else!)
 4. Release the button when you're done speaking
@@ -107,21 +115,25 @@ If any test fails, it will show you exactly what's wrong and how to fix it.
 Try these types of questions to see her different modes in action:
 
 ### Passionate Mode (food topics)
+
 - "How do I make cornbread?"
 - "What's the secret to good brisket?"
 - "Tell me about buttermilk biscuits"
 
 ### Protective Mode (food done wrong)
+
 - "I'm going to put ketchup on my steak"
 - "Can I microwave this?"
 - "I'll just use margarine instead of butter"
 
 ### Mama Bear Mode (dietary restrictions)
+
 - "I'm allergic to dairy"
 - "I have celiac disease"
 - "I can't eat nuts"
 
 ### Deadpan Mode (non-food tasks)
+
 - "What's the temperature?"
 - "Turn on the lights"
 - "What time is it?"
@@ -164,6 +176,7 @@ voice-assistant-spike/
 ## Technical Details
 
 ### Backend (server.js)
+
 - **Framework**: Express.js
 - **LLM**: OpenAI GPT-4o-mini (cost-effective for testing)
 - **TTS**: ElevenLabs Flash v2.5 model
@@ -171,13 +184,16 @@ voice-assistant-spike/
 - **Context Management**: Keeps last 10 messages for conversation continuity
 
 ### Frontend (public/index.html)
+
 - **Speech Recognition**: Web Speech API (Chrome/Edge)
 - **Audio Playback**: Native HTML5 Audio
 - **UI**: Vanilla JavaScript with responsive design
 - **Interaction**: Push-to-talk button with visual feedback
 
 ### Character System Prompt
+
 The system prompt in `server.js` includes:
+
 - Six distinct personality modes (Passionate, Protective, Mama Bear, Startled, Deadpan, Warm Baseline)
 - Southern dialect markers
 - Key phrases and mannerisms
@@ -186,21 +202,25 @@ The system prompt in `server.js` includes:
 ## Troubleshooting
 
 ### Speech Recognition Not Working
+
 - Make sure you're using Chrome or Edge browser
 - Check that microphone permissions are granted
 - Try using HTTPS (localhost should work with HTTP)
 
 ### No Audio Playback
+
 - Check browser console for errors
 - Verify ElevenLabs API key and voice ID are correct
 - Check your audio output settings
 
 ### API Errors
+
 - Verify all API keys are correctly set in `.env`
 - Check API key permissions and quotas
 - Review server console logs for detailed error messages
 
 ### Slow Responses
+
 - This is expected - we're prioritizing quality over speed
 - Typical flow: Speech recognition → OpenAI → ElevenLabs → Audio playback
 - Each step adds latency but provides better testing experience

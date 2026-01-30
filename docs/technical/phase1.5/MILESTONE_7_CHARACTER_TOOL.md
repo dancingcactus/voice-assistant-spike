@@ -17,11 +17,13 @@ The Character Tool provides a comprehensive interface for exploring, testing, an
 ### Backend Components
 
 #### 1. Character Access Layer (`character_access.py`)
+
 - **Location**: `backend/src/observability/character_access.py`
 - **Lines**: 260
 - **Purpose**: Data access layer wrapping the CharacterSystem for observability
 
 **Key Methods**:
+
 - `list_characters()` - List all characters with summary info
 - `get_character(character_id)` - Get full character definition
 - `get_voice_modes(character_id)` - Get all voice modes
@@ -32,10 +34,12 @@ The Character Tool provides a comprehensive interface for exploring, testing, an
 - `get_character_statistics()` - Usage stats (placeholder for future)
 
 #### 2. API Endpoints (`api.py`)
+
 - **Added**: 8 new endpoints
 - **Total API Lines**: 990 (was 762)
 
 **New Endpoints**:
+
 ```
 GET    /characters                                  - List all characters
 GET    /characters/{character_id}                   - Get character detail
@@ -50,11 +54,13 @@ GET    /characters/{character_id}/tool-instructions - Tool usage guidelines
 ### Frontend Components
 
 #### 3. Character Tool Component (`CharacterTool.tsx`)
+
 - **Location**: `frontend/src/components/CharacterTool.tsx`
 - **Lines**: 461
 - **Purpose**: Interactive character exploration and testing UI
 
 **Features**:
+
 - **Character Selector**: Browse all available characters
 - **4 Tabbed Views**:
   1. **Overview**: Personality, speech patterns, capabilities, story arc
@@ -63,16 +69,19 @@ GET    /characters/{character_id}/tool-instructions - Tool usage guidelines
   4. **Tool Instructions**: Character-specific tool usage guidelines
 
 #### 4. Styling (`CharacterTool.css`)
+
 - **Location**: `frontend/src/components/CharacterTool.css`
 - **Lines**: 533
 - **Theme**: Consistent dark theme matching existing dashboard
 
 #### 5. API Client Updates (`api.ts`)
+
 - **Added**: 100+ lines of TypeScript types and methods
 - **New Types**: `CharacterSummary`, `VoiceMode`, `Character`, `VoiceModeSelection`, `SystemPromptResponse`, `PromptBreakdown`, `CharacterStatistics`
 - **New Methods**: 8 API client methods matching backend endpoints
 
 #### 6. Dashboard Integration (`Dashboard.tsx`)
+
 - **Changes**: Added "Characters" navigation tab
 - **Route**: New `characters` view
 - **Updated**: Milestone checklist (marked 6 & 7 complete)
@@ -82,6 +91,7 @@ GET    /characters/{character_id}/tool-instructions - Tool usage guidelines
 ## Features Implemented
 
 ### 1. Character Overview
+
 - ✅ Display personality traits
 - ✅ Show speech patterns and mannerisms
 - ✅ List capabilities
@@ -89,6 +99,7 @@ GET    /characters/{character_id}/tool-instructions - Tool usage guidelines
 - ✅ Character metadata (role, nickname, description)
 
 ### 2. Voice Mode Testing
+
 - ✅ Interactive voice mode selection tester
 - ✅ Real-time confidence scoring
 - ✅ Reasoning explanation for selection
@@ -103,6 +114,7 @@ GET    /characters/{character_id}/tool-instructions - Tool usage guidelines
 - ✅ Example phrases for each mode
 
 ### 3. System Prompt Generation
+
 - ✅ Generate full system prompt with memory context
 - ✅ Select specific voice mode or all modes
 - ✅ Token count estimation
@@ -115,6 +127,7 @@ GET    /characters/{character_id}/tool-instructions - Tool usage guidelines
 - ✅ Full prompt preview with syntax highlighting
 
 ### 4. Tool Instructions
+
 - ✅ Display character-specific tool guidelines
 - ✅ Show "when to use" and "when NOT to use"
 - ✅ Importance rating scales
@@ -126,6 +139,7 @@ GET    /characters/{character_id}/tool-instructions - Tool usage guidelines
 ## Testing Results
 
 ### Automated Tests
+
 All 10 automated tests passing via `test_milestone7_character_tool.sh`:
 
 1. ✅ List all characters (found 1: Delilah)
@@ -140,6 +154,7 @@ All 10 automated tests passing via `test_milestone7_character_tool.sh`:
 10. ✅ Get character statistics (placeholder data)
 
 ### Voice Mode Selection Accuracy
+
 | Test Input | Expected Mode | Actual Mode | Confidence |
 |-----------|--------------|-------------|------------|
 | "I have a severe peanut allergy" | mama_bear | ✅ mama_bear | 95% |
@@ -152,7 +167,9 @@ All 10 automated tests passing via `test_milestone7_character_tool.sh`:
 ## Technical Highlights
 
 ### Token Estimation
+
 The system provides accurate token estimation for prompt engineering:
+
 - **Base character**: ~43 tokens
 - **Personality**: ~139 tokens
 - **Voice modes**: ~86 tokens (all) / ~45 tokens (single mode)
@@ -160,7 +177,9 @@ The system provides accurate token estimation for prompt engineering:
 - **Memory context**: Variable (depends on user history)
 
 ### Prompt Composition
+
 System prompts are dynamically composed with:
+
 1. Character identity (name, role, description)
 2. Core personality traits
 3. Speech patterns and mannerisms
@@ -172,7 +191,9 @@ System prompts are dynamically composed with:
 9. Response guidelines
 
 ### Voice Mode Selection Algorithm
+
 High-priority keywords override trigger matching:
+
 1. **Allergy keywords** → Mama Bear Mode (95% confidence)
 2. **Startled keywords** → Startled Mode (90% confidence)
 3. **Trigger phrase matching** → Matched mode (80% confidence)
@@ -183,6 +204,7 @@ High-priority keywords override trigger matching:
 ## User Experience
 
 ### Navigation Flow
+
 1. Select "Characters" tab in dashboard header
 2. Choose character from left sidebar (currently Delilah only)
 3. Explore 4 tabs:
@@ -192,6 +214,7 @@ High-priority keywords override trigger matching:
    - Tool Instructions: Review character-specific guidelines
 
 ### Key Benefits
+
 - **Character Development**: Quickly iterate on personality traits
 - **Voice Mode Tuning**: Test trigger phrases and adjust confidence
 - **Prompt Optimization**: Monitor token usage and section breakdown
@@ -203,6 +226,7 @@ High-priority keywords override trigger matching:
 ## Files Changed
 
 ### New Files
+
 - `backend/src/observability/character_access.py` (260 lines)
 - `frontend/src/components/CharacterTool.tsx` (461 lines)
 - `frontend/src/components/CharacterTool.css` (533 lines)
@@ -210,6 +234,7 @@ High-priority keywords override trigger matching:
 - `docs/technical/phase1.5/MILESTONE_7_CHARACTER_TOOL.md` (this file)
 
 ### Modified Files
+
 - `backend/src/observability/api.py` (+228 lines)
 - `frontend/src/services/api.ts` (+194 lines)
 - `frontend/src/components/Dashboard.tsx` (+11 lines)
@@ -221,6 +246,7 @@ High-priority keywords override trigger matching:
 ## Integration Points
 
 ### Reuses Existing Infrastructure
+
 - ✅ CharacterSystem (`backend/src/core/character_system.py`)
 - ✅ Character models (`backend/src/models/character.py`)
 - ✅ Memory system (for context in prompts)
@@ -229,6 +255,7 @@ High-priority keywords override trigger matching:
 - ✅ FastAPI middleware and authentication
 
 ### Provides Data For
+
 - Character definition editing (future)
 - Voice mode refinement (future)
 - A/B testing different prompts (future)
@@ -258,12 +285,14 @@ High-priority keywords override trigger matching:
 ## Future Enhancements
 
 ### Short-term
+
 1. Add remaining character definitions (Hank, Cave, Dimitria)
 2. Implement real character statistics from tool call logs
 3. Add voice mode usage heatmap
 4. Export system prompts for testing
 
 ### Long-term
+
 1. In-tool character editing (modify traits, modes)
 2. Voice mode A/B testing interface
 3. Prompt template versioning
@@ -276,6 +305,7 @@ High-priority keywords override trigger matching:
 ## Success Metrics
 
 ✅ **All acceptance criteria met**:
+
 - Character browser with metadata
 - Voice mode testing with confidence scoring
 - System prompt generation with token analysis
@@ -284,6 +314,7 @@ High-priority keywords override trigger matching:
 - Full API test coverage
 
 ✅ **Integration validated**:
+
 - Character Tool accessible from dashboard
 - All 8 API endpoints functional
 - React components render without errors
@@ -303,6 +334,7 @@ Milestone 7 (Character Tool) is **complete** and marks the final milestone of Ph
 6. ✅ **Character exploration & testing (Milestone 7)** ← NEW
 
 The Character Tool will be invaluable for:
+
 - Developing additional characters (Hank, Cave, Dimitria)
 - Fine-tuning voice mode triggers
 - Optimizing system prompts for token efficiency
@@ -315,23 +347,27 @@ The Character Tool will be invaluable for:
 ## Screenshots
 
 ### Character Overview Tab
+
 - Left sidebar: Character selector with stats
 - Main area: Personality traits, speech patterns, capabilities
 - Story arc context displayed at bottom
 
 ### Voice Mode Testing
+
 - Input box: "I have a severe peanut allergy"
 - Result: Mama Bear Mode selected (95% confidence)
 - Reasoning: "Selected 'Mama Bear Mode' due to allergy/dietary concern"
 - All 6 modes displayed below with triggers and examples
 
 ### System Prompt View
+
 - Voice mode dropdown: Select specific mode or "All modes"
 - Token estimate: 1001 tokens (passionate mode)
 - Breakdown: Shows tokens per section
 - Full prompt: Scrollable preview of generated prompt
 
 ### Tool Instructions
+
 - save_memory tool card displayed
 - When to use / When NOT to use sections
 - Importance rating scale (3-10)

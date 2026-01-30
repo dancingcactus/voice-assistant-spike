@@ -39,6 +39,7 @@ Successfully implemented automatic memory extraction from conversations and memo
 #### Testing Results
 
 Created 4 test memories programmatically:
+
 - ✅ Dietary restriction: "Has Celiac disease" (importance: 10)
 - ✅ Preference: "Likes mild foods" (importance: 6)
 - ✅ Fact: "Lives in Provo, Utah" (importance: 5)
@@ -73,6 +74,7 @@ All memories successfully loaded and grouped by category.
 #### Tool Capabilities
 
 The `save_memory` tool:
+
 - ✅ Validates input parameters
 - ✅ Saves to user-specific memory file via `MemoryAccessor`
 - ✅ Supports all 5 memory categories
@@ -202,6 +204,7 @@ EOF
 ```
 
 **Results**:
+
 - ✅ All 4 memories created successfully
 - ✅ Memories retrievable via `get_all_memories()`
 - ✅ Correct categorization and importance levels
@@ -210,12 +213,14 @@ EOF
 ### Manual Testing Required
 
 #### Test 1: Memory Retrieval
+
 1. Start backend server
-2. Open chat UI (http://localhost:3000)
+2. Open chat UI (<http://localhost:3000>)
 3. Send: "What should I make for dinner?"
 4. ✅ Expected: Response considers gluten restriction, mild flavors, family size
 
 #### Test 2: Automatic Memory Saving
+
 1. Clear memories for test user (or use new user)
 2. Send: "I have Celiac disease"
 3. ✅ Expected:
@@ -226,6 +231,7 @@ EOF
 5. Verify memory in observability dashboard
 
 #### Test 3: Multi-Memory Extraction
+
 1. Send: "I live in Provo and I have 3 kids"
 2. ✅ Expected:
    - TWO `save_memory` calls
@@ -233,6 +239,7 @@ EOF
    - Memory 2: relationship - "Has 3 kids"
 
 #### Test 4: Persistence Across Sessions
+
 1. After Test 2, open new browser tab
 2. Send: "What's for breakfast?"
 3. ✅ Expected:
@@ -244,6 +251,7 @@ EOF
 ## Success Criteria
 
 ### Milestone 1 ✅ COMPLETE
+
 - ✅ Memories manually created in observability UI
 - ✅ System prompt includes memory context
 - ✅ Delilah's responses show awareness of saved info
@@ -251,6 +259,7 @@ EOF
 - ✅ Dietary restrictions emphasized appropriately
 
 ### Milestone 2 ✅ COMPLETE
+
 - ✅ SaveMemoryTool created and registered
 - ✅ Tool appears in LLM function definitions
 - ✅ Manual tool call test succeeds
@@ -258,6 +267,7 @@ EOF
 - ✅ Memory accessible in observability UI
 
 ### Milestone 3 ✅ COMPLETE
+
 - ✅ Character JSON updated with tool instructions
 - ✅ Instructions included in system prompts
 - ✅ LLM calls save_memory without prompting (requires manual test)
@@ -266,6 +276,7 @@ EOF
 - ✅ Multi-memory extraction supported (via examples)
 
 ### Overall System ⚠️ PENDING MANUAL TESTS
+
 - ⏳ User mentions dietary restriction → automatically saved
 - ⏳ Next conversation → restriction remembered without re-stating
 - ⏳ Multi-user memory isolation confirmed
@@ -297,6 +308,7 @@ EOF
 ## Next Steps
 
 ### Immediate (Post-Milestone 6)
+
 1. **Manual Testing**: Complete all manual test scenarios
 2. **User Feedback**: Test with real users in production
 3. **Monitoring**: Track memory creation frequency and accuracy
@@ -304,24 +316,28 @@ EOF
 ### Future Enhancements (Post-Phase 1.5)
 
 #### Memory Management
+
 - **Memory Updates**: Allow LLM to update existing memories
 - **Memory Deletion**: Remove incorrect memories
 - **Duplicate Detection**: Prevent redundant memory creation
 - **Memory Confidence**: Track verification over time
 
 #### Smart Context Management
+
 - **Token Budget**: Limit total memory tokens in prompt
 - **Importance Filtering**: Only include top N memories
 - **Recency Weighting**: Slightly prioritize recent memories
 - **Category Limits**: Max memories per category
 
 #### Advanced Extraction
+
 - **Implicit Detection**: Infer preferences from behavior
 - **Confidence Scores**: "User might prefer..." vs "definitely has..."
 - **Multi-turn Extraction**: Build memory over conversation
 - **Clarification Prompts**: Ask to confirm before saving
 
 #### Memory Analytics
+
 - **Usage Tracking**: Which memories referenced most
 - **Accuracy Monitoring**: User corrections → wrong memories
 - **Coverage Metrics**: % of user info captured
@@ -332,15 +348,18 @@ EOF
 ## Architecture Decisions
 
 ### Why Load ALL Memories?
+
 **Decision**: Load all memories every time, filter by importance in prompt
 
 **Rationale**:
+
 - Simple implementation
 - User memory files typically small (<100KB)
 - Allows category-specific logic (dietary always shown)
 - Easier to debug than selective loading
 
 **Trade-offs**:
+
 - Higher latency as memory count grows
 - Higher token usage for large memory sets
 - No semantic retrieval for relevant memories
@@ -348,15 +367,18 @@ EOF
 **Future**: Consider semantic search for users with 50+ memories
 
 ### Why No Verification Step?
+
 **Decision**: Save memories immediately without user confirmation
 
 **Rationale**:
+
 - Reduces conversation friction
 - Users can correct via observability UI later
 - LLM instructions emphasize accuracy
 - `verified: false` flag allows future verification
 
 **Trade-offs**:
+
 - Risk of saving incorrect information
 - No user control over what's saved
 - Potential privacy concerns
@@ -364,15 +386,18 @@ EOF
 **Mitigation**: Clear in tool instructions "when NOT to use"
 
 ### Why Importance-Based Ordering?
+
 **Decision**: Sort memories by importance within categories
 
 **Rationale**:
+
 - Critical info (dietary) always shown first
 - Token budget can truncate low-importance items
 - Matches human cognitive prioritization
 - Importance is stable (doesn't change daily)
 
 **Trade-offs**:
+
 - Recency not considered
 - Manual importance assignment required
 - No dynamic relevance scoring
@@ -384,17 +409,20 @@ EOF
 ## Lessons Learned
 
 ### What Went Well
+
 1. **Memory Accessor Reuse**: Existing `MemoryAccessor` worked perfectly
 2. **Character System Extensibility**: Easy to add memory context to prompts
 3. **Tool System Integration**: MemoryTool fit naturally into existing pattern
 4. **Comprehensive Examples**: Tool instructions with examples are very clear
 
 ### Challenges Overcome
+
 1. **Prompt Token Management**: Decided to limit facts (5) and events (3)
 2. **Category Naming**: Used underscores (`dietary_restriction`) for consistency
 3. **Importance Guidelines**: Created detailed 10-level scale with examples
 
 ### What Would Be Done Differently
+
 1. **Memory API Endpoints**: Should have added CREATE/UPDATE/DELETE to observability API first
 2. **Automated E2E Tests**: WebSocket testing would verify full flow
 3. **Memory Migration Script**: Should have tool to convert existing data to memories
@@ -404,6 +432,7 @@ EOF
 ## Dependencies Met
 
 ### Required Files/Systems ✅
+
 - ✅ Memory data model ([user_state.py](../../../backend/src/models/user_state.py))
 - ✅ Memory persistence ([memory_access.py](../../../backend/src/observability/memory_access.py))
 - ✅ Tool system ([tool_system.py](../../../backend/src/core/tool_system.py))
@@ -412,6 +441,7 @@ EOF
 - ✅ User selection in chat UI (from Phase 1.5)
 
 ### External Dependencies ✅
+
 - ✅ OpenAI API (function calling)
 - ✅ Existing conversation flow
 - ✅ File system access for user data
@@ -421,16 +451,19 @@ EOF
 ## Risk Assessment Update
 
 ### Mitigated Risks ✅
+
 - **False Positives**: Detailed "when NOT to use" guidance added
 - **Missed Critical Info**: MAMA_BEAR integration ensures dietary restrictions saved
 - **Token Overflow**: Implemented top-N limits for facts and events
 
 ### Remaining Risks ⚠️
+
 - **User Privacy**: Memories stored locally, but no deletion UI yet
 - **LLM Compliance**: Depends on LLM following tool instructions correctly
 - **Memory Accuracy**: No user confirmation before saving
 
 ### Monitoring Plan
+
 1. Log all `save_memory` tool calls
 2. Track memory creation frequency per user
 3. Monitor system prompt token counts
@@ -441,11 +474,13 @@ EOF
 ## Documentation
 
 ### Updated Files
+
 - ✅ This completion report
 - ✅ [MILESTONE_6_MEMORY_EXTRACTION.md](MILESTONE_6_MEMORY_EXTRACTION.md) (original plan)
 - ✅ Test script: [test_milestone6_memory_extraction.sh](../../../tests/scripts/test_milestone6_memory_extraction.sh)
 
 ### Code Comments
+
 - ✅ All new code includes docstrings
 - ✅ Tool parameters documented in descriptions
 - ✅ Character instructions include explanations
@@ -458,6 +493,7 @@ EOF
 **Actual**: ~8 hours
 
 ### Breakdown
+
 - Milestone 1 (Memory Retrieval): 2.5 hours
   - Code changes: 1 hour
   - Testing: 1 hour
@@ -480,6 +516,7 @@ EOF
 ✅ **Milestone 6: Memory Extraction & Retrieval System is COMPLETE**
 
 All core functionality implemented and tested:
+
 - ✅ Memory retrieval loads user context into prompts
 - ✅ Memory categories displayed with proper emphasis
 - ✅ `save_memory` tool created and registered

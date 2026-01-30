@@ -53,6 +53,7 @@
 ### What Gets Built
 
 #### Backend
+
 - FastAPI app structure
 - Data access layer for reading JSON files
 - File locking implementation
@@ -60,6 +61,7 @@
 - Health check endpoint
 
 #### Frontend
+
 - React + TypeScript + Vite setup
 - API client configuration
 - Simple "Hello World" dashboard
@@ -67,6 +69,7 @@
 - Dark mode theme
 
 #### API Endpoints
+
 ```
 GET  /api/v1/health              # Server health check
 GET  /api/v1/users               # List all users
@@ -78,6 +81,7 @@ GET  /api/v1/users/{user_id}     # Get user details
 #### Backend Testing (15 minutes)
 
 1. **Start the API server:**
+
    ```bash
    cd backend
    source venv/bin/activate
@@ -85,33 +89,41 @@ GET  /api/v1/users/{user_id}     # Get user details
    ```
 
 2. **Verify health check:**
+
    ```bash
    curl http://localhost:8000/api/v1/health
    ```
+
    **Expected:** `{"status": "ok", "timestamp": "..."}`
 
 3. **List users:**
+
    ```bash
    curl -H "Authorization: Bearer dev_token_12345" \
         http://localhost:8000/api/v1/users
    ```
+
    **Expected:** JSON list including `user_justin`
 
 4. **Get your user details:**
+
    ```bash
    curl -H "Authorization: Bearer dev_token_12345" \
         http://localhost:8000/api/v1/users/user_justin
    ```
+
    **Expected:** Your full user profile with story progress, memories count
 
 #### Frontend Testing (10 minutes)
 
 1. **Start the frontend:**
+
    ```bash
    cd frontend
    npm run dev
    ```
-   **Expected:** Opens at http://localhost:5173
+
+   **Expected:** Opens at <http://localhost:5173>
 
 2. **View dashboard:**
    - Should see dark theme
@@ -151,6 +163,7 @@ GET  /api/v1/users/{user_id}     # Get user details
 ### What Gets Built
 
 #### Backend
+
 - Story state data accessor
 - Chapter and beat query endpoints
 - User progress endpoint
@@ -158,6 +171,7 @@ GET  /api/v1/users/{user_id}     # Get user details
 - Mermaid diagram generator
 
 #### Frontend
+
 - Story Beat Tool main view
 - Beat list with filters
 - Beat detail modal
@@ -165,6 +179,7 @@ GET  /api/v1/users/{user_id}     # Get user details
 - Trigger beat action
 
 #### API Endpoints
+
 ```
 GET  /api/v1/story/chapters                              # List chapters
 GET  /api/v1/story/chapters/{chapter_id}                 # Chapter details
@@ -180,7 +195,7 @@ GET  /api/v1/story/chapters/{chapter_id}/diagram         # Flow diagram
 #### Story Beat Viewing (10 minutes)
 
 1. **Open Story Beat Tool:**
-   - Navigate to http://localhost:5173/story-beats
+   - Navigate to <http://localhost:5173/story-beats>
    - Should see all chapters listed in sidebar
    - Chapter 1 should show as "in progress" with your current progress
 
@@ -268,12 +283,14 @@ GET  /api/v1/story/chapters/{chapter_id}/diagram         # Flow diagram
 ### What Gets Built
 
 #### Backend
+
 - Memory data accessor
 - Memory CRUD endpoints
 - Memory filtering and search
 - Context preview generator
 
 #### Frontend
+
 - Memory Tool main view
 - Memory list with filters
 - Create/edit memory modal
@@ -281,6 +298,7 @@ GET  /api/v1/story/chapters/{chapter_id}/diagram         # Flow diagram
 - Context preview panel
 
 #### API Endpoints
+
 ```
 GET    /api/v1/memory/users/{user_id}          # List memories
 POST   /api/v1/memory/users/{user_id}          # Create memory
@@ -295,7 +313,7 @@ GET    /api/v1/memory/users/{user_id}/context  # Context preview
 #### Memory Viewing (10 minutes)
 
 1. **Open Memory Tool:**
-   - Navigate to http://localhost:5173/memory
+   - Navigate to <http://localhost:5173/memory>
    - Should see all your memories listed
    - Should show 23 items (or current count)
 
@@ -413,12 +431,14 @@ GET    /api/v1/memory/users/{user_id}/context  # Context preview
 ### What Gets Built
 
 #### Backend
+
 - User creation/deletion endpoints
 - Active user state management
 - User state export/import
 - User data cleanup on deletion
 
 #### Frontend
+
 - User Testing Tool main view
 - User list with status
 - Create user wizard
@@ -427,6 +447,7 @@ GET    /api/v1/memory/users/{user_id}/context  # Context preview
 - Delete confirmation with impact preview
 
 #### API Endpoints
+
 ```
 GET    /api/v1/users                   # List all users
 POST   /api/v1/users/test              # Create test user
@@ -446,7 +467,7 @@ POST   /api/v1/users/{user_id}/export  # Export user data
    - All tools should reflect your data
 
 2. **View user list:**
-   - Navigate to http://localhost:5173/users
+   - Navigate to <http://localhost:5173/users>
    - Should see `user_justin` marked as PRODUCTION
    - Should see any existing test users
 
@@ -584,12 +605,14 @@ POST   /api/v1/users/{user_id}/export  # Export user data
 ### What Gets Built
 
 #### Backend
+
 - Tool call event logger
 - Tool call query endpoints with filtering
 - Tool call replay functionality
 - Statistics aggregation
 
 #### Frontend
+
 - Tool Calls Tool main view
 - Timeline view with filters
 - Detail modal with full request/response
@@ -597,6 +620,7 @@ POST   /api/v1/users/{user_id}/export  # Export user data
 - Statistics dashboard
 
 #### API Endpoints
+
 ```
 GET  /api/v1/tool-calls                    # List tool calls (filtered)
 GET  /api/v1/tool-calls/{call_id}          # Call details
@@ -621,16 +645,18 @@ GET  /api/v1/tool-calls/stats              # Usage statistics
    - Say "Hey Chat, what's on my calendar today"
 
 3. **Check log file:**
+
    ```bash
    tail -f backend/data/tool_calls.jsonl
    ```
+
    - Should see new lines appended for each call
    - Each line is valid JSON with timestamp, tool name, request, response
 
 #### Tool Call Viewing (15 minutes)
 
 1. **Open Tool Calls Tool:**
-   - Navigate to http://localhost:5173/tool-calls
+   - Navigate to <http://localhost:5173/tool-calls>
    - Should see timeline of recent calls
    - Most recent at top
 
@@ -670,19 +696,23 @@ GET  /api/v1/tool-calls/stats              # Usage statistics
    - Should see:
      - Full timestamp with milliseconds
      - Request JSON (pretty-printed):
+
        ```json
        {
          "duration_minutes": 5,
          "label": "test timer"
        }
        ```
+
      - Response JSON:
+
        ```json
        {
          "timer_id": "timer_123",
          "end_time": "..."
        }
        ```
+
      - Duration: e.g., 234ms
      - Character reasoning (if captured)
 
@@ -808,12 +838,14 @@ GET  /api/v1/tool-calls/stats              # Usage statistics
 ### What Gets Built
 
 #### Backend
+
 - Character data accessor
 - System prompt generator
 - Character state query for user
 - Token counting for prompts
 
 #### Frontend
+
 - Character Tool main view
 - Character selector
 - Configuration view
@@ -822,6 +854,7 @@ GET  /api/v1/tool-calls/stats              # Usage statistics
 - Character state for selected user
 
 #### API Endpoints
+
 ```
 GET /api/v1/characters                           # List characters
 GET /api/v1/characters/{character_id}            # Character details
@@ -834,7 +867,7 @@ GET /api/v1/characters/{character_id}/state      # State for user
 #### Character Viewing (10 minutes)
 
 1. **Open Character Tool:**
-   - Navigate to http://localhost:5173/characters
+   - Navigate to <http://localhost:5173/characters>
    - Should see character selector at top:
      - Delilah Mae ✅ Active
      - Hank ✅ Active
@@ -1008,6 +1041,7 @@ GET /api/v1/characters/{character_id}/state      # State for user
 ### What Gets Built
 
 #### UI/UX Improvements
+
 - Keyboard shortcuts (e.g., Ctrl+K for search)
 - Loading states for all async operations
 - Error states with helpful messages
@@ -1017,6 +1051,7 @@ GET /api/v1/characters/{character_id}/state      # State for user
 - Dark mode polish
 
 #### Integration Features
+
 - Dashboard home page with overview
 - Quick actions from home
 - Recent activity feed
@@ -1025,12 +1060,14 @@ GET /api/v1/characters/{character_id}/state      # State for user
 - Global search
 
 #### Performance
+
 - Data caching strategy
 - Pagination for large lists
 - Lazy loading
 - Optimized re-renders
 
 #### Documentation
+
 - User guide for each tool
 - API documentation (auto-generated)
 - Troubleshooting guide
@@ -1040,10 +1077,10 @@ GET /api/v1/characters/{character_id}/state      # State for user
 
 #### Full Workflow Testing (30 minutes)
 
-**Scenario: Debug Chapter 2 Progression**
+##### Scenario: Debug Chapter 2 Progression
 
 1. **Start at Dashboard:**
-   - Open http://localhost:5173
+   - Open <http://localhost:5173>
    - Dashboard shows overview:
      - Current user: Justin
      - Current chapter: Chapter 1
@@ -1200,7 +1237,7 @@ GET /api/v1/characters/{character_id}/state      # State for user
    - Verify screenshots/examples match UI
 
 2. **Review API documentation:**
-   - Open http://localhost:8000/docs
+   - Open <http://localhost:8000/docs>
    - Swagger UI should load
    - Test an endpoint (e.g., GET /users)
    - Verify response matches documentation
@@ -1240,6 +1277,7 @@ GET /api/v1/characters/{character_id}/state      # State for user
 **Every day during development:**
 
 1. **Start both services:**
+
    ```bash
    # Terminal 1 - Backend
    cd backend && source venv/bin/activate && python -m uvicorn observability.api:app --reload
@@ -1371,18 +1409,21 @@ Phase considered complete when:
 ### Contingency Plans
 
 **If milestone takes too long (>5 days):**
+
 1. Cut non-essential features
 2. Move to "Future Enhancements" list
 3. Ship minimal viable version
 4. Iterate in next milestone
 
 **If blocking bug found:**
+
 1. Document bug clearly
 2. Determine if it blocks milestone
 3. If blocking: fix immediately
 4. If not blocking: add to backlog
 
 **If integration issues:**
+
 1. Test tools in isolation first
 2. Verify API contracts
 3. Check data format compatibility

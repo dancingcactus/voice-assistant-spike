@@ -11,12 +11,14 @@
 This guide provides step-by-step manual testing procedures for Phase X. Use this to validate functionality after E2E tests pass and before marking milestones complete.
 
 **Purpose:**
+
 - Validate user-facing functionality works as expected
 - Catch edge cases that automated tests might miss
 - Ensure UX meets quality standards
 - Document expected vs actual behavior
 
 **Who Uses This:**
+
 - Developers completing milestones
 - AI assistants validating implementations
 - QA testers (if applicable)
@@ -31,24 +33,29 @@ This guide provides step-by-step manual testing procedures for Phase X. Use this
 Before starting any tests, ensure these services are running:
 
 **Backend API:**
+
 ```bash
 cd backend
 source venv/bin/activate
 python -m uvicorn src.observability.api:app --reload --port 8000
 ```
+
 - Should see: "Application startup complete"
 - Health check: `curl http://localhost:8000/api/v1/health`
 - Expected: `{"status": "ok"}`
 
 **Frontend:**
+
 ```bash
 cd frontend
 npm run dev
 ```
-- Should see: "Local: http://localhost:5173"
+
+- Should see: "Local: <http://localhost:5173>"
 - Open in browser: No console errors
 
 **[Additional Service]:** (if applicable)
+
 ```bash
 [command to start]
 ```
@@ -58,10 +65,9 @@ npm run dev
 ### Test Data
 
 **Required Data:**
-- [Data file 1]: `[path/to/data]`
-- [Data file 2]: `[path/to/data]`
 
 **Setup Commands:**
+
 ```bash
 # Create test data (if needed)
 cd backend
@@ -72,6 +78,7 @@ cp data/samples/test_user.json data/users/
 ```
 
 **Verify Data:**
+
 ```bash
 # Check data exists
 ls -la data/users/
@@ -83,6 +90,7 @@ ls -la data/users/
 ### Environment Configuration
 
 **Environment Variables:**
+
 ```bash
 # Backend .env
 ENV=development
@@ -94,6 +102,7 @@ VITE_API_BASE_URL=http://localhost:8000/api/v1
 ```
 
 **Browser:**
+
 - Chrome or Firefox (latest version)
 - No ad blockers that might interfere
 - JavaScript enabled
@@ -108,47 +117,58 @@ VITE_API_BASE_URL=http://localhost:8000/api/v1
 **Objective:** Verify [specific user capability]
 
 **Prerequisites:**
+
 - [Any specific setup needed]
 - [Data or state required]
 
 **Steps:**
 
 1. **[Action 1]**
+
    ```
    [Detailed instruction - e.g., "Navigate to http://localhost:5173/dashboard"]
    ```
+
    - **Expected:** [What you should see - e.g., "Dashboard loads, shows header with user name"]
    - **Actual:** [Fill in during testing]
    - **Screenshot:** [Optional - where to save]
 
 2. **[Action 2]**
+
    ```
    [Detailed instruction - e.g., "Click 'Create Agent' button"]
    ```
+
    - **Expected:** [What should happen - e.g., "Modal opens with empty form"]
    - **Actual:** [Fill in during testing]
 
 3. **[Action 3]**
+
    ```
    [Detailed instruction]
    ```
+
    - **Expected:** [Expected outcome]
    - **Actual:** [Fill in during testing]
 
 4. **[Action 4]**
+
    ```
    [Detailed instruction]
    ```
+
    - **Expected:** [Expected outcome]
    - **Actual:** [Fill in during testing]
 
 **Final Verification:**
+
 - ✅ [Check 1 - e.g., "Agent appears in list"]
 - ✅ [Check 2 - e.g., "Success message displayed"]
 - ✅ [Check 3 - e.g., "No console errors"]
 - ✅ [Check 4 - e.g., "Backend logs show successful creation"]
 
 **Backend Verification:**
+
 ```bash
 # Check backend logs
 tail -f backend/logs/app.log | grep agent_create
@@ -169,25 +189,31 @@ cat data/agents/agent_[id].json
 **Objective:** Verify system handles errors gracefully
 
 **Prerequisites:**
+
 - [Setup that will cause error]
 
 **Steps:**
 
 1. **[Action that triggers error]**
+
    ```
    [Detailed instruction]
    ```
+
    - **Expected:** [Error message or behavior]
    - **Actual:** [Fill in during testing]
 
 2. **[Verify error recovery]**
+
    ```
    [Instruction to fix error condition]
    ```
+
    - **Expected:** [System recovers, allows retry]
    - **Actual:** [Fill in during testing]
 
 **Error Verification:**
+
 - ✅ Error message is user-friendly
 - ✅ Error message explains what went wrong
 - ✅ Error message suggests how to fix it
@@ -205,21 +231,25 @@ cat data/agents/agent_[id].json
 **Objective:** Test boundary conditions or unusual inputs
 
 **Prerequisites:**
+
 - [Special setup for edge case]
 
 **Edge Case Scenarios:**
 
 **Scenario A: [Description - e.g., "Empty input"]**
+
 1. [Action with empty/null/zero input]
    - **Expected:** [Validation error or default behavior]
    - **Actual:** [Fill in during testing]
 
 **Scenario B: [Description - e.g., "Maximum values"]**
+
 1. [Action with very large input]
    - **Expected:** [Handles gracefully or shows limit]
    - **Actual:** [Fill in during testing]
 
 **Scenario C: [Description - e.g., "Concurrent access"]**
+
 1. [Action in multiple tabs simultaneously]
    - **Expected:** [Proper concurrency handling]
    - **Actual:** [Fill in during testing]
@@ -235,6 +265,7 @@ cat data/agents/agent_[id].json
 **Objective:** Verify features work together correctly
 
 **Prerequisites:**
+
 - [Both features set up]
 
 **Steps:**
@@ -262,9 +293,11 @@ cat data/agents/agent_[id].json
 [Same structure as Milestone 1]
 
 ### Test 1: [Feature Name]
+
 [Full test structure]
 
 ### Test 2: [Feature Name]
+
 [Full test structure]
 
 ---
@@ -282,6 +315,7 @@ cat data/agents/agent_[id].json
 **Objective:** Verify milestones work together
 
 **Prerequisites:**
+
 - All milestones 1-3 complete
 
 **Workflow:**
@@ -292,11 +326,13 @@ cat data/agents/agent_[id].json
 4. **[Verify complete end-to-end flow]**
 
 **Expected Flow:**
+
 ```
 User action → Milestone 1 → Milestone 2 → Milestone 3 → Final result
 ```
 
 **Final Verification:**
+
 - ✅ All features work together seamlessly
 - ✅ No data loss between features
 - ✅ Performance acceptable for full workflow
@@ -348,6 +384,7 @@ User action → Milestone 1 → Milestone 2 → Milestone 3 → Final result
 3. **[Calculate average and p90]**
 
 **Results:**
+
 - Run 1: [X]ms
 - Run 2: [X]ms
 - Run 3: [X]ms
@@ -360,6 +397,7 @@ User action → Milestone 1 → Milestone 2 → Milestone 3 → Final result
 - Run 10: [X]ms
 
 **Statistics:**
+
 - Average: [X]ms
 - P90: [X]ms
 - Target: [X]ms
@@ -374,12 +412,14 @@ User action → Milestone 1 → Milestone 2 → Milestone 3 → Final result
 **Objective:** Verify system handles expected load
 
 **Setup:**
+
 ```bash
 # Generate test load
 [command to create load]
 ```
 
 **Measurements:**
+
 - Requests per second: [X]
 - Average latency: [X]ms
 - Error rate: [X]%
@@ -411,6 +451,7 @@ User action → Milestone 1 → Milestone 2 → Milestone 3 → Final result
    - **Target:** [Y] seconds
 
 **UX Observations:**
+
 - ✅ Feature discoverable without documentation
 - ✅ Labels and buttons self-explanatory
 - ✅ Error messages helpful
@@ -418,6 +459,7 @@ User action → Milestone 1 → Milestone 2 → Milestone 3 → Final result
 - ❌ [Any issues found]
 
 **Suggested Improvements:**
+
 - [Suggestion 1]
 - [Suggestion 2]
 
@@ -428,16 +470,19 @@ User action → Milestone 1 → Milestone 2 → Milestone 3 → Final result
 If features use cutting-edge browser APIs, test across browsers:
 
 ### Chrome
+
 - Version: [X]
 - Status: ✅ Works | ❌ Issues
 - Notes: [Any browser-specific behavior]
 
 ### Firefox
+
 - Version: [X]
 - Status: ✅ Works | ❌ Issues
 - Notes: [Any browser-specific behavior]
 
 ### Safari
+
 - Version: [X]
 - Status: ✅ Works | ❌ Issues
 - Notes: [Any browser-specific behavior]
@@ -453,6 +498,7 @@ If features use cutting-edge browser APIs, test across browsers:
 **Cause:** [Why it happens]
 
 **Solution:**
+
 ```bash
 [Commands or actions to fix]
 ```
@@ -472,6 +518,7 @@ If features use cutting-edge browser APIs, test across browsers:
 **Symptom:** Backend or frontend fails to start
 
 **Debugging Steps:**
+
 ```bash
 # Check ports in use
 lsof -i :8000
@@ -492,12 +539,14 @@ tail -f frontend/.vite/log
 **Symptom:** Tests pass on CI but fail locally
 
 **Common Causes:**
+
 - Browser version mismatch
 - Port conflicts
 - Stale test data
 - Environment variables not set
 
 **Solutions:**
+
 ```bash
 # Update Playwright browsers
 npx playwright install
@@ -516,12 +565,14 @@ cp .env.example .env
 **After Testing:**
 
 1. **Remove Test Data:**
+
    ```bash
    cd backend
    python scripts/cleanup_test_data.py
    ```
 
 2. **Reset Database (if applicable):**
+
    ```bash
    [reset command]
    ```
@@ -548,6 +599,7 @@ When validating a milestone:
    - Mark status as Pass/Fail
    - Add notes for any deviations
 5. **Report Summary:**
+
    ```
    Milestone X Testing Results:
    - Test 1: ✅ Pass - All steps completed successfully
@@ -563,33 +615,40 @@ When validating a milestone:
 ## Test Coverage Summary
 
 ### Milestone 1
+
 - [ ] Test 1: [Name] - Happy path
 - [ ] Test 2: [Name] - Error handling
 - [ ] Test 3: [Name] - Edge cases
 - [ ] Test 4: [Name] - Integration
 
 ### Milestone 2
+
 - [ ] Test 1: [Name]
 - [ ] Test 2: [Name]
 - [ ] Test 3: [Name]
 
 ### Milestone 3
+
 - [ ] Test 1: [Name]
 - [ ] Test 2: [Name]
 
 ### Cross-Milestone
+
 - [ ] Integration Test 1
 - [ ] Integration Test 2
 
 ### Regression
+
 - [ ] Regression Test 1
 - [ ] Regression Test 2
 
 ### Performance
+
 - [ ] Performance Test 1
 - [ ] Performance Test 2
 
 ### Usability
+
 - [ ] Usability Test 1
 
 **Total Tests:** [X]
@@ -602,24 +661,28 @@ When validating a milestone:
 ## Sign-Off
 
 ### Milestone 1: [Name]
+
 - **Tested By:** [Name or AI]
 - **Date:** YYYY-MM-DD
 - **Status:** ✅ Approved | ❌ Needs Fixes
 - **Notes:** [Summary]
 
 ### Milestone 2: [Name]
+
 - **Tested By:** [Name or AI]
 - **Date:** YYYY-MM-DD
 - **Status:** ✅ Approved | ❌ Needs Fixes
 - **Notes:** [Summary]
 
 ### Milestone 3: [Name]
+
 - **Tested By:** [Name or AI]
 - **Date:** YYYY-MM-DD
 - **Status:** ✅ Approved | ❌ Needs Fixes
 - **Notes:** [Summary]
 
 ### Phase X Overall
+
 - **Tested By:** [Name]
 - **Date:** YYYY-MM-DD
 - **Status:** ✅ Ready for Release | ❌ Needs Work
@@ -652,6 +715,7 @@ curl -X POST http://localhost:8000/api/v1/agents \
 ### Screenshots Location
 
 All test screenshots should be saved to:
+
 ```
 docs/technical/phaseX/screenshots/
 ├── milestone1_test1_step1.png
@@ -664,10 +728,12 @@ docs/technical/phaseX/screenshots/
 ## Changelog
 
 ### Version 1.0 - YYYY-MM-DD
+
 - Initial testing guide created
 - All milestones documented
 
 ### Version 1.1 - YYYY-MM-DD (if updated during testing)
+
 - [Changes based on testing experience]
 - [New edge cases added]
 

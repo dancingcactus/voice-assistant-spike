@@ -100,6 +100,7 @@ interface ModelName {
 ### Completion Checklist
 
 **Code:**
+
 - [ ] All backend components implemented and tested
 - [ ] All frontend components implemented and styled
 - [ ] API endpoints created and documented
@@ -108,6 +109,7 @@ interface ModelName {
 - [ ] No linting warnings
 
 **Testing:**
+
 - [ ] E2E Playwright tests written for all user-facing features
   - Location: `tests/e2e/phaseX/milestone1_[name].spec.ts`
 - [ ] All E2E tests passing
@@ -117,18 +119,21 @@ interface ModelName {
 - [ ] Error handling verified
 
 **Integration:**
+
 - [ ] Integrates with existing Phase [X] features
 - [ ] No regressions in previous functionality
 - [ ] All dependencies satisfied
 - [ ] Configuration properly set up
 
 **Documentation:**
+
 - [ ] Code includes docstrings/comments
 - [ ] API endpoints documented in ARCHITECTURE.md
 - [ ] Manual testing steps in TESTING_GUIDE.md
 - [ ] Blockers/discoveries documented below
 
 **Git:**
+
 - [ ] Changes committed to phase branch
 - [ ] Commit message follows format
 - [ ] One commit per milestone
@@ -151,16 +156,19 @@ User-facing outcomes that must be achieved:
 [Document any issues encountered during implementation]
 
 **Blockers:**
+
 - [Date]: [Description of blocker]
   - **Impact:** [How it affects milestone]
   - **Resolution:** [How it was or will be resolved]
 
 **Discoveries:**
+
 - [Date]: [Unexpected finding or learning]
   - **Impact:** [How it affects design or future work]
   - **Action:** [What was done about it]
 
 **Example:**
+
 ```
 Blockers:
 - 2026-01-29: Agent bidding occasionally exceeds 100ms target
@@ -180,11 +188,13 @@ Discoveries:
 **Test File:** `tests/e2e/phaseX/milestone1_[name].spec.ts`
 
 **Test Coverage:**
+
 - ✅ [Test 1 - e.g., "Agent registration flow"]
 - ✅ [Test 2 - e.g., "Agent listing with filters"]
 - ✅ [Test 3 - e.g., "Agent deletion with confirmation"]
 
 **Results:**
+
 - [X] tests passing
 - [0] tests failing
 - [Status: All Green / Needs Fix]
@@ -196,15 +206,18 @@ Discoveries:
 ### Files Created/Modified
 
 **Created:**
+
 - `[path/to/new/file.py]` ([X] lines) - [Purpose]
 - `[path/to/new/Component.tsx]` ([X] lines) - [Purpose]
 - `tests/e2e/phaseX/milestone1_test.spec.ts` ([X] lines) - [Purpose]
 
 **Modified:**
+
 - `[path/to/existing/file.py]` (+[X] lines) - [Changes made]
 - `[path/to/existing/Component.tsx]` (+[X] lines) - [Changes made]
 
 **Dependencies Added:**
+
 - `[package-name]` ([version]) - [Why needed]
 
 ---
@@ -238,6 +251,7 @@ Discoveries:
 **Location:** `tests/e2e/phaseX/`
 
 **Test Files:**
+
 ```
 tests/e2e/phaseX/
 ├── milestone1_[name].spec.ts          # Tests for Milestone 1
@@ -247,6 +261,7 @@ tests/e2e/phaseX/
 ```
 
 **Running Tests:**
+
 ```bash
 # Run all phase X tests
 npx playwright test tests/e2e/phaseX
@@ -259,6 +274,7 @@ npx playwright test --ui
 ```
 
 **Test Requirements:**
+
 - Every user-facing feature must have E2E test coverage
 - Tests must verify both UI and backend integration
 - Tests must include error scenarios
@@ -271,6 +287,7 @@ npx playwright test --ui
 **Documentation:** See [TESTING_GUIDE.md](TESTING_GUIDE.md)
 
 **Process:**
+
 1. Complete automated E2E tests first
 2. Follow manual test procedures in TESTING_GUIDE.md
 3. AI validates by executing manual tests
@@ -278,6 +295,7 @@ npx playwright test --ui
 5. Flag any issues or discrepancies
 
 **AI Validation:**
+
 - AI reads TESTING_GUIDE.md instructions
 - AI executes each manual test step
 - AI compares actual vs expected results
@@ -289,11 +307,13 @@ npx playwright test --ui
 ### Integration Testing
 
 **Cross-Feature Tests:**
+
 - [ ] Milestone 1 + Milestone 2 integration
 - [ ] Milestone 2 + Milestone 3 integration
 - [ ] All milestones working together
 
 **Regression Tests:**
+
 - [ ] Previous phase features still working
 - [ ] No performance degradation
 - [ ] No UI/UX regressions
@@ -345,11 +365,13 @@ npx playwright test --ui
 ### Known Risks
 
 **Risk 1:** [Description from ARCHITECTURE.md]
+
 - **Mitigation:** [Strategy]
 - **Status:** [Active monitoring | Mitigated | Occurred]
 - **Owner:** [Who tracks this]
 
 **Risk 2:** [Description]
+
 - [Same structure]
 
 ### Issues Encountered
@@ -357,6 +379,7 @@ npx playwright test --ui
 [Track issues found during implementation]
 
 **Issue 1:** [Date] - [Description]
+
 - **Severity:** Critical | High | Medium | Low
 - **Impact:** [What it affects]
 - **Status:** Open | In Progress | Resolved
@@ -378,12 +401,14 @@ npx playwright test --ui
 ### Weekly Progress Updates
 
 **Week 1 (YYYY-MM-DD to YYYY-MM-DD):**
+
 - Completed: [List accomplishments]
 - In Progress: [Current work]
 - Blockers: [Any issues]
 - Next Week: [Planned work]
 
 **Week 2 (YYYY-MM-DD to YYYY-MM-DD):**
+
 - [Same structure]
 
 ---
@@ -519,12 +544,14 @@ npm run dev
 ### Code Style Guide
 
 **Python:**
+
 - Follow PEP 8
 - Use type hints
 - Docstrings for all public functions
 - Maximum line length: 100 characters
 
 **TypeScript:**
+
 - Use ESLint configuration
 - Prefer interfaces over types
 - Use functional components
@@ -557,11 +584,13 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 ## Changelog
 
 ### Version 1.0 - YYYY-MM-DD
+
 - Initial implementation plan created
 - Milestones defined
 - Timeline estimated
 
 ### Version 1.1 - YYYY-MM-DD (if applicable during development)
+
 - [Milestone X completed]
 - [Updated estimates based on progress]
 - [Added new risk or blocker]

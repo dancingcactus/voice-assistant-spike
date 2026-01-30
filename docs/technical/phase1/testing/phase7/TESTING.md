@@ -10,6 +10,7 @@ python test_memory.py
 ```
 
 **Expected Output:** All 6 tests should pass
+
 - ✅ User preferences persistence
 - ✅ Story state persistence
 - ✅ Conversation history management
@@ -29,6 +30,7 @@ python interactive_memory_test.py
 ```
 
 **What to try:**
+
 1. Add a dietary restriction (e.g., "peanuts")
 2. Add a favorite food (e.g., "biscuits")
 3. Add some conversation messages
@@ -52,21 +54,25 @@ npm run dev
 
 **Then test persistence:**
 
-1. **Open** http://localhost:5173
+1. **Open** <http://localhost:5173>
 2. **Have a conversation** with Delilah:
    - "Hey Chat! I'm allergic to peanuts"
    - "Can you turn on the kitchen light?"
    - "Set a timer for 5 minutes"
 3. **Stop the backend** (Ctrl+C in Terminal 1)
 4. **Check the data was saved:**
+
    ```bash
    cat data/users/default_user.json | python -m json.tool
    ```
+
 5. **Restart the backend:**
+
    ```bash
    cd backend
    python src/main.py
    ```
+
 6. **Refresh the frontend** and ask:
    - "What are my dietary restrictions?" - Should remember peanuts!
    - "What devices have I controlled?" - Should remember kitchen light
@@ -76,23 +82,27 @@ npm run dev
 ## What Gets Persisted?
 
 ### User Preferences
+
 - Dietary restrictions (allergies, vegetarian, etc.)
 - Cooking skill level
 - Favorite/disliked foods
 - Custom preferences
 
 ### Story Progress
+
 - Current chapter
 - Beats delivered (which story beats user has seen)
 - Interaction count (for chapter progression)
 - Chapter start times
 
 ### Conversation History
+
 - **Last 30 minutes in full detail**
 - Older messages automatically pruned
 - Includes both user messages and assistant responses
 
 ### Device States
+
 - Last known state of each device
 - Brightness levels for lights
 - Temperature for thermostats
@@ -296,16 +306,20 @@ ls -la data/users/flush_test.json
 ## Common Issues & Solutions
 
 ### Issue: "No such file or directory: data/users"
+
 **Solution:** The directories are auto-created on first use. Just run the test again.
 
 ### Issue: Old data interfering with tests
+
 **Solution:** Clear test data:
+
 ```bash
 rm data/users/test_*.json
 rm data/users/interactive_test_user.json
 ```
 
 ### Issue: Changes not persisting
+
 **Solution:** Make sure to call `save_user_state(user_id, force=True)` or wait 60 seconds for auto-flush.
 
 ---
@@ -365,6 +379,7 @@ cat data/users/integration_test.json | python -m json.tool
 ## Next Steps
 
 Once Phase 7 testing is complete:
+
 - **Phase 8**: Testing/Automation API (programmatic control for test scenarios)
 - **Phase 9**: Multi-character panel discussions
 - **Phase 10**: Advanced context management and summarization

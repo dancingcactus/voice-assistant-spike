@@ -31,6 +31,7 @@ Authorization: Bearer dev_token_12345
 ```
 
 **Token Configuration:**
+
 - Set via environment variable: `API_AUTH_TOKEN=dev_token_12345`
 - Same token for all developers in development mode
 - Production mode will use different authentication mechanism
@@ -62,6 +63,7 @@ Authorization: Bearer dev_token_12345
 ### Response Format
 
 **Success Response:**
+
 ```json
 {
   "data": { ... },
@@ -71,6 +73,7 @@ Authorization: Bearer dev_token_12345
 ```
 
 **Error Response:**
+
 ```json
 {
   "error": {
@@ -88,12 +91,14 @@ Authorization: Bearer dev_token_12345
 For endpoints returning lists:
 
 **Query Parameters:**
+
 - `page`: Page number (1-indexed, default: 1)
 - `page_size`: Items per page (default: 50, max: 100)
 - `sort_by`: Field to sort by
 - `sort_order`: `asc` or `desc` (default: `desc`)
 
 **Response Structure:**
+
 ```json
 {
   "data": [...],
@@ -113,12 +118,14 @@ For endpoints returning lists:
 ### Filtering
 
 Common filter parameters:
+
 - `filter[field]`: Filter by exact value
 - `search`: Free-text search across relevant fields
 - `created_after`: ISO 8601 timestamp
 - `created_before`: ISO 8601 timestamp
 
 Example:
+
 ```http
 GET /api/v1/memory/users/user_123?filter[category]=dietary_restriction&search=gluten
 ```
@@ -134,6 +141,7 @@ GET /api/v1/story/chapters
 ```
 
 **Response:**
+
 ```json
 {
   "data": {
@@ -178,9 +186,11 @@ GET /api/v1/story/chapters/{chapter_id}
 ```
 
 **Path Parameters:**
+
 - `chapter_id` (string, required): Chapter identifier
 
 **Response:**
+
 ```json
 {
   "data": {
@@ -217,13 +227,16 @@ GET /api/v1/story/chapters/{chapter_id}/beats
 ```
 
 **Path Parameters:**
+
 - `chapter_id` (string, required): Chapter identifier
 
 **Query Parameters:**
+
 - `required_only` (boolean, optional): Filter to required beats only
 - `include_content` (boolean, optional): Include beat content variants (default: false)
 
 **Response:**
+
 ```json
 {
   "data": {
@@ -260,9 +273,11 @@ GET /api/v1/story/beats/{beat_id}
 ```
 
 **Path Parameters:**
+
 - `beat_id` (string, required): Beat identifier
 
 **Response:**
+
 ```json
 {
   "data": {
@@ -301,12 +316,15 @@ GET /api/v1/story/chapters/{chapter_id}/diagram
 ```
 
 **Path Parameters:**
+
 - `chapter_id` (string, required): Chapter identifier
 
 **Query Parameters:**
+
 - `format` (string, optional): `mermaid` (default) or `json`
 
 **Response (Mermaid format):**
+
 ```json
 {
   "data": {
@@ -319,6 +337,7 @@ GET /api/v1/story/chapters/{chapter_id}/diagram
 ```
 
 **Response (JSON format):**
+
 ```json
 {
   "data": {
@@ -351,9 +370,11 @@ GET /api/v1/story/users/{user_id}/progress
 ```
 
 **Path Parameters:**
+
 - `user_id` (string, required): User identifier
 
 **Response:**
+
 ```json
 {
   "data": {
@@ -397,9 +418,11 @@ PUT /api/v1/story/users/{user_id}/chapter
 ```
 
 **Path Parameters:**
+
 - `user_id` (string, required): User identifier
 
 **Request Body:**
+
 ```json
 {
   "chapter_id": "chapter_2",
@@ -408,10 +431,12 @@ PUT /api/v1/story/users/{user_id}/chapter
 ```
 
 **Fields:**
+
 - `chapter_id` (string, required): New chapter identifier
 - `force` (boolean, optional): Skip unlock criteria validation (default: false)
 
 **Response:**
+
 ```json
 {
   "data": {
@@ -426,6 +451,7 @@ PUT /api/v1/story/users/{user_id}/chapter
 ```
 
 **Error Response (Chapter Locked):**
+
 ```json
 {
   "error": {
@@ -451,10 +477,12 @@ POST /api/v1/story/users/{user_id}/beats/{beat_id}/trigger
 ```
 
 **Path Parameters:**
+
 - `user_id` (string, required): User identifier
 - `beat_id` (string, required): Beat identifier
 
 **Request Body:**
+
 ```json
 {
   "variant": "medium",
@@ -463,10 +491,12 @@ POST /api/v1/story/users/{user_id}/beats/{beat_id}/trigger
 ```
 
 **Fields:**
+
 - `variant` (string, optional): Which variant to deliver (short/medium/long)
 - `force` (boolean, optional): Skip delivery conditions validation (default: false)
 
 **Response:**
+
 ```json
 {
   "data": {
@@ -490,10 +520,12 @@ PUT /api/v1/story/users/{user_id}/beats/{beat_id}/status
 ```
 
 **Path Parameters:**
+
 - `user_id` (string, required): User identifier
 - `beat_id` (string, required): Beat identifier
 
 **Request Body:**
+
 ```json
 {
   "delivered": false
@@ -501,9 +533,11 @@ PUT /api/v1/story/users/{user_id}/beats/{beat_id}/status
 ```
 
 **Fields:**
+
 - `delivered` (boolean, required): Mark as delivered (true) or undelivered (false)
 
 **Response:**
+
 ```json
 {
   "data": {
@@ -527,9 +561,11 @@ GET /api/v1/characters
 ```
 
 **Query Parameters:**
+
 - `active_only` (boolean, optional): Filter to active characters only
 
 **Response:**
+
 ```json
 {
   "data": {
@@ -574,9 +610,11 @@ GET /api/v1/characters/{character_id}
 ```
 
 **Path Parameters:**
+
 - `character_id` (string, required): Character identifier
 
 **Response:**
+
 ```json
 {
   "data": {
@@ -646,14 +684,17 @@ GET /api/v1/characters/{character_id}/prompt
 ```
 
 **Path Parameters:**
+
 - `character_id` (string, required): Character identifier
 
 **Query Parameters:**
+
 - `user_id` (string, optional): Include user-specific context
 - `include_memories` (boolean, optional): Include user memories in context (default: false)
 - `include_story` (boolean, optional): Include story context (default: false)
 
 **Response:**
+
 ```json
 {
   "data": {
@@ -690,12 +731,15 @@ GET /api/v1/characters/{character_id}/state?user_id={user_id}
 ```
 
 **Path Parameters:**
+
 - `character_id` (string, required): Character identifier
 
 **Query Parameters:**
+
 - `user_id` (string, required): User identifier
 
 **Response:**
+
 ```json
 {
   "data": {
@@ -734,9 +778,11 @@ GET /api/v1/memory/users/{user_id}
 ```
 
 **Path Parameters:**
+
 - `user_id` (string, required): User identifier
 
 **Query Parameters:**
+
 - `category` (string, optional): Filter by category
 - `min_importance` (integer, optional): Filter by minimum importance (1-10)
 - `search` (string, optional): Search in memory content
@@ -746,6 +792,7 @@ GET /api/v1/memory/users/{user_id}
 - `page_size` (integer, optional): Items per page
 
 **Response:**
+
 ```json
 {
   "data": {
@@ -807,9 +854,11 @@ POST /api/v1/memory/users/{user_id}
 ```
 
 **Path Parameters:**
+
 - `user_id` (string, required): User identifier
 
 **Request Body:**
+
 ```json
 {
   "category": "dietary_restriction",
@@ -823,6 +872,7 @@ POST /api/v1/memory/users/{user_id}
 ```
 
 **Fields:**
+
 - `category` (string, required): Memory category (preference, fact, dietary_restriction, event, relationship)
 - `content` (string, required): Memory content
 - `importance` (integer, required): Importance level (1-10)
@@ -830,6 +880,7 @@ POST /api/v1/memory/users/{user_id}
 - `metadata` (object, optional): Additional metadata
 
 **Response:**
+
 ```json
 {
   "data": {
@@ -859,9 +910,11 @@ GET /api/v1/memory/{memory_id}
 ```
 
 **Path Parameters:**
+
 - `memory_id` (string, required): Memory identifier
 
 **Response:**
+
 ```json
 {
   "data": {
@@ -900,9 +953,11 @@ PUT /api/v1/memory/{memory_id}
 ```
 
 **Path Parameters:**
+
 - `memory_id` (string, required): Memory identifier
 
 **Request Body:**
+
 ```json
 {
   "content": "User has severe gluten intolerance (celiac disease)",
@@ -915,12 +970,14 @@ PUT /api/v1/memory/{memory_id}
 ```
 
 **Fields:**
+
 - `content` (string, optional): Updated content
 - `category` (string, optional): Updated category
 - `importance` (integer, optional): Updated importance
 - `metadata` (object, optional): Updated metadata
 
 **Response:**
+
 ```json
 {
   "data": {
@@ -953,9 +1010,11 @@ DELETE /api/v1/memory/{memory_id}
 ```
 
 **Path Parameters:**
+
 - `memory_id` (string, required): Memory identifier
 
 **Response:**
+
 ```json
 {
   "data": {
@@ -977,12 +1036,15 @@ GET /api/v1/memory/users/{user_id}/context
 ```
 
 **Path Parameters:**
+
 - `user_id` (string, required): User identifier
 
 **Query Parameters:**
+
 - `character_id` (string, optional): Filter context for specific character
 
 **Response:**
+
 ```json
 {
   "data": {
@@ -1020,9 +1082,11 @@ GET /api/v1/memory/users/{user_id}/stats
 ```
 
 **Path Parameters:**
+
 - `user_id` (string, required): User identifier
 
 **Response:**
+
 ```json
 {
   "data": {
@@ -1071,6 +1135,7 @@ GET /api/v1/tool-calls
 ```
 
 **Query Parameters:**
+
 - `user_id` (string, optional): Filter by user
 - `conversation_id` (string, optional): Filter by conversation
 - `tool_name` (string, optional): Filter by tool name
@@ -1086,6 +1151,7 @@ GET /api/v1/tool-calls
 - `page_size` (integer, optional): Items per page
 
 **Response:**
+
 ```json
 {
   "data": {
@@ -1134,9 +1200,11 @@ GET /api/v1/tool-calls/{call_id}
 ```
 
 **Path Parameters:**
+
 - `call_id` (string, required): Tool call event ID
 
 **Response:**
+
 ```json
 {
   "data": {
@@ -1181,9 +1249,11 @@ POST /api/v1/tool-calls/{call_id}/replay
 ```
 
 **Path Parameters:**
+
 - `call_id` (string, required): Tool call event ID to replay
 
 **Request Body:**
+
 ```json
 {
   "modify_request": {
@@ -1193,9 +1263,11 @@ POST /api/v1/tool-calls/{call_id}/replay
 ```
 
 **Fields:**
+
 - `modify_request` (object, optional): Override specific request parameters
 
 **Response:**
+
 ```json
 {
   "data": {
@@ -1225,11 +1297,13 @@ GET /api/v1/tool-calls/stats
 ```
 
 **Query Parameters:**
+
 - `user_id` (string, optional): Filter by user
 - `start_time` (string, optional): Start of time range (ISO 8601)
 - `end_time` (string, optional): End of time range (ISO 8601)
 
 **Response:**
+
 ```json
 {
   "data": {
@@ -1296,12 +1370,14 @@ GET /api/v1/users
 ```
 
 **Query Parameters:**
+
 - `test_only` (boolean, optional): Filter to test users only
 - `production_only` (boolean, optional): Filter to production users only
 - `sort_by` (string, optional): `created_at`, `last_interaction`, `name`
 - `sort_order` (string, optional): `asc` or `desc` (default: `desc`)
 
 **Response:**
+
 ```json
 {
   "data": {
@@ -1345,6 +1421,7 @@ POST /api/v1/users/test
 ```
 
 **Request Body:**
+
 ```json
 {
   "name": "TestUser_Riley_8273",
@@ -1364,6 +1441,7 @@ POST /api/v1/users/test
 ```
 
 **Fields:**
+
 - `name` (string, optional): User name (auto-generated if not provided)
 - `starting_chapter` (string, optional): Starting chapter (default: chapter_1)
 - `initial_memories` (array, optional): Initial memories to create
@@ -1371,6 +1449,7 @@ POST /api/v1/users/test
 - `tags` (array, optional): Tags for organization
 
 **Response:**
+
 ```json
 {
   "data": {
@@ -1396,9 +1475,11 @@ GET /api/v1/users/{user_id}
 ```
 
 **Path Parameters:**
+
 - `user_id` (string, required): User identifier
 
 **Response:**
+
 ```json
 {
   "data": {
@@ -1439,12 +1520,15 @@ DELETE /api/v1/users/{user_id}
 ```
 
 **Path Parameters:**
+
 - `user_id` (string, required): User identifier
 
 **Query Parameters:**
+
 - `confirm` (boolean, required): Must be true to confirm deletion
 
 **Response:**
+
 ```json
 {
   "data": {
@@ -1463,6 +1547,7 @@ DELETE /api/v1/users/{user_id}
 ```
 
 **Error Response (Production User):**
+
 ```json
 {
   "error": {
@@ -1487,9 +1572,11 @@ GET /api/v1/users/{user_id}/state
 ```
 
 **Path Parameters:**
+
 - `user_id` (string, required): User identifier
 
 **Response:**
+
 ```json
 {
   "data": {
@@ -1544,9 +1631,11 @@ POST /api/v1/users/{user_id}/export
 ```
 
 **Path Parameters:**
+
 - `user_id` (string, required): User identifier
 
 **Request Body:**
+
 ```json
 {
   "include_tool_calls": true,
@@ -1555,10 +1644,12 @@ POST /api/v1/users/{user_id}/export
 ```
 
 **Fields:**
+
 - `include_tool_calls` (boolean, optional): Include tool call history (default: false)
 - `include_conversation_history` (boolean, optional): Include full conversation history (default: false)
 
 **Response:**
+
 ```json
 {
   "data": {
@@ -1585,6 +1676,7 @@ POST /api/v1/users/import
 ```
 
 **Request Body:**
+
 ```json
 {
   "user_data": {
@@ -1597,10 +1689,12 @@ POST /api/v1/users/import
 ```
 
 **Fields:**
+
 - `user_data` (object, required): Exported user data
 - `overwrite_existing` (boolean, optional): Overwrite if user already exists (default: false)
 
 **Response:**
+
 ```json
 {
   "data": {
@@ -1626,6 +1720,7 @@ PUT /api/v1/users/active
 ```
 
 **Request Body:**
+
 ```json
 {
   "user_id": "user_test_1738"
@@ -1633,9 +1728,11 @@ PUT /api/v1/users/active
 ```
 
 **Fields:**
+
 - `user_id` (string, required): User ID to set as active
 
 **Response:**
+
 ```json
 {
   "data": {
@@ -1687,6 +1784,7 @@ PUT /api/v1/users/active
 ### Common Error Examples
 
 **404 Not Found:**
+
 ```json
 {
   "error": {
@@ -1703,6 +1801,7 @@ PUT /api/v1/users/active
 ```
 
 **422 Validation Error:**
+
 ```json
 {
   "error": {
@@ -1724,6 +1823,7 @@ PUT /api/v1/users/active
 ```
 
 **500 Internal Error:**
+
 ```json
 {
   "error": {
@@ -1759,6 +1859,7 @@ When rate limit is exceeded:
 **HTTP Status:** 429 Too Many Requests
 
 **Response:**
+
 ```json
 {
   "error": {
@@ -1776,6 +1877,7 @@ When rate limit is exceeded:
 ```
 
 **Headers:**
+
 ```http
 X-RateLimit-Limit: 1000
 X-RateLimit-Remaining: 0

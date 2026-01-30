@@ -7,6 +7,7 @@ This is a step-by-step guide for manually testing the complete system. Follow al
 ## Setup (2 minutes)
 
 ### Step 1: Start the Backend
+
 ```bash
 # Terminal 1 - Backend
 cd backend
@@ -14,12 +15,14 @@ python src/main.py
 ```
 
 **✅ Wait for this message:**
+
 ```
 ✅ Memory Manager periodic flush started
 INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
 ```
 
 ### Step 2: Start the Frontend
+
 ```bash
 # Terminal 2 - Frontend
 cd frontend
@@ -27,12 +30,14 @@ npm run dev
 ```
 
 **✅ Wait for this message:**
+
 ```
   ➜  Local:   http://localhost:5173/
 ```
 
 ### Step 3: Open the Browser
-- Open http://localhost:5173
+
+- Open <http://localhost:5173>
 - Open your browser's **Developer Console** (F12 or Cmd+Option+I)
 - Keep the Network tab open to see WebSocket messages
 
@@ -43,6 +48,7 @@ npm run dev
 ## Test Scenario 1: User Preferences (5 minutes)
 
 ### Goal
+
 Test that Delilah remembers your dietary restrictions and favorites across sessions.
 
 ### Steps
@@ -50,11 +56,13 @@ Test that Delilah remembers your dietary restrictions and favorites across sessi
 **[ ] 1.1 Tell Delilah about allergies**
 
 Type or speak:
+
 ```
 "Hey Chat! I'm allergic to peanuts and shellfish"
 ```
 
 **Expected:**
+
 - Delilah responds acknowledging your allergies
 - Should use MAMA BEAR voice mode (protective, nurturing)
 - Response should show concern for your safety
@@ -62,11 +70,13 @@ Type or speak:
 **[ ] 1.2 Tell Delilah your favorites**
 
 Type or speak:
+
 ```
 "My favorite foods are biscuits and sweet tea"
 ```
 
 **Expected:**
+
 - Delilah gets excited (PASSIONATE voice mode likely)
 - Mentions she's a Southern cook
 - Might suggest recipes
@@ -74,11 +84,13 @@ Type or speak:
 **[ ] 1.3 Check the data was saved**
 
 In Terminal 3:
+
 ```bash
 cat data/users/default_user.json | python -m json.tool | grep -A 10 preferences
 ```
 
 **Expected to see:**
+
 ```json
 "preferences": {
     "dietary_restrictions": [
@@ -101,20 +113,24 @@ cat data/users/default_user.json | python -m json.tool | grep -A 10 preferences
 **[ ] 1.5 Test memory recall**
 
 In the browser (may need to refresh), ask:
+
 ```
 "Hey Chat! What are my dietary restrictions?"
 ```
 
 **Expected:**
+
 - Delilah should remember "peanuts and shellfish" WITHOUT you telling her again
 - She should reference that you told her earlier
 
 Then ask:
+
 ```
 "What are my favorite foods?"
 ```
 
 **Expected:**
+
 - Should mention biscuits and sweet tea
 - Memory persisted across restart ✅
 
@@ -123,6 +139,7 @@ Then ask:
 ## Test Scenario 2: Device Control (5 minutes)
 
 ### Goal
+
 Test that device states persist when you restart the system.
 
 ### Steps
@@ -130,11 +147,13 @@ Test that device states persist when you restart the system.
 **[ ] 2.1 Turn on kitchen light**
 
 Type or speak:
+
 ```
 "Hey Chat! Turn on the kitchen light to 75% brightness"
 ```
 
 **Expected:**
+
 - Delilah confirms turning it on
 - Check the response metadata for tool calls
 
@@ -145,16 +164,19 @@ Type or speak:
 ```
 
 **Expected:**
+
 - Delilah confirms the thermostat change
 
 **[ ] 2.3 Check device states were saved**
 
 Terminal 3:
+
 ```bash
 cat data/users/default_user.json | python -m json.tool | grep -A 20 device_preferences
 ```
 
 **Expected to see:**
+
 ```json
 "device_preferences": {
     "devices": {
@@ -184,11 +206,13 @@ cat data/users/default_user.json | python -m json.tool | grep -A 20 device_prefe
 **[ ] 2.5 Query device states**
 
 Ask Delilah:
+
 ```
 "What's the status of my kitchen light?"
 ```
 
 **Expected:**
+
 - Should know it's on at 75% brightness
 - Didn't lose the state during restart ✅
 
@@ -197,6 +221,7 @@ Ask Delilah:
 ## Test Scenario 3: Conversation History (5 minutes)
 
 ### Goal
+
 Test that recent conversation context is maintained and used.
 
 ### Steps
@@ -217,6 +242,7 @@ You: "What temperature?"
 ```
 
 **Expected:**
+
 - Delilah should maintain context across turns
 - "them" should refer to biscuits
 - Shouldn't need to repeat "biscuits" every time
@@ -225,11 +251,13 @@ You: "What temperature?"
 **[ ] 3.2 Check conversation history**
 
 Terminal 3:
+
 ```bash
 cat data/users/default_user.json | python -m json.tool | grep -A 5 conversation_history | head -20
 ```
 
 **Expected:**
+
 - Should see messages array with recent conversation
 - Both user and assistant messages
 - Timestamps showing they're recent
@@ -237,11 +265,13 @@ cat data/users/default_user.json | python -m json.tool | grep -A 5 conversation_
 **[ ] 3.3 Continue conversation after pause**
 
 Wait 10 seconds, then:
+
 ```
 "What temperature did you say again?"
 ```
 
 **Expected:**
+
 - Delilah should remember she just told you the temperature
 - Uses context from earlier in the conversation ✅
 
@@ -250,6 +280,7 @@ Wait 10 seconds, then:
 ## Test Scenario 4: Story Progression (5 minutes)
 
 ### Goal
+
 Test that story beats are delivered and tracked.
 
 ### Steps
@@ -257,6 +288,7 @@ Test that story beats are delivered and tracked.
 **[ ] 4.1 Have several interactions**
 
 Have at least 5 different conversations:
+
 ```
 1. "Hey Chat! Set a timer for 5 minutes"
 2. "Turn on the living room light"
@@ -268,6 +300,7 @@ Have at least 5 different conversations:
 **[ ] 4.2 Check for story beats**
 
 Watch Delilah's responses. You might see:
+
 - References to wondering what she is
 - Mentions of confusion about her purpose
 - Character personality showing through
@@ -276,11 +309,13 @@ Watch Delilah's responses. You might see:
 **[ ] 4.3 Check story progress data**
 
 Terminal 3:
+
 ```bash
 cat data/users/default_user.json | python -m json.tool | grep -A 15 story_progress
 ```
 
 **Expected to see:**
+
 ```json
 "story_progress": {
     "current_chapter": 1,
@@ -306,6 +341,7 @@ cat data/users/default_user.json | python -m json.tool | grep -A 15 story_progre
 ## Test Scenario 5: Timer Management (3 minutes)
 
 ### Goal
+
 Test timer creation and tracking.
 
 ### Steps
@@ -317,11 +353,13 @@ Test timer creation and tracking.
 ```
 
 Then:
+
 ```
 "Set another timer for 10 minutes for the bread"
 ```
 
 **Expected:**
+
 - Both timers created
 - Delilah confirms each one
 - Check response metadata for timer IDs
@@ -333,6 +371,7 @@ Then:
 ```
 
 **Expected:**
+
 - Should list both timers
 - Show remaining time for each
 
@@ -341,6 +380,7 @@ Then:
 ## Test Scenario 6: Voice Modes (5 minutes)
 
 ### Goal
+
 Verify that Delilah's voice modes change based on context.
 
 ### Steps
@@ -352,6 +392,7 @@ Verify that Delilah's voice modes change based on context.
 ```
 
 **Expected in response:**
+
 - Enthusiastic, animated tone
 - Words like "Oh honey!" or "sugar"
 - Longer, flowing response
@@ -364,6 +405,7 @@ Verify that Delilah's voice modes change based on context.
 ```
 
 **Expected:**
+
 - PROTECTIVE tone (you're allergic to peanuts!)
 - Controlled intensity
 - Warning about your allergy
@@ -376,6 +418,7 @@ Verify that Delilah's voice modes change based on context.
 ```
 
 **Expected:**
+
 - Short, efficient response
 - Minimal personality
 - Just gets the job done
@@ -388,6 +431,7 @@ Verify that Delilah's voice modes change based on context.
 ```
 
 **Expected:**
+
 - Soft, nurturing tone
 - Fiercely protective
 - Detailed safety information
@@ -398,6 +442,7 @@ Verify that Delilah's voice modes change based on context.
 ## Test Scenario 7: System Resilience (5 minutes)
 
 ### Goal
+
 Test that the system handles restarts gracefully.
 
 ### Steps
@@ -413,8 +458,10 @@ Test that the system handles restarts gracefully.
 **[ ] 7.2 Force save and restart**
 
 Terminal 1:
+
 - Stop backend (Ctrl+C)
 - Check the data file was updated:
+
   ```bash
   ls -lh data/users/default_user.json
   # Note the timestamp
@@ -428,6 +475,7 @@ Terminal 1:
 **[ ] 7.4 Verify all state preserved**
 
 Ask questions to verify:
+
 ```
 "What are my dietary restrictions?"
 "What devices have I controlled today?"
@@ -435,6 +483,7 @@ Ask questions to verify:
 ```
 
 **Expected:**
+
 - All information preserved
 - No data loss
 - Conversation picks up naturally ✅
@@ -444,6 +493,7 @@ Ask questions to verify:
 ## Test Scenario 8: Conversation Window (10 minutes)
 
 ### Goal
+
 Test that old messages are pruned from the 30-minute window.
 
 ### Steps
@@ -451,6 +501,7 @@ Test that old messages are pruned from the 30-minute window.
 **[ ] 8.1 Simulate old messages**
 
 Terminal 3:
+
 ```bash
 cd backend
 python -c "
@@ -502,6 +553,7 @@ for msg in history[-5:]:
 ```
 
 **Expected:**
+
 - Old message (35 min) should be pruned
 - Recent messages still present
 - Only last 30 minutes kept ✅
@@ -511,6 +563,7 @@ for msg in history[-5:]:
 ## Test Scenario 9: Multiple Users (Optional, 5 minutes)
 
 ### Goal
+
 Test that different users have isolated state.
 
 ### Steps
@@ -518,12 +571,14 @@ Test that different users have isolated state.
 **[ ] 9.1 Create data for user 1**
 
 In the current session (default_user):
+
 - Set some preferences
 - Control some devices
 
 **[ ] 9.2 Switch to a different user**
 
 In Terminal 3:
+
 ```bash
 python -c "
 import sys
@@ -552,6 +607,7 @@ cat data/users/user_2.json | python -m json.tool | grep -A 3 dietary_restriction
 ```
 
 **Expected:**
+
 - Two separate files
 - Different preferences
 - No data leakage between users ✅
@@ -580,22 +636,29 @@ After completing all scenarios, verify:
 ## Troubleshooting
 
 ### Issue: "WebSocket connection failed"
+
 **Fix:** Make sure backend is running on port 8000
 
 ### Issue: "Delilah doesn't remember anything"
+
 **Fix:**
+
 1. Check if data file exists: `ls data/users/`
 2. Check file contents: `cat data/users/default_user.json`
 3. Make sure backend didn't crash (check Terminal 1)
 
 ### Issue: "Voice modes don't seem different"
+
 **Fix:** This is subtle in text. Check the response structure and word choice:
+
 - PASSIONATE: Longer, enthusiastic responses
 - DEADPAN: Very short, minimal responses
 - MAMA BEAR: Protective, nurturing language
 
 ### Issue: "Data not saving"
+
 **Fix:**
+
 1. Wait 60 seconds for auto-flush, OR
 2. Restart backend (forces save on shutdown)
 

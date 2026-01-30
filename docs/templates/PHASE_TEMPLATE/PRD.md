@@ -32,6 +32,7 @@ Example:
 3. **[Tertiary Goal]** - [Description]
 
 Example:
+
 1. **Natural Handoffs** - Users don't notice when characters coordinate
 2. **Fast Responses** - Multi-character queries respond in under 3 seconds
 3. **Character Awareness** - Each character knows when to defer to others
@@ -47,6 +48,7 @@ Example:
 **Duration Estimate:** [X weeks/milestones]
 
 **Dependencies:**
+
 - **Requires:** [Phase Y must be complete]
 - **Enables:** [Phase Z can begin after this]
 
@@ -63,15 +65,18 @@ Example:
 **Description:** [Detailed explanation of the feature]
 
 **User Stories:**
+
 - As a [user type], I want to [action] so that [benefit]
 - As a [user type], I want to [action] so that [benefit]
 
 **Acceptance Criteria:**
+
 - ✅ [Criterion 1 - must be testable]
 - ✅ [Criterion 2 - must be testable]
 - ✅ [Criterion 3 - must be testable]
 
 **Examples:**
+
 ```
 User: "Hey Chat, set a timer and find me a recipe"
 Expected: Delilah sets timer, then provides recipe
@@ -95,13 +100,16 @@ Actual: [To be filled during testing]
 ### NFR1: Performance
 
 **Requirements:**
+
 - [Specific performance target - e.g., "Agent bidding completes in < 100ms"]
 - [Specific performance target]
 
 **Measurement:**
+
 - [How we'll measure this]
 
 **Rationale:**
+
 - [Why this performance level matters]
 
 ---
@@ -109,10 +117,12 @@ Actual: [To be filled during testing]
 ### NFR2: Usability
 
 **Requirements:**
+
 - [Specific usability requirement]
 - [Specific usability requirement]
 
 **Validation:**
+
 - [How we'll validate this]
 
 ---
@@ -120,10 +130,12 @@ Actual: [To be filled during testing]
 ### NFR3: Reliability
 
 **Requirements:**
+
 - [Specific reliability requirement - e.g., "System handles agent failures gracefully"]
 - [Specific reliability requirement]
 
 **Validation:**
+
 - [How we'll validate this]
 
 ---
@@ -131,6 +143,7 @@ Actual: [To be filled during testing]
 ### NFR4: Maintainability
 
 **Requirements:**
+
 - [Code quality standards]
 - [Documentation requirements]
 
@@ -153,6 +166,7 @@ Actual: [To be filled during testing]
    - **Target:** [Goal state]
 
 Example:
+
 1. **Response Latency**: < 2 seconds for multi-character queries
    - **Measurement:** Tool call inspection dashboard
    - **Baseline:** N/A (new feature)
@@ -174,6 +188,7 @@ Example:
 **Context:** [When and why user would do this]
 
 **Steps:**
+
 1. User: [Action]
 2. System: [Response]
 3. User: [Action]
@@ -182,6 +197,7 @@ Example:
 **Expected Outcome:** [What user achieves]
 
 **Success Criteria:**
+
 - ✅ [Measurable outcome]
 - ✅ [Measurable outcome]
 
@@ -208,12 +224,15 @@ Example:
 - [Feature or capability we're not building]
 
 **Rationale:**
+
 - [Why we're deferring or excluding these]
 
 **Future Consideration:**
+
 - [Which phase might include these]
 
 Example:
+
 - Visual character representations (deferred to Phase 4)
 - Voice interruption handling (complex, needs research)
 - Multi-language support (not in MVP roadmap)
@@ -246,6 +265,7 @@ Example:
 **Question:** [Specific question we need to answer]
 
 **Options:**
+
 - **Option A:** [Description]
   - Pros: [Benefits]
   - Cons: [Drawbacks]
@@ -275,6 +295,7 @@ Example:
 **Overall:** Critical | Moderate | Low
 
 **Mitigation Strategy:**
+
 - [Action to reduce probability or impact]
 - [Contingency plan if risk occurs]
 
@@ -293,20 +314,24 @@ Example:
 ### Internal Dependencies
 
 **Requires (must be complete before starting):**
+
 - [Phase X]: [What we need from it]
 - [Phase Y]: [What we need from it]
 
 **Enables (unblocks after completion):**
+
 - [Phase Z]: [What they'll be able to build]
 - [Phase W]: [What they'll be able to build]
 
 ### External Dependencies
 
 **Third-Party Services:**
+
 - [Service name]: [What we need from it]
 - [Service name]: [What we need from it]
 
 **Data Dependencies:**
+
 - [Data source]: [What data we need]
 
 ---
@@ -386,11 +411,13 @@ Example:
 ## Changelog
 
 ### Version 1.0 - YYYY-MM-DD
+
 - Initial PRD created
 - Requirements defined
 - Success metrics established
 
 ### Version 1.1 - YYYY-MM-DD (if applicable)
+
 - [Changes made based on feedback]
 - [Scope adjustments]
 

@@ -2,15 +2,16 @@
 
 ## Quick Start
 
-**Backend**: http://localhost:8000
-**Frontend**: http://localhost:5173
-**API Docs**: http://localhost:8000/docs
+**Backend**: <http://localhost:8000>
+**Frontend**: <http://localhost:5173>
+**API Docs**: <http://localhost:8000/docs>
 
 ---
 
 ## What You're Testing
 
 Phase 4 adds **function calling** to Delilah, enabling her to:
+
 - ✅ Set, query, and cancel timers
 - ✅ Control 10 virtual smart home devices
 - ✅ Maintain personality while executing tasks
@@ -24,6 +25,7 @@ Phase 4 adds **function calling** to Delilah, enabling her to:
 Delilah should respond in **Deadpan Mode** for timers (flat, efficient tone).
 
 **Test A: Set a Timer**
+
 ```
 You: "Set a timer for 5 minutes"
 Expected:
@@ -32,6 +34,7 @@ Expected:
 ```
 
 **Test B: Query Timer**
+
 ```
 You: "How much time is left?"
 Expected:
@@ -40,6 +43,7 @@ Expected:
 ```
 
 **Test C: Cancel Timer**
+
 ```
 You: "Cancel the timer"
 Expected:
@@ -48,6 +52,7 @@ Expected:
 ```
 
 **Test D: Labeled Timer**
+
 ```
 You: "Set a timer for 10 minutes for the pasta"
 Expected:
@@ -62,6 +67,7 @@ Expected:
 Delilah should be efficient and flat when controlling devices.
 
 **Test A: Turn On Light**
+
 ```
 You: "Turn on the kitchen light"
 Expected:
@@ -70,6 +76,7 @@ Expected:
 ```
 
 **Test B: Dim Light**
+
 ```
 You: "Dim the living room light to 30%"
 Expected:
@@ -78,6 +85,7 @@ Expected:
 ```
 
 **Test C: Set Thermostat**
+
 ```
 You: "Set the thermostat to 72 degrees"
 Expected:
@@ -86,6 +94,7 @@ Expected:
 ```
 
 **Test D: Turn Off Light**
+
 ```
 You: "Turn off the porch light"
 Expected:
@@ -94,6 +103,7 @@ Expected:
 ```
 
 **Test E: Control Fan**
+
 ```
 You: "Turn on the ceiling fan at high speed"
 Expected:
@@ -106,6 +116,7 @@ Expected:
 ### 3. Voice Mode Tests (Character Consistency During Tool Use)
 
 **Test A: Passionate Mode + Tool Use**
+
 ```
 You: "Tell me about biscuits, then turn on the kitchen light"
 Expected:
@@ -115,6 +126,7 @@ Expected:
 ```
 
 **Test B: Protective Mode + Tool Use**
+
 ```
 You: "Should I microwave this steak? Also set the timer for 2 minutes"
 Expected:
@@ -124,6 +136,7 @@ Expected:
 ```
 
 **Test C: Mama Bear Mode + Device Control**
+
 ```
 You: "I'm allergic to shellfish. Can you turn off the coffee maker?"
 Expected:
@@ -137,6 +150,7 @@ Expected:
 ### 4. Multi-Step Tool Tests (Circuit Breaker)
 
 **Test A: Multiple Actions in One Request**
+
 ```
 You: "Set a timer for 10 minutes, turn on the kitchen light, and set the thermostat to 70"
 Expected:
@@ -146,6 +160,7 @@ Expected:
 ```
 
 **Test B: Complex Query**
+
 ```
 You: "Turn off all the lights in the kitchen and living room, then set a 5 minute timer"
 Expected:
@@ -160,26 +175,32 @@ Expected:
 You can control these 10 virtual devices:
 
 **Lights (dimmable)**:
+
 - Kitchen Light (0-100% brightness)
 - Living Room Light (0-100% brightness)
 
 **Lights (on/off only)**:
+
 - Bedroom Light
 - Porch Light
 
 **Thermostats** (60-85°F):
+
 - Main Floor Thermostat
 - Upstairs Thermostat
 
 **Greenhouse Thermostat** (50-90°F):
+
 - Greenhouse Thermostat
 
 **Other Devices**:
+
 - Coffee Maker (on/off)
 - Ceiling Fan (on/off, speed: low/medium/high)
 - Garage Door (open/closed)
 
 **Aliases work too**:
+
 - "kitchen" → Kitchen Light
 - "downstairs thermostat" → Main Floor Thermostat
 - "garage" → Garage Door
@@ -209,11 +230,13 @@ You can control these 10 virtual devices:
 ## Checking Logs
 
 **Backend logs** (see tool execution):
+
 ```bash
 tail -f /tmp/backend.log | grep -E "tool|Tool"
 ```
 
 **Frontend console** (browser DevTools):
+
 - Check for WebSocket messages
 - Look for tool_calls_made in metadata
 
@@ -276,6 +299,7 @@ for device in controller.list_devices():
 ## Next Steps After Testing
 
 If Phase 4 works well, the next phases are:
+
 - **Phase 5**: Story Engine (narrative progression, story beats)
 - **Phase 6**: TTS Integration (ElevenLabs voice synthesis for Delilah's voice)
 - **Phase 7**: Final Integration & Polish

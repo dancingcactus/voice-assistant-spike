@@ -2,7 +2,7 @@
 
 ## Overview
 
-The chat interface at http://localhost:5173/ has **two working tools** that you can test:
+The chat interface at <http://localhost:5173/> has **two working tools** that you can test:
 
 1. **Timer Tool** (`manage_timer`) - Set, query, and cancel kitchen timers
 2. **Device Control Tool** (`control_device`) - Control virtual smart home devices
@@ -14,6 +14,7 @@ The chat interface at http://localhost:5173/ has **two working tools** that you 
 **What it does**: Manages kitchen timers
 
 **Test Commands**:
+
 ```
 Set a timer for 5 minutes
 Set a timer for 10 minutes for pasta
@@ -23,11 +24,13 @@ Cancel all timers
 ```
 
 **Actions**:
+
 - **Set**: Creates a new timer with optional label
 - **Query**: Shows remaining time on active timers
 - **Cancel**: Cancels specific timer or all timers
 
 **Example Conversation**:
+
 ```
 You: Set a timer for 3 minutes
 Assistant: Timer set for 3 minutes
@@ -53,29 +56,35 @@ Assistant: Cancelled timer for bread
 **Available Devices**:
 
 #### Lights (with on/off and brightness)
+
 - Kitchen Light
 - Living Room Light
 - Bedroom Light (on/off only)
 - Porch Light (on/off only)
 
 #### Thermostats (temperature control)
+
 - Main Floor Thermostat (currently 68°F, target 70°F)
 - Upstairs Thermostat (currently 65°F, target 72°F)
 
-#### Switches
+#### Switches (on/off control)
+
 - Coffee Maker
 - Lamp
 
-#### Doors
+#### Doors (open/close control)
+
 - Garage Door
 
 #### Fans (with speed control)
+
 - Bedroom Fan
 - Living Room Fan
 
 **Test Commands**:
 
 #### Lights
+
 ```
 Turn on the kitchen light
 Turn off the bedroom light
@@ -85,6 +94,7 @@ Dim the porch light to 20%
 ```
 
 #### Thermostats
+
 ```
 Set the main floor thermostat to 72 degrees
 Set the upstairs thermostat to 68
@@ -93,18 +103,21 @@ Increase the thermostat to 75
 ```
 
 #### Switches
+
 ```
 Turn on the coffee maker
 Turn off the lamp
 ```
 
 #### Doors
+
 ```
 Open the garage door
 Close the garage door
 ```
 
 #### Fans
+
 ```
 Turn on the bedroom fan
 Set the living room fan to speed 2
@@ -137,12 +150,16 @@ Assistant: Opened Garage Door
 ## Testing Tips
 
 ### 1. Natural Language
+
 The system should understand natural variations:
+
 - "Turn on the kitchen light" = "Kitchen light on" = "Lights in kitchen"
 - "Set a timer for 5 minutes" = "5 minute timer" = "Timer 5 min"
 
 ### 2. Context Awareness
+
 Try follow-up commands:
+
 ```
 You: Turn on the kitchen light
 Assistant: [turns on light]
@@ -152,14 +169,18 @@ Assistant: [should understand "it" refers to kitchen light]
 ```
 
 ### 3. Multiple Actions
+
 Try complex requests:
+
 ```
 You: Turn on the kitchen and living room lights
 You: Set all the thermostats to 70 degrees
 ```
 
 ### 4. Error Handling
+
 Try invalid requests to test error handling:
+
 ```
 You: Turn on the basement light (doesn't exist)
 You: Set a timer for -5 minutes (invalid)
@@ -167,7 +188,9 @@ You: Set the thermostat to 150 (out of range)
 ```
 
 ### 5. State Queries
+
 Ask about current state:
+
 ```
 You: What timers are running?
 You: What's the temperature set to?
@@ -180,7 +203,7 @@ You: Are the lights on in the kitchen?
 
 After testing, you can view the tool call logs:
 
-1. Go to http://localhost:5173/observability
+1. Go to <http://localhost:5173/observability>
 2. Click **"Tool Calls"** in the navigation
 3. See your recent tool calls with:
    - Tool name and parameters
@@ -189,6 +212,7 @@ After testing, you can view the tool call logs:
    - Full request/response data
 
 This lets you:
+
 - Debug what parameters were sent
 - See how the LLM interpreted your request
 - Check timing and performance
@@ -199,6 +223,7 @@ This lets you:
 ## What to Look For
 
 ### ✅ Good Behavior
+
 - Assistant understands natural language variations
 - Tools execute correctly
 - Response includes confirmation of action
@@ -206,6 +231,7 @@ This lets you:
 - Follow-up context works ("it", "that one")
 
 ### ❌ Issues to Report
+
 - Tool not called when it should be
 - Wrong parameters passed to tool
 - Assistant ignores device names
@@ -217,6 +243,7 @@ This lets you:
 ## Advanced Testing
 
 ### Conversation Flow
+
 ```
 You: Set a timer for 5 minutes for eggs
 Assistant: [sets timer]
@@ -235,6 +262,7 @@ Assistant: [controls light]
 ```
 
 ### Edge Cases
+
 ```
 You: Set 3 timers - 5 minutes for eggs, 10 for pasta, and 15 for bread
 You: Turn on all the lights in the house
@@ -256,22 +284,28 @@ You: Open the garage then turn on the porch light
 ## Troubleshooting
 
 ### Chat not connecting
+
 **Problem**: WebSocket connection fails
 **Check**:
+
 ```bash
 curl http://localhost:8000/health
 # Should return: {"status":"healthy","environment":"development"}
 ```
 
 ### Tool not being called
+
 **Check observability dashboard**:
-1. Go to http://localhost:5173/observability
+
+1. Go to <http://localhost:5173/observability>
 2. Click "Tool Calls"
 3. See if tool was called but failed
 4. Check request/response data
 
 ### Frontend errors
+
 **Check browser console** (F12 → Console tab)
+
 - Look for JavaScript errors
 - Check network tab for failed requests
 
@@ -316,6 +350,7 @@ See all your test calls with timing and data
 ## Next Steps
 
 After testing:
+
 1. Note any issues or confusing behavior
 2. Check tool call logs in observability dashboard
 3. Try voice input (if available in your setup)

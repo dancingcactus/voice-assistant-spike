@@ -17,6 +17,7 @@ Milestone 5 delivers a comprehensive tool call inspection system for debugging a
 ### Backend Infrastructure
 
 #### 1. Data Models (`tool_call_models.py`)
+
 - `ToolCallLog`: Complete log entry with request/response, timing, status
 - `ToolCallFilter`: Flexible filtering options (tool, character, status, time range)
 - `ToolCallStatistics`: Aggregate statistics with breakdowns by tool and character
@@ -24,6 +25,7 @@ Milestone 5 delivers a comprehensive tool call inspection system for debugging a
 - `CharacterUsageStats`: Per-character statistics and preferences
 
 #### 2. Data Access Layer (`tool_call_access.py`)
+
 - JSONL-based append-only logging system
 - Thread-safe file operations
 - Filtering and querying with pagination
@@ -32,6 +34,7 @@ Milestone 5 delivers a comprehensive tool call inspection system for debugging a
 - Metadata extraction (available tools, characters)
 
 #### 3. API Endpoints (`api.py`)
+
 ```
 GET  /tool-calls                      # List with filters
 GET  /tool-calls/stats                # Aggregate statistics
@@ -43,6 +46,7 @@ GET  /tool-calls/{call_id}            # Detailed view
 ### Frontend UI
 
 #### 4. Tool Calls Component (`ToolCallsTool.tsx`)
+
 - **Timeline View**: Chronological list of all tool calls
 - **Filtering Panel**: Filter by tool, character, status
 - **Detail Modal**: Full request/response inspection with copy functionality
@@ -51,6 +55,7 @@ GET  /tool-calls/{call_id}            # Detailed view
 - **Error Highlighting**: Clear error status and messages
 
 #### 5. Visual Design (`ToolCallsTool.css`)
+
 - Dark theme consistent with Phase 1.5 design
 - Responsive layout
 - Color-coded status indicators (success/error/timeout)
@@ -60,6 +65,7 @@ GET  /tool-calls/{call_id}            # Detailed view
 ### Testing & Data Generation
 
 #### 6. Sample Data Generator (`generate_sample_tool_calls.py`)
+
 - Creates 50 realistic tool call logs
 - 5 different tools (set_timer, get_recipe, light_control, etc.)
 - 3 characters (Delilah, Hank, Cave)
@@ -68,6 +74,7 @@ GET  /tool-calls/{call_id}            # Detailed view
 - Distributed across 7 days
 
 #### 7. Automated Test Script (`tests/scripts/test_milestone5_tool_calls.sh`)
+
 - 10 comprehensive backend API tests
 - Validates all filtering options
 - Verifies statistics accuracy
@@ -79,12 +86,14 @@ GET  /tool-calls/{call_id}            # Detailed view
 ## Technical Achievements
 
 ### Data Format
+
 - **Storage**: JSONL (JSON Lines) for append-only logging
 - **Location**: `/backend/data/tool_logs/{user_id}_tool_calls.jsonl`
 - **Structure**: One JSON object per line, easy to stream and parse
 - **Performance**: Efficient for large datasets, supports streaming
 
 ### Statistics Engine
+
 - Real-time aggregation from raw logs
 - Per-tool success rates and timing
 - Per-character usage patterns
@@ -92,6 +101,7 @@ GET  /tool-calls/{call_id}            # Detailed view
 - Recent error tracking
 
 ### API Design
+
 - RESTful endpoints following Phase 1.5 patterns
 - Query parameter-based filtering
 - Pagination support (up to 1000 results)
@@ -99,6 +109,7 @@ GET  /tool-calls/{call_id}            # Detailed view
 - Authentication via bearer token
 
 ### Frontend Features
+
 - Real-time data fetching with React Query
 - Two-view layout (Timeline + Statistics)
 - Comprehensive filtering UI
@@ -111,6 +122,7 @@ GET  /tool-calls/{call_id}            # Detailed view
 ## Test Results
 
 ### Backend API Tests
+
 ```
 ✅ Test 1: List tool calls (5 retrieved)
 ✅ Test 2: Get tool call details (call_554937dc5719, tool=get_recipe)
@@ -125,6 +137,7 @@ GET  /tool-calls/{call_id}            # Detailed view
 ```
 
 ### Sample Data Summary
+
 - **Total Calls**: 50
 - **Success Rate**: 94.0%
 - **Unique Tools**: 5
@@ -144,6 +157,7 @@ GET  /tool-calls/{call_id}            # Detailed view
 ## Files Created/Modified
 
 ### New Files
+
 1. `/backend/src/observability/tool_call_models.py` (258 lines)
 2. `/backend/src/observability/tool_call_access.py` (314 lines)
 3. `/backend/scripts/generate_sample_tool_calls.py` (159 lines)
@@ -153,6 +167,7 @@ GET  /tool-calls/{call_id}            # Detailed view
 7. `/backend/data/tool_logs/user_justin_tool_calls.jsonl` (50 log entries)
 
 ### Modified Files
+
 1. `/backend/src/observability/api.py` - Added 6 new endpoints
 2. `/frontend/src/services/api.ts` - Added tool call types and methods
 3. `/frontend/src/components/Dashboard.tsx` - Added Tool Calls navigation
@@ -162,6 +177,7 @@ GET  /tool-calls/{call_id}            # Detailed view
 ## How to Use
 
 ### Starting the System
+
 ```bash
 # Terminal 1: Start backend API
 cd backend
@@ -174,19 +190,22 @@ npm run dev
 ```
 
 ### Accessing the Tool
-1. Open http://localhost:5173/observability
+
+1. Open <http://localhost:5173/observability>
 2. Click "Tool Calls" in the navigation
 3. Explore timeline view with filters
 4. Click on any call for detailed inspection
 5. Switch to Statistics view for aggregate analysis
 
 ### Filtering Options
+
 - **By Tool**: Select specific tool to filter (set_timer, get_recipe, etc.)
 - **By Character**: Filter by which character made the call
 - **By Status**: Show only successes, errors, or timeouts
 - **Combined**: Apply multiple filters simultaneously
 
 ### Detail Inspection
+
 - Click any tool call in timeline
 - View complete request parameters
 - View complete response data
@@ -212,12 +231,14 @@ npm run dev
 ## Limitations & Future Enhancements
 
 ### Current Limitations
+
 1. **Replay Functionality**: Not implemented in this milestone (API structure prepared)
 2. **Real-time Updates**: Manual refresh required to see new tool calls
 3. **Time Range Filtering**: UI only shows all-time, though API supports it
 4. **Export**: No CSV/JSON export of filtered results yet
 
 ### Potential Future Enhancements
+
 1. **WebSocket Integration**: Real-time tool call updates as they happen
 2. **Replay System**: Execute tool calls again with modified parameters
 3. **Advanced Filtering**: Date range picker, duration range, full-text search
@@ -232,6 +253,7 @@ npm run dev
 ## Integration Notes
 
 ### For Phase 1 Integration
+
 When integrating with the actual Phase 1 system, add tool call logging at the execution point:
 
 ```python
@@ -281,6 +303,7 @@ tool_call_dal.append_tool_call(log_entry)
 ```
 
 ### API Integration
+
 Frontend can be integrated into any React application:
 
 ```typescript
@@ -295,18 +318,21 @@ import { ToolCallsTool } from './components/ToolCallsTool';
 ## Performance Metrics
 
 ### Backend Performance
+
 - **List tool calls**: < 50ms for 100 calls
 - **Get statistics**: < 100ms for 1000 calls
 - **Filter operations**: < 30ms
 - **JSONL append**: < 5ms (async, non-blocking)
 
 ### Frontend Performance
+
 - **Initial load**: < 500ms
 - **Filter application**: Instant (client-side)
 - **Detail modal**: < 100ms
 - **Statistics calculation**: < 200ms
 
 ### Storage Efficiency
+
 - **Per log entry**: ~500-800 bytes (varies by request/response size)
 - **50 entries**: ~30KB
 - **Estimated 10,000 entries**: ~6MB (very manageable)
@@ -316,6 +342,7 @@ import { ToolCallsTool } from './components/ToolCallsTool';
 ## Lessons Learned
 
 ### What Went Well
+
 1. **JSONL Format**: Perfect for append-only logging, easy to parse
 2. **Comprehensive Filtering**: All anticipated filter combinations work smoothly
 3. **Statistics Engine**: Real-time aggregation performs well even with many logs
@@ -323,6 +350,7 @@ import { ToolCallsTool } from './components/ToolCallsTool';
 5. **Route Ordering**: Caught and fixed FastAPI route precedence issue early
 
 ### Challenges Overcome
+
 1. **FastAPI Route Order**: `/tool-calls/stats` was being caught by `/tool-calls/{call_id}`
    - **Solution**: Reordered routes to place specific paths before parameterized ones
 2. **Pydantic Validation**: ToolCallFilter limit constraint (max 1000)
@@ -335,12 +363,14 @@ import { ToolCallsTool } from './components/ToolCallsTool';
 ## Documentation
 
 ### For Developers
-- API endpoints documented in OpenAPI/Swagger: http://localhost:8000/docs
+
+- API endpoints documented in OpenAPI/Swagger: <http://localhost:8000/docs>
 - Data models include detailed docstrings
 - Access layer methods have clear documentation
 - Sample data generator is self-documenting
 
 ### For Users
+
 - Implementation plan includes comprehensive testing scenarios
 - Test script provides usage examples
 - This completion report serves as reference documentation
@@ -350,17 +380,20 @@ import { ToolCallsTool } from './components/ToolCallsTool';
 ## Next Steps
 
 ### Immediate
-1. **Frontend Testing**: Open http://localhost:5173/observability and test the UI
+
+1. **Frontend Testing**: Open <http://localhost:5173/observability> and test the UI
 2. **User Feedback**: Try the tool with different filter combinations
 3. **Documentation Review**: Ensure all features are documented
 
 ### Phase 1 Integration (Future)
+
 1. Add tool call logging to Phase 1 tool execution system
 2. Integrate logging into conversation manager
 3. Test with real Phase 1 interactions
 4. Tune logging verbosity (what to capture in reasoning/context)
 
 ### Milestone 6: Character Tool
+
 1. Character configuration inspection
 2. System prompt generation viewing
 3. Voice mode triggers and characteristics

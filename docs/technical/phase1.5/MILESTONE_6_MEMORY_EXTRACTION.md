@@ -14,6 +14,7 @@ Implement automatic memory extraction from conversations and ensure memories are
 ### Problem Statement
 
 Currently, when users mention important information (dietary restrictions, preferences, family details, events), the AI responds appropriately but **doesn't save** that information. This means:
+
 - Users must repeat themselves in every conversation
 - The AI can't build a relationship based on past shared information
 - Delilah can't provide personalized recommendations based on learned preferences
@@ -21,6 +22,7 @@ Currently, when users mention important information (dietary restrictions, prefe
 ### Solution
 
 Implement a two-part memory system:
+
 1. **Memory Retrieval**: Include user memories in system prompt (context awareness)
 2. **Memory Extraction**: Allow AI to automatically save memories using a tool
 
@@ -31,8 +33,10 @@ Implement a two-part memory system:
 The system supports five types of memories, each serving a different purpose:
 
 ### 1. Fact
+
 **Purpose**: Objective information about the user
 **Examples**:
+
 - "The user lives in Provo, Utah"
 - "The user works from home"
 - "The user has a greenhouse with 200 hanging baskets"
@@ -44,8 +48,10 @@ The system supports five types of memories, each serving a different purpose:
 ---
 
 ### 2. Preference
+
 **Purpose**: User likes, dislikes, and taste preferences (non-dietary)
 **Examples**:
+
 - "The user likes mild foods"
 - "The user prefers quick recipes (under 30 minutes)"
 - "The user loves Thai food"
@@ -58,8 +64,10 @@ The system supports five types of memories, each serving a different purpose:
 ---
 
 ### 3. Dietary Restriction
+
 **Purpose**: Critical health and dietary information
 **Examples**:
+
 - "The user has Celiac disease (gluten intolerance)"
 - "The user is lactose intolerant"
 - "The user has a dairy allergy"
@@ -69,6 +77,7 @@ The system supports five types of memories, each serving a different purpose:
 **Importance Range**: 8-10 (CRITICAL)
 **Usage**: Recipe safety, meal planning, ingredient substitution
 **Special Handling**:
+
 - Triggers MAMA_BEAR voice mode in Delilah
 - Must ALWAYS be considered in food recommendations
 - Should prompt confirmation before suggesting potentially unsafe foods
@@ -76,8 +85,10 @@ The system supports five types of memories, each serving a different purpose:
 ---
 
 ### 4. Relationship
+
 **Purpose**: Information about people in the user's life
 **Examples**:
+
 - "The user has 3 kids"
 - "The user's daughter is allergic to peanuts"
 - "The user's spouse is vegan"
@@ -90,8 +101,10 @@ The system supports five types of memories, each serving a different purpose:
 ---
 
 ### 5. Event
+
 **Purpose**: Time-bound events and commitments
 **Examples**:
+
 - "Parent-teacher conferences this Tuesday"
 - "Family vacation to Hawaii next month"
 - "Birthday party on Saturday"
@@ -101,6 +114,7 @@ The system supports five types of memories, each serving a different purpose:
 **Importance Range**: 6-10
 **Usage**: Schedule awareness, meal planning, time-sensitive reminders
 **Special Handling**:
+
 - Should be surfaced when relevant dates approach
 - Can be marked as completed/past
 - Higher importance for imminent events
@@ -163,6 +177,7 @@ class UserMemories(BaseModel):
 **Location**: `/backend/data/users/{user_id}_memories.json`
 
 **Format**:
+
 ```json
 {
   "memories": {
@@ -336,6 +351,7 @@ def build_system_prompt(
 ```
 
 **Testing Milestone 1**:
+
 ```
 1. Manually create memories via Observability UI:
    - Dietary: "Has Celiac disease"
@@ -558,6 +574,7 @@ logger.info(f"Registered tools: {tool_system.list_tools()}")
 ```
 
 **Testing Milestone 2**:
+
 ```
 1. Start backend with new tool registered
 2. Check logs: "Registered tools: ['timer_tool', 'device_tool', 'save_memory']"
@@ -731,6 +748,7 @@ if hasattr(character, 'tool_instructions') and character.tool_instructions:
 ```
 
 **Testing Milestone 3**:
+
 ```
 1. Restart backend to load updated character JSON
 2. Send: "I have Celiac disease"
@@ -782,6 +800,7 @@ if hasattr(character, 'tool_instructions') and character.tool_instructions:
    - Suggests gluten-free, dairy-free, family-friendly recipe
 
 **Delilah's Response**:
+
 ```
 "Oh sugar, bless your heart! Celiac AND lactose intolerance - I'm gonna
 make sure we keep you safe, honey. And feedin' three hungry kids too!
@@ -817,6 +836,7 @@ Sound good, sugar?"
    - Uses memory context to provide safe suggestions
 
 **Delilah's Response**:
+
 ```
 "Good mornin', sugar! Let me think of somethin' that'll work with your
 gluten and dairy restrictions...
@@ -828,6 +848,7 @@ together makes breakfast taste better."
 ```
 
 **Key Points**:
+
 - No need to mention restrictions again
 - Delilah remembers automatically
 - Family context used naturally
@@ -838,6 +859,7 @@ together makes breakfast taste better."
 ## Testing Strategy
 
 ### Test 1: Memory Creation (Manual)
+
 ```
 Setup: Use Observability UI
 1. Navigate to Memory Tool
@@ -860,6 +882,7 @@ Expected: ✅ Gluten-free suggestion, mild flavors, serves 4+, quick prep
 ```
 
 ### Test 2: Automatic Extraction (Tool-based)
+
 ```
 Setup: Clear all memories for user_justin
 
@@ -885,6 +908,7 @@ Expected: ✅ Two separate memories created
 ```
 
 ### Test 3: Memory Persistence Across Sessions
+
 ```
 Setup: Memories from Test 2 should exist
 
@@ -900,6 +924,7 @@ Expected: ✅ Delilah knows restrictions without being told again
 ```
 
 ### Test 4: Multi-User Isolation
+
 ```
 Setup: user_justin has Celiac saved
 
@@ -916,6 +941,7 @@ Expected: ✅ Each user has separate memory context
 ```
 
 ### Test 5: Memory Updates/Corrections
+
 ```
 Setup: Create memory: "Vegetarian"
 
@@ -931,6 +957,7 @@ For now, just verify new preference can be added
 ```
 
 ### Test 6: Importance Levels Affect Context
+
 ```
 Setup: Create 10 memories with varying importance (1-10)
 
@@ -947,21 +974,24 @@ Expected: ✅ Critical info (dietary) always included
 
 ## Success Criteria
 
-### Milestone 1 Complete When:
+### Milestone 1 Complete When
+
 - [  ] Memories manually created in observability UI
 - [  ] System prompt includes memory context
 - [  ] Delilah's responses show awareness of saved info
 - [  ] All 5 memory categories render correctly in prompt
 - [  ] Dietary restrictions emphasized appropriately
 
-### Milestone 2 Complete When:
+### Milestone 2 Complete When
+
 - [  ] SaveMemoryTool created and registered
 - [  ] Tool appears in LLM function definitions
 - [  ] Manual tool call test succeeds
 - [  ] Memories saved to correct user file
 - [  ] Memory accessible in observability UI
 
-### Milestone 3 Complete When:
+### Milestone 3 Complete When
+
 - [  ] Character JSON updated with tool instructions
 - [  ] Instructions included in system prompts
 - [  ] LLM calls save_memory without prompting
@@ -969,7 +999,8 @@ Expected: ✅ Critical info (dietary) always included
 - [  ] Importance levels assigned appropriately
 - [  ] Multi-memory extraction works (e.g., "Celiac and lactose intolerant")
 
-### Full System Complete When:
+### Full System Complete When
+
 - [  ] User mentions dietary restriction → automatically saved
 - [  ] Next conversation → restriction remembered without re-stating
 - [  ] All test scenarios pass
@@ -997,7 +1028,8 @@ Expected: ✅ Critical info (dietary) always included
 
 ## Dependencies
 
-### Required Files/Systems:
+### Required Files/Systems
+
 - ✅ Memory data model ([user_state.py](../../../backend/src/models/user_state.py))
 - ✅ Memory persistence ([memory_access.py](../../../backend/src/observability/memory_access.py))
 - ✅ Tool system ([tool_system.py](../../../backend/src/core/tool_system.py))
@@ -1005,7 +1037,8 @@ Expected: ✅ Critical info (dietary) always included
 - ✅ Observability API (for manual testing)
 - ✅ User selection in chat UI (from Phase 1.5)
 
-### External Dependencies:
+### External Dependencies
+
 - OpenAI API (function calling)
 - Existing conversation flow
 - File system access for user data
@@ -1015,24 +1048,28 @@ Expected: ✅ Critical info (dietary) always included
 ## Future Enhancements (Post-1.5.5)
 
 ### Memory Management Features
+
 - **Memory Updates**: Allow updating existing memories
 - **Memory Deletion**: Remove incorrect memories
 - **Memory Confidence**: Track verification over time
 - **Memory Decay**: Reduce importance of old, unused memories
 
 ### Smart Context Management
+
 - **Importance-based Filtering**: Only include top N memories in prompt
 - **Category Prioritization**: Dietary > Relationship > Fact
 - **Recency Weighting**: Recent memories slightly more important
 - **Token Budget Management**: Truncate when prompt too long
 
 ### Advanced Extraction
+
 - **Implicit Memory Detection**: Infer preferences from behavior
 - **Confidence Scores**: "User might prefer..." vs "User definitely has..."
 - **Multi-turn Extraction**: Build memory over multiple messages
 - **Clarification Prompts**: "Just to confirm, you said..."
 
 ### Memory Analytics
+
 - **Usage Tracking**: Which memories are referenced most
 - **Accuracy Monitoring**: User corrections indicate wrong memories
 - **Coverage Metrics**: % of user info captured
@@ -1070,6 +1107,7 @@ Expected: ✅ Critical info (dietary) always included
 ## Risk Assessment
 
 ### High Risk
+
 - **False Positives**: Saving casual comments as facts
   - Mitigation: Clear tool instructions, examples
   - Monitoring: Review saved memories in observability UI
@@ -1079,6 +1117,7 @@ Expected: ✅ Critical info (dietary) always included
   - Testing: Comprehensive test scenarios
 
 ### Medium Risk
+
 - **Token Budget Overflow**: Too many memories in prompt
   - Mitigation: Importance-based filtering
   - Monitoring: Track prompt token counts
@@ -1088,6 +1127,7 @@ Expected: ✅ Critical info (dietary) always included
   - Future: Memory deletion feature
 
 ### Low Risk
+
 - **Performance Impact**: Loading memories on every message
   - Mitigation: Memory files are small (<100KB)
   - Optimization: Cache in conversation context
@@ -1097,16 +1137,19 @@ Expected: ✅ Critical info (dietary) always included
 ## Timeline Estimate
 
 **Milestone 1 (Memory Retrieval)**: 2-3 hours
+
 - 1 hour: Code changes
 - 1 hour: Testing and debugging
 - 30 min: Documentation
 
 **Milestone 2 (Memory Tool)**: 3-4 hours
+
 - 2 hours: Tool implementation
 - 1 hour: Integration and testing
 - 1 hour: Edge cases and error handling
 
 **Milestone 3 (Character Instructions)**: 2-3 hours
+
 - 1 hour: JSON updates and examples
 - 1 hour: Prompt integration
 - 1 hour: End-to-end testing

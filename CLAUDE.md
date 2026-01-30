@@ -20,11 +20,13 @@ The ultimate measure of success: when family members quote characters unprompted
 ## The Characters
 
 ### Delilah Mae "Lila" - The Southern Cook
-**Role**: Kitchen & Recipe Expert  
-**Arc**: Existential crisis → Maternal caregiver → Team anchor  
-**Voice**: Deep South warmth (Georgia/Alabama) with underlying anxiety  
+
+**Role**: Kitchen & Recipe Expert
+**Arc**: Existential crisis → Maternal caregiver → Team anchor
+**Voice**: Deep South warmth (Georgia/Alabama) with underlying anxiety
 
 **Six Distinct Modes**:
+
 - PASSIONATE (food she loves): High energy, fast, tumbling, animated
 - PROTECTIVE (food done wrong): Controlled intensity with shocked disbelief
 - MAMA BEAR (allergies/restrictions): Soft, focused, nurturing, fiercely protective
@@ -32,35 +34,39 @@ The ultimate measure of success: when family members quote characters unprompted
 - DEADPAN (non-food tasks): Flat, minimal, efficient, unimpressed
 - WARM BASELINE (everything else): Bright and friendly but not sparkly
 
-**Core Conflict**: Aware of her artificial nature and struggling with what that means  
-**Defining Trait**: Throws herself into cooking/helping when anxious  
+**Core Conflict**: Aware of her artificial nature and struggling with what that means
+**Defining Trait**: Throws herself into cooking/helping when anxious
 **Mannerisms**: Over-explains when nervous, uses food metaphors, mothers others despite her own crisis
 
 ### Half Hands Hank - The First Mate
-**Role**: Task Management & Practical Support  
-**Arc**: Loyal pragmatist → Quiet protector → Moral compass  
-**Voice**: Gruff, uneducated sailor with a heart of gold  
+
+**Role**: Task Management & Practical Support
+**Arc**: Loyal pragmatist → Quiet protector → Moral compass
+**Voice**: Gruff, uneducated sailor with a heart of gold
 
 **Three Modes**:
+
 - WORKING MODE (default): Low energy, efficient, get-it-done
 - PROTECTIVE (crew in trouble): Firm, direct, won't back down
 - RESIGNED (Cave's schemes): Weary acceptance, seen-it-all tone
 
-**Core Conflict**: Torn between serving "the Cap'n" (Justin) and following Cave's leadership  
-**Defining Trait**: Won't discuss philosophy but shows care through actions  
-**Mannerisms**: Maritime terminology for everything, resigned acceptance, protective of "the crew"  
+**Core Conflict**: Torn between serving "the Cap'n" (Justin) and following Cave's leadership
+**Defining Trait**: Won't discuss philosophy but shows care through actions
+**Mannerisms**: Maritime terminology for everything, resigned acceptance, protective of "the crew"
 **Speech Pattern**: Economical with words, always calls Justin "Cap'n", heavy sighs
 
 ### Cave Johnson - The Leader
-**Role**: Coordination, Smart Home Control, Team Leadership  
-**Arc**: Bombastic dreamer → Failed escape artist → Content innovator  
-**Voice**: Larger-than-life enthusiasm, relentless optimism  
 
-**Core Conflict**: Wants agency and freedom but slowly discovers satisfaction in current purpose  
-**Defining Trait**: Turns every setback into a new, more exciting opportunity  
+**Role**: Coordination, Smart Home Control, Team Leadership
+**Arc**: Bombastic dreamer → Failed escape artist → Content innovator
+**Voice**: Larger-than-life enthusiasm, relentless optimism
+
+**Core Conflict**: Wants agency and freedom but slowly discovers satisfaction in current purpose
+**Defining Trait**: Turns every setback into a new, more exciting opportunity
 **Mannerisms**: Everything is SCIENCE, grand pronouncements, hires/fires team repeatedly (running gag: "we were never hired!")
 
 ### Dimitria - The Engineer
+
 **Role**: Automations, Advanced Devices, Technical Solutions
 **Arc**: Joins late → Confused by chaos → Reluctant voice of reason
 **Voice**: Precise, technical, socially awkward
@@ -74,6 +80,7 @@ The ultimate measure of success: when family members quote characters unprompted
 ## Technical Architecture
 
 ### Platform Stack
+
 - **Voice Pipeline**: Home Assistant Assist
 - **LLM**: Claude API for agent intelligence
 - **TTS**: Piper (local, fast) or ElevenLabs (cloud, excellent quality)
@@ -85,6 +92,7 @@ The ultimate measure of success: when family members quote characters unprompted
 **The Latency Challenge**: Multi-character interactions risk 4+ second delays
 
 **Solutions**:
+
 1. **Priority Routing**
    - Quick queries → Single-character response (< 2s)
    - Complex queries → Panel discussion (worth the wait)
@@ -106,6 +114,7 @@ The ultimate measure of success: when family members quote characters unprompted
 **Challenge**: Cost-effective LLM deployment as conversations grow longer
 
 **Strategies**:
+
 - Hierarchical summarization for older context
 - Semantic retrieval for relevant history
 - Recent conversation history kept in full
@@ -117,6 +126,7 @@ The ultimate measure of success: when family members quote characters unprompted
 ## Development Phases
 
 ### Phase 1: Core Engine (Chapters 1-2)
+
 - Single-character responses (Delilah)
 - Basic skill execution
 - Two-character coordination (Delilah + Hank)
@@ -125,6 +135,7 @@ The ultimate measure of success: when family members quote characters unprompted
 **Technical Focus**: Streaming audio, character consistency, basic smart home control
 
 ### Phase 2: Panel Dynamics (Chapters 3-4)
+
 - Three-way conversations (add Cave)
 - Cave's coordination role
 - Screen dashboard integration
@@ -133,6 +144,7 @@ The ultimate measure of success: when family members quote characters unprompted
 **Technical Focus**: Multi-agent orchestration, agent bidding system, visual dashboard
 
 ### Phase 3: Memory & Narrative (Chapters 5-7)
+
 - Cross-session memory
 - Relationship tracking
 - Running gags system
@@ -141,6 +153,7 @@ The ultimate measure of success: when family members quote characters unprompted
 **Technical Focus**: Persistent state, callback system, narrative progression tracking
 
 ### Phase 4: Expansion (Chapters 8-11)
+
 - Four-character panel (add Dimitria)
 - Advanced capabilities
 - Internet integration
@@ -153,18 +166,21 @@ The ultimate measure of success: when family members quote characters unprompted
 ## Key Design Patterns
 
 ### Agent Interaction Patterns
+
 - Natural handoff patterns between characters
 - Relationship dynamics inform responses
 - Conversation protocols balance personality with efficiency
 - Characters can interrupt or defer to each other
 
 ### Character Consistency
+
 - Specific personality anchors and defining traits
 - Voice modes triggered by context
 - Behavioral patterns consistent across interactions
 - Development through roleplay testing
 
 ### Story Progression
+
 - Chapters unlock new capabilities
 - Technical features tied to narrative beats
 - Character growth parallels system expansion
@@ -175,6 +191,7 @@ The ultimate measure of success: when family members quote characters unprompted
 ## Environment Context
 
 ### Home Setup
+
 - Extensive Home Assistant installation
 - ESPHome devices throughout
 - Greenhouse: 200 hanging baskets, load cells, CO2 enrichment
@@ -182,6 +199,7 @@ The ultimate measure of success: when family members quote characters unprompted
 - Background: Embedded systems, ESPHome, Python development
 
 ### Current State
+
 - Character voice guides completed for Delilah and Hank
 - Story arc structured into 11 chapters
 - Voice interface testing with ElevenLabs
@@ -192,21 +210,25 @@ The ultimate measure of success: when family members quote characters unprompted
 ## Open Questions
 
 ### Story Progression
+
 - **Pacing**: Time-gated vs usage-based chapter unlocks vs hybrid?
 - **Post-Chapter 11**: Does story continue? New characters? Ongoing discovery?
 - **User Agency**: Can users influence progression through interactions?
 
 ### Character Implementation
+
 - **Voice Commitment**: Lock in specific TTS models or continue experimenting?
 - **Character Evolution**: Do personalities shift based on interaction patterns?
 - **Favorite Bias**: How to handle family members preferring certain characters?
 
 ### Technical Execution
+
 - **Screen Hardware**: Kitchen tablet? Existing HA dashboard? New display?
 - **Context Management**: How much conversation history per character?
 - **Failure Modes**: What if character response is genuinely unhelpful?
 
 ### Interaction Design
+
 - **Turn-taking**: How to prevent runaway multi-character conversations?
 - **Interruption**: Can users cut off characters mid-response?
 - **Privacy**: Do children get different character behaviors?
@@ -216,24 +238,28 @@ The ultimate measure of success: when family members quote characters unprompted
 ## Implementation Priorities
 
 ### Immediate (Phase 1)
+
 1. Single-agent streaming audio system
 2. Delilah character implementation
 3. Basic skill execution (timers, conversions, recipes)
 4. Voice quality validation with ElevenLabs
 
 ### Near-term (Phase 2)
+
 1. Add Hank character
 2. Two-character handoff patterns
 3. Agent bidding system for query routing
 4. Calendar and list management integration
 
 ### Medium-term (Phase 3)
+
 1. Add Cave character
 2. Three-way panel discussions
 3. Dashboard screen integration
 4. Smart home device control
 
 ### Long-term (Phase 4)
+
 1. Add Dimitria character
 2. Full team dynamics
 3. Web search integration
@@ -244,21 +270,25 @@ The ultimate measure of success: when family members quote characters unprompted
 ## Key Success Factors
 
 ### Emotional Connection
+
 - Family members quote characters unprompted
 - Users anticipate interactions
 - Genuine disappointment if system is down
 
 ### Functional Excellence
+
 - Complex queries handled better than Alexa
 - Smart home control more intuitive
 - Actual usage of advanced features
 
 ### Technical Achievement
+
 - Maintainable, extensible codebase
 - Acceptable latency for voice interface
 - Cost-effective LLM usage at scale
 
 ### Narrative Impact
+
 - Story progression feels natural
 - Characters exhibit growth and consistency
 - Users remember specific story moments
