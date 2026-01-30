@@ -4,6 +4,8 @@ import { WebSocketService } from './services/websocket';
 import type { Message } from './services/websocket';
 import { AudioPlayer } from './components/AudioPlayer';
 import { VoiceInput } from './components/VoiceInput';
+import { apiClient } from './services/api';
+import type { UserSummary } from './services/api';
 
 function App() {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -11,6 +13,8 @@ function App() {
   const [connectionStatus, setConnectionStatus] = useState<'connected' | 'disconnected' | 'error'>('disconnected');
   const [statusMessage, setStatusMessage] = useState('');
   const [isThinking, setIsThinking] = useState(false);
+  const [selectedUserId, setSelectedUserId] = useState<string>('user_justin');
+  const [users, setUsers] = useState<UserSummary[]>([]);
   const wsRef = useRef<WebSocketService | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -62,6 +66,24 @@ function App() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  useEffect(() => {
+    // Load available users
+    const loadUsers = async () => {
+      try {
+        const userList = await apiClient.listUsers();
+        setUsers(userList);
+        // Auto-select user_justin if available, otherwise first user
+        if (userList.length > 0 && !selectedUserId) {
+          const userJustin = userList.find(u => u.user_id === 'user_justin');
+          setSelectedUserId(userJustin?.user_id || userList[0].user_id);
+        }
+      } catch (error) {
+        console.error('Failed to load users:', error);
+      }
+    };
+    loadUsers();
+  }, []);
+
   const handleSend = () => {
     if (!inputText.trim() || !wsRef.current) return;
 
@@ -74,8 +96,8 @@ function App() {
     };
     setMessages((prev) => [...prev, userMessage]);
 
-    // Send to backend with input mode
-    wsRef.current.sendMessage(inputText, 'chat');
+    // Send to backend with input mode and userId
+    wsRef.current.sendMessage(inputText, 'chat', selectedUserId);
 
     // Clear input
     setInputText('');
@@ -101,8 +123,8 @@ function App() {
     };
     setMessages((prev) => [...prev, userMessage]);
 
-    // Send to backend with voice mode
-    wsRef.current.sendMessage(text, 'voice');
+    // Send to backend with voice mode and userId
+    wsRef.current.sendMessage(text, 'voice', selectedUserId);
   };
 
   const handleVoiceError = (error: string) => {
@@ -140,15 +162,33 @@ function App() {
     <div className="app">
       <header className="app-header">
         <h1>Aperture Assist</h1>
-        <div className="status-bar">
-          <div
-            className="status-indicator"
-            style={{ backgroundColor: getStatusColor() }}
-          />
-          <span className="status-text">
-            {getStatusText()}
-            {statusMessage && `: ${statusMessage}`}
-          </span>
+        <div className="header-controls">
+          <div className="user-selector">
+            <label htmlFor="user-select">User:</label>
+            <select
+              id="user-select"
+              value={selectedUserId}
+              onChange={(e) => setSelectedUserId(e.target.value)}
+              className="user-select"
+            >
+              {users.map((user) => (
+                <option key={user.user_id} value={user.user_id}>
+                  {user.user_id}
+                  {user.user_id === 'user_justin' ? ' (Production)' : ''}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="status-bar">
+            <div
+              className="status-indicator"
+              style={{ backgroundColor: getStatusColor() }}
+            />
+            <span className="status-text">
+              {getStatusText()}
+              {statusMessage && `: ${statusMessage}`}
+            </span>
+          </div>
         </div>
       </header>
 

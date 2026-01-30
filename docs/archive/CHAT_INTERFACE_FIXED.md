@@ -144,7 +144,7 @@ All endpoints responding correctly:
 8. ✅ User listing and profile display
 
 ### Automated Testing ✅
-- Test script: [test_chat_and_observability.sh](test_chat_and_observability.sh)
+- Test script: [test_chat_and_observability.sh](../../tests/scripts/test_chat_and_observability.sh)
 - All endpoints responding with HTTP 200
 
 ### Playwright Testing ✅

@@ -85,7 +85,7 @@ export class WebSocketService {
     }
   }
 
-  sendMessage(text: string, inputMode: 'voice' | 'chat' = 'chat'): void {
+  sendMessage(text: string, inputMode: 'voice' | 'chat' = 'chat', userId?: string): void {
     if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
       this.notifyError('WebSocket is not connected');
       return;
@@ -95,7 +95,8 @@ export class WebSocketService {
       type: 'user_message',
       data: {
         text,
-        input_mode: inputMode
+        input_mode: inputMode,
+        user_id: userId || 'user_justin'  // Default to user_justin if not provided
       },
       timestamp: new Date().toISOString()
     };

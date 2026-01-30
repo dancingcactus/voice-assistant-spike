@@ -155,7 +155,7 @@ The test data includes:
 - **Clear cache**: Hard refresh with Cmd+Shift+R (Mac) or Ctrl+Shift+R (Windows)
 
 ### Statistics showing 0
-- **Verify data**: Run test script `./test_milestone5_tool_calls.sh`
+- **Verify data**: Run test script `./tests/scripts/test_milestone5_tool_calls.sh`
 - **Check API**: `curl -H "Authorization: Bearer dev_token_12345" "http://localhost:8000/tool-calls/stats?user_id=user_justin"`
 
 ---
@@ -196,7 +196,7 @@ curl -H "Authorization: Bearer dev_token_12345" \
 
 ## Success Criteria
 
-✅ All backend API tests pass (`./test_milestone5_tool_calls.sh`)
+✅ All backend API tests pass (`./tests/scripts/test_milestone5_tool_calls.sh`)
 ✅ Timeline view shows all tool calls
 ✅ Filters work individually and combined
 ✅ Detail modal opens and shows complete data

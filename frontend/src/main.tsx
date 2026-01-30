@@ -7,12 +7,23 @@ import App from './App.tsx'
 import { Dashboard } from './components/Dashboard'
 import { SimpleTest } from './components/SimpleTest'
 
-// Create React Query client
+// Create React Query client with optimized caching
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
+      // Performance optimizations
       refetchOnWindowFocus: false,
       retry: 1,
+      staleTime: 30000, // Data is fresh for 30 seconds
+      gcTime: 300000, // Keep unused data in cache for 5 minutes
+
+      // UX improvements
+      refetchOnReconnect: true,
+      networkMode: 'online',
+    },
+    mutations: {
+      retry: 1,
+      networkMode: 'online',
     },
   },
 })

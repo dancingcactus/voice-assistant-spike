@@ -67,7 +67,7 @@ GET  /tool-calls/{call_id}            # Detailed view
 - Success/failure patterns
 - Distributed across 7 days
 
-#### 7. Automated Test Script (`test_milestone5_tool_calls.sh`)
+#### 7. Automated Test Script (`tests/scripts/test_milestone5_tool_calls.sh`)
 - 10 comprehensive backend API tests
 - Validates all filtering options
 - Verifies statistics accuracy
@@ -149,7 +149,7 @@ GET  /tool-calls/{call_id}            # Detailed view
 3. `/backend/scripts/generate_sample_tool_calls.py` (159 lines)
 4. `/frontend/src/components/ToolCallsTool.tsx` (500+ lines)
 5. `/frontend/src/components/ToolCallsTool.css` (525 lines)
-6. `/test_milestone5_tool_calls.sh` (154 lines)
+6. `/tests/scripts/test_milestone5_tool_calls.sh` (154 lines)
 7. `/backend/data/tool_logs/user_justin_tool_calls.jsonl` (50 log entries)
 
 ### Modified Files

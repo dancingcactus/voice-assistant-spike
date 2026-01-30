@@ -289,7 +289,7 @@ If you encounter issues not covered here, check:
 
 For Character Tool specific issues, run the test script:
 ```bash
-./test_milestone7_character_tool.sh
+./tests/scripts/test_milestone7_character_tool.sh
 ```
 
 All 10 tests should pass if the system is configured correctly.

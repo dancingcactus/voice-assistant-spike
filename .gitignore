@@ -56,3 +56,13 @@ frontend/build/
 backend/audio/
 *.mp3
 *.wav
+
+# Backup files
+*.bak
+
+# Playwright/browser automation
+.playwright-mcp/
+
+# Test artifacts
+*.png
+!docs/screenshots/*.png

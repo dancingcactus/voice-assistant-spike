@@ -443,7 +443,7 @@ EOF
 ### Updated Files
 - ✅ This completion report
 - ✅ [MILESTONE_6_MEMORY_EXTRACTION.md](MILESTONE_6_MEMORY_EXTRACTION.md) (original plan)
-- ✅ Test script: [test_milestone6_memory_extraction.sh](../../../test_milestone6_memory_extraction.sh)
+- ✅ Test script: [test_milestone6_memory_extraction.sh](../../../tests/scripts/test_milestone6_memory_extraction.sh)
 
 ### Code Comments
 - ✅ All new code includes docstrings
