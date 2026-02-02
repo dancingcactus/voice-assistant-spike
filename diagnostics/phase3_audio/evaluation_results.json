@@ -1,0 +1,283 @@
+{
+  "passionate_iteration_1_baseline": {
+    "mode": "passionate",
+    "iteration": "iteration_1_baseline",
+    "generated_at": "2026-02-01T20:01:00.001219",
+    "settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75,
+      "style": 0.5,
+      "use_speaker_boost": true,
+      "notes": "Baseline with default settings"
+    },
+    "phrases": [
+      {
+        "phrase_num": 1,
+        "phrase_id": "biscuits",
+        "file_path": "diagnostics/phase3_audio/passionate_iteration_1_baseline_biscuits.mp3",
+        "rating": 7,
+        "notes": "Southern:5/5, Character:5/5, Energy:2/5, Followability:4/5, Speed:2/5, Timing:3/5"
+      },
+      {
+        "phrase_num": 2,
+        "phrase_id": "cornbread",
+        "file_path": "diagnostics/phase3_audio/passionate_iteration_1_baseline_cornbread.mp3",
+        "rating": 9,
+        "notes": "Southern:5/5, Character:5/5, Energy:4/5, Followability:5/5, Speed:4/5, Timing:4/5 | That one was pretty good."
+      },
+      {
+        "phrase_num": 3,
+        "phrase_id": "gumbo",
+        "file_path": "diagnostics/phase3_audio/passionate_iteration_1_baseline_gumbo.mp3",
+        "rating": 10,
+        "notes": "Southern:5/5, Character:5/5, Energy:5/5, Followability:5/5, Speed:5/5, Timing:5/5 | That was great"
+      },
+      {
+        "phrase_num": 4,
+        "phrase_id": "fried_chicken",
+        "file_path": "diagnostics/phase3_audio/passionate_iteration_1_baseline_fried_chicken.mp3",
+        "rating": 9,
+        "notes": "Southern:5/5, Character:5/5, Energy:4/5, Followability:5/5, Speed:4/5, Timing:5/5 | The interrupt was well timed for this one."
+      },
+      {
+        "phrase_num": 5,
+        "phrase_id": "pot_roast",
+        "file_path": "diagnostics/phase3_audio/passionate_iteration_1_baseline_pot_roast.mp3",
+        "rating": 9,
+        "notes": "Southern:5/5, Character:5/5, Energy:5/5, Followability:4/5, Speed:4/5, Timing:4/5 | The timing and emphasis was great except for the last phrase. The emphasis should have been on You instead of honey."
+      },
+      {
+        "phrase_num": 6,
+        "phrase_id": "collard_greens",
+        "file_path": "diagnostics/phase3_audio/passionate_iteration_1_baseline_collard_greens.mp3",
+        "rating": 7,
+        "notes": "Southern:5/5, Character:5/5, Energy:3/5, Followability:3/5, Speed:3/5, Timing:3/5 | It starts out with a high energy level then after a few sentences it settles back into the slow southern pace."
+      },
+      {
+        "phrase_num": 7,
+        "phrase_id": "recipe_help",
+        "file_path": "diagnostics/phase3_audio/passionate_iteration_1_baseline_recipe_help.mp3",
+        "rating": 9,
+        "notes": "Southern:5/5, Character:5/5, Energy:4/5, Followability:5/5, Speed:5/5, Timing:4/5"
+      },
+      {
+        "phrase_num": 8,
+        "phrase_id": "technique_enthusiasm",
+        "file_path": "diagnostics/phase3_audio/passionate_iteration_1_baseline_technique_enthusiasm.mp3",
+        "rating": 8,
+        "notes": "Southern:5/5, Character:5/5, Energy:3/5, Followability:3/5, Speed:4/5, Timing:3/5 | The timing of the words made it a bit difficult to follow the redirections in thoughts."
+      }
+    ]
+  },
+  "passionate_iteration_2_energy": {
+    "mode": "passionate",
+    "iteration": "iteration_2_energy",
+    "generated_at": "2026-02-01T22:54:56.129818",
+    "settings": {
+      "stability": 0.35,
+      "similarity_boost": 0.75,
+      "style": 0.65,
+      "use_speaker_boost": true,
+      "notes": "Lower stability (0.35), higher style (0.65) for consistent energy"
+    },
+    "phrases": [
+      {
+        "phrase_num": 1,
+        "phrase_id": "biscuits",
+        "file_path": "diagnostics/phase3_audio/passionate_iteration_2_energy_biscuits.mp3",
+        "rating": 9,
+        "notes": "Southern:5/5, Character:5/5, Energy:4/5, Followability:5/5, Speed:4/5, Timing:4/5 | I love the energy at the beginning if feels more Delilah. However, it goes a little flat at the end."
+      },
+      {
+        "phrase_num": 2,
+        "phrase_id": "cornbread",
+        "file_path": "diagnostics/phase3_audio/passionate_iteration_2_energy_cornbread.mp3",
+        "rating": 8,
+        "notes": "Southern:5/5, Character:5/5, Energy:3/5, Followability:4/5, Speed:3/5, Timing:3/5 | It starts out great. Then reverts back into the slow low energy version."
+      },
+      {
+        "phrase_num": 3,
+        "phrase_id": "gumbo",
+        "file_path": "diagnostics/phase3_audio/passionate_iteration_2_energy_gumbo.mp3",
+        "rating": 8,
+        "notes": "Southern:5/5, Character:5/5, Energy:4/5, Followability:5/5, Speed:3/5, Timing:3/5 | The speed is a little slow but there isn't much variability in the speed of the speech."
+      },
+      {
+        "phrase_num": 4,
+        "phrase_id": "fried_chicken",
+        "file_path": "diagnostics/phase3_audio/passionate_iteration_2_energy_fried_chicken.mp3",
+        "rating": 10,
+        "notes": "Southern:5/5, Character:5/5, Energy:5/5, Followability:5/5, Speed:5/5, Timing:5/5 | This is AWESOME!"
+      },
+      {
+        "phrase_num": 5,
+        "phrase_id": "pot_roast",
+        "file_path": "diagnostics/phase3_audio/passionate_iteration_2_energy_pot_roast.mp3",
+        "rating": 10,
+        "notes": "Southern:5/5, Character:5/5, Energy:5/5, Followability:5/5, Speed:5/5, Timing:5/5 | Awesome"
+      },
+      {
+        "phrase_num": 6,
+        "phrase_id": "collard_greens",
+        "file_path": "diagnostics/phase3_audio/passionate_iteration_2_energy_collard_greens.mp3",
+        "rating": 10,
+        "notes": "Southern:5/5, Character:5/5, Energy:5/5, Followability:5/5, Speed:5/5, Timing:5/5 | Awesome"
+      },
+      {
+        "phrase_num": 7,
+        "phrase_id": "recipe_help",
+        "file_path": "diagnostics/phase3_audio/passionate_iteration_2_energy_recipe_help.mp3",
+        "rating": 9,
+        "notes": "Southern:5/5, Character:5/5, Energy:5/5, Followability:4/5, Speed:5/5, Timing:4/5 | The emphasis and inflection of 'Oh\\! Sugar\\! YES\\!' isn't well connected so it feels disjointed."
+      },
+      {
+        "phrase_num": 8,
+        "phrase_id": "technique_enthusiasm",
+        "file_path": "diagnostics/phase3_audio/passionate_iteration_2_energy_technique_enthusiasm.mp3",
+        "rating": 8,
+        "notes": "Southern:5/5, Character:5/5, Energy:4/5, Followability:4/5, Speed:4/5, Timing:4/5"
+      }
+    ]
+  },
+  "protective_iteration_1_baseline": {
+    "mode": "protective",
+    "iteration": "iteration_1_baseline",
+    "generated_at": "2026-02-01T23:14:56.590286",
+    "settings": {
+      "stability": 0.55,
+      "similarity_boost": 0.75,
+      "style": 0.45,
+      "use_speaker_boost": true,
+      "notes": "Higher stability for controlled intensity, moderate style for firm but caring tone"
+    },
+    "phrases": [
+      {
+        "phrase_num": 1,
+        "phrase_id": "microwaved_steak",
+        "file_path": "diagnostics/phase3_audio/protective_iteration_1_baseline_microwaved_steak.mp3",
+        "rating": 7,
+        "notes": "Southern:5/5, Character:3/5, Controlled:4/5, Caring:4/5, BlessYourHeart:3/5, Transition:3/5 | The transition from Shock to eduction isn't quite obvious. It can come across a super direct not quite mean but also not quite Delilah"
+      },
+      {
+        "phrase_num": 2,
+        "phrase_id": "boiled_chicken",
+        "file_path": "diagnostics/phase3_audio/protective_iteration_1_baseline_boiled_chicken.mp3",
+        "rating": 8,
+        "notes": "Southern:5/5, Character:4/5, Controlled:4/5, Caring:4/5, BlessYourHeart:4/5, Transition:4/5"
+      },
+      {
+        "phrase_num": 3,
+        "phrase_id": "instant_grits",
+        "file_path": "diagnostics/phase3_audio/protective_iteration_1_baseline_instant_grits.mp3",
+        "rating": 8,
+        "notes": "Southern:5/5, Character:5/5, Controlled:4/5, Caring:4/5, BlessYourHeart:4/5, Transition:2/5 | The tansition, timing and emphasis feel a bit off especially at the beginning."
+      },
+      {
+        "phrase_num": 4,
+        "phrase_id": "preshredded_cheese",
+        "file_path": "diagnostics/phase3_audio/protective_iteration_1_baseline_preshredded_cheese.mp3",
+        "rating": 10,
+        "notes": "Southern:5/5, Character:5/5, Controlled:5/5, Caring:5/5, BlessYourHeart:5/5, Transition:5/5 | This was great"
+      },
+      {
+        "phrase_num": 5,
+        "phrase_id": "washing_chicken",
+        "file_path": "diagnostics/phase3_audio/protective_iteration_1_baseline_washing_chicken.mp3",
+        "rating": 8,
+        "notes": "Southern:4/5, Character:5/5, Controlled:3/5, Caring:3/5, BlessYourHeart:4/5, Transition:4/5 | The energy dies off a little bit by the end."
+      },
+      {
+        "phrase_num": 6,
+        "phrase_id": "overcooked_vegetables",
+        "file_path": "diagnostics/phase3_audio/protective_iteration_1_baseline_overcooked_vegetables.mp3",
+        "rating": 10,
+        "notes": "Southern:5/5, Character:5/5, Controlled:5/5, Caring:5/5, BlessYourHeart:5/5, Transition:5/5"
+      },
+      {
+        "phrase_num": 7,
+        "phrase_id": "wrong_temperature",
+        "file_path": "diagnostics/phase3_audio/protective_iteration_1_baseline_wrong_temperature.mp3",
+        "rating": 9,
+        "notes": "Southern:5/5, Character:5/5, Controlled:5/5, Caring:4/5, BlessYourHeart:4/5, Transition:5/5"
+      },
+      {
+        "phrase_num": 8,
+        "phrase_id": "skipping_steps",
+        "file_path": "diagnostics/phase3_audio/protective_iteration_1_baseline_skipping_steps.mp3",
+        "rating": 10,
+        "notes": "Southern:5/5, Character:5/5, Controlled:5/5, Caring:5/5, BlessYourHeart:5/5, Transition:5/5 | This one nailed it. The pattern should be exclaimation -> recognizing motivations -> transition to corrections -> Correcting collaboratively"
+      }
+    ]
+  },
+  "protective_iteration_2_pattern": {
+    "mode": "protective",
+    "iteration": "iteration_2_pattern",
+    "generated_at": "2026-02-02T08:50:51.562316",
+    "settings": {
+      "stability": 0.55,
+      "similarity_boost": 0.75,
+      "style": 0.45,
+      "use_speaker_boost": true,
+      "notes": "Same TTS settings, improved text applying the protective pattern: Recognition \u2192 Gentle Correction \u2192 Consequence \u2192 Collaboration",
+      "use_text_version": "text_v2"
+    },
+    "phrases": [
+      {
+        "phrase_num": 1,
+        "phrase_id": "microwaved_steak",
+        "file_path": "diagnostics/phase3_audio/protective_iteration_2_pattern_microwaved_steak.mp3",
+        "rating": 10,
+        "notes": "Southern:5/5, Character:5/5, Controlled:5/5, Caring:5/5, BlessYourHeart:5/5, Transition:5/5 | The speed is a little slow but everything else is perfect"
+      },
+      {
+        "phrase_num": 2,
+        "phrase_id": "boiled_chicken",
+        "file_path": "diagnostics/phase3_audio/protective_iteration_2_pattern_boiled_chicken.mp3",
+        "rating": 10,
+        "notes": "Southern:5/5, Character:5/5, Controlled:5/5, Caring:5/5, BlessYourHeart:5/5, Transition:5/5 | That was great!"
+      },
+      {
+        "phrase_num": 3,
+        "phrase_id": "instant_grits",
+        "file_path": "diagnostics/phase3_audio/protective_iteration_2_pattern_instant_grits.mp3",
+        "rating": 9,
+        "notes": "Southern:5/5, Character:4/5, Controlled:4/5, Caring:5/5, BlessYourHeart:5/5, Transition:5/5"
+      },
+      {
+        "phrase_num": 4,
+        "phrase_id": "preshredded_cheese",
+        "file_path": "diagnostics/phase3_audio/protective_iteration_2_pattern_preshredded_cheese.mp3",
+        "rating": 10,
+        "notes": "Southern:5/5, Character:5/5, Controlled:5/5, Caring:4/5, BlessYourHeart:5/5, Transition:5/5"
+      },
+      {
+        "phrase_num": 5,
+        "phrase_id": "washing_chicken",
+        "file_path": "diagnostics/phase3_audio/protective_iteration_2_pattern_washing_chicken.mp3",
+        "rating": 10,
+        "notes": "Southern:5/5, Character:5/5, Controlled:4/5, Caring:5/5, BlessYourHeart:5/5, Transition:5/5"
+      },
+      {
+        "phrase_num": 6,
+        "phrase_id": "overcooked_vegetables",
+        "file_path": "diagnostics/phase3_audio/protective_iteration_2_pattern_overcooked_vegetables.mp3",
+        "rating": 10,
+        "notes": "Southern:5/5, Character:5/5, Controlled:5/5, Caring:5/5, BlessYourHeart:5/5, Transition:5/5"
+      },
+      {
+        "phrase_num": 7,
+        "phrase_id": "wrong_temperature",
+        "file_path": "diagnostics/phase3_audio/protective_iteration_2_pattern_wrong_temperature.mp3",
+        "rating": 9,
+        "notes": "Southern:5/5, Character:4/5, Controlled:4/5, Caring:4/5, BlessYourHeart:5/5, Transition:5/5"
+      },
+      {
+        "phrase_num": 8,
+        "phrase_id": "skipping_steps",
+        "file_path": "diagnostics/phase3_audio/protective_iteration_2_pattern_skipping_steps.mp3",
+        "rating": 10,
+        "notes": "Southern:5/5, Character:5/5, Controlled:5/5, Caring:5/5, BlessYourHeart:5/5, Transition:5/5 | This was a little slow but everything else was great."
+      }
+    ]
+  }
+}
