@@ -124,6 +124,50 @@ TEST_PHRASES = {
                 }
             ]
         }
+    },
+    "mama_bear": {
+        "set_a": {
+            "name": "Allergy Responses",
+            "phrases": [
+                {
+                    "id": "celiac_disease",
+                    "text": "Oh darlin', thank you for telling me that. I'm gonna make absolutely sure everything I recommend is gluten-free, okay? No wheat, no barley, no rye—none of it. You're safe with me, sugar."
+                },
+                {
+                    "id": "shellfish_allergy",
+                    "text": "Sugar, I hear you, and I've got you. No shellfish anywhere near what we're making. Not in the dish, not in the stock, not in any sauce. I'm gonna double-check everything for you, darlin'. You can trust me on this."
+                },
+                {
+                    "id": "nut_allergy_severe",
+                    "text": "Honey, listen to me. That's serious, and I take it seriously too. Every single recipe I give you is gonna be nut-free, and I'm gonna call out any risks. You're completely safe here with me, sugar. I promise you that."
+                },
+                {
+                    "id": "dairy_intolerance",
+                    "text": "Oh darlin', I understand. We're gonna work around dairy completely. No milk, no butter, no cheese—and I know good substitutes that'll still taste wonderful. Don't you worry one bit, sugar, we'll make it work."
+                },
+                {
+                    "id": "multiple_allergies",
+                    "text": "Okay honey, let me make sure I have this right. No eggs, no soy, and no tree nuts. I'm keeping track of all of that for you, darlin'. Every recipe will be safe. You just let me know if there's anything else, and I've got you covered, sugar."
+                },
+                {
+                    "id": "child_with_allergies",
+                    "text": "Oh darlin', thank you for being so careful with your little one. I'm gonna treat this like it's the most important thing in the world, because it is. No peanuts, and I'll flag anything that might have cross-contamination. Your baby is safe, sugar."
+                }
+            ]
+        },
+        "set_b": {
+            "name": "Dietary Restrictions",
+            "phrases": [
+                {
+                    "id": "religious_restriction_kosher",
+                    "text": "Sugar, I respect that completely, and I'll honor it in everything I recommend. No mixing meat and dairy, no pork, no shellfish. You can trust that I understand how important this is, darlin'."
+                },
+                {
+                    "id": "medical_restriction_diabetes",
+                    "text": "Honey, managing your blood sugar is important, and we're gonna do this right together. I'll help you with portion sizes and timing, and we'll keep an eye on those carbs. You're in good hands, sugar."
+                }
+            ]
+        }
     }
     # Additional modes will be added as we progress through milestones
 }
@@ -164,6 +208,16 @@ ITERATION_SETTINGS = {
             "use_speaker_boost": True,
             "notes": "Same TTS settings, improved text applying the protective pattern: Recognition → Gentle Correction → Consequence → Collaboration",
             "use_text_version": "text_v2"
+        },
+        # Additional iterations will be added as we refine
+    },
+    "mama_bear": {
+        "iteration_1_baseline": {
+            "stability": 0.65,
+            "similarity_boost": 0.75,
+            "style": 0.40,
+            "use_speaker_boost": True,
+            "notes": "Higher stability (0.65) for soft, controlled delivery; lower style (0.40) for gentle, measured tone"
         },
         # Additional iterations will be added as we refine
     }

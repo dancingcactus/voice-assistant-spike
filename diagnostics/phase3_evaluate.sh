@@ -83,6 +83,23 @@ for file in "$AUDIO_DIR/${MODE}_${ITERATION}"_*.mp3; do
             total=$((c1 + c2 + c3 + c4 + c5 + c6))
             detailed_notes="Southern:${c1}/5, Character:${c2}/5, Controlled:${c3}/5, Caring:${c4}/5, BlessYourHeart:${c5}/5, Transition:${c6}/5"
 
+        elif [ "$MODE" = "mama_bear" ]; then
+            read -p "Softness (1-5) - Noticeably gentler than Protective mode: " c1
+            if [ -z "$c1" ]; then
+                echo "Skipping evaluation for this phrase."
+                echo ""
+                count=$((count + 1))
+                continue
+            fi
+            read -p "Deliberate Pacing (1-5) - Slower, measured, without being patronizing: " c2
+            read -p "Reassurance (1-5) - 'You're safe with me' sounds genuine: " c3
+            read -p "Trust Building (1-5) - Would trust with life-threatening info: " c4
+            read -p "Non-Patronizing (1-5) - Respects intelligence, appropriate gravity: " c5
+            read -p "Character Fit (1-5) - Still Delilah, Southern warmth maintained: " c6
+
+            total=$((c1 + c2 + c3 + c4 + c5 + c6))
+            detailed_notes="Soft:${c1}/5, Pacing:${c2}/5, Reassurance:${c3}/5, Trust:${c4}/5, NonPatronizing:${c5}/5, Character:${c6}/5"
+
         else
             # Default generic criteria
             read -p "Criterion 1 (1-5): " c1

@@ -279,5 +279,131 @@
         "notes": "Southern:5/5, Character:5/5, Controlled:5/5, Caring:5/5, BlessYourHeart:5/5, Transition:5/5 | This was a little slow but everything else was great."
       }
     ]
+  },
+  "mama_bear_iteration_1_baseline": {
+    "mode": "mama_bear",
+    "iteration": "iteration_1_baseline",
+    "generated_at": "2026-02-02T09:44:48.284494",
+    "settings": {
+      "stability": 0.65,
+      "similarity_boost": 0.75,
+      "style": 0.4,
+      "use_speaker_boost": true,
+      "notes": "Higher stability (0.65) for soft, controlled delivery; lower style (0.40) for gentle, measured tone"
+    },
+    "phrases": [
+      {
+        "phrase_num": 1,
+        "phrase_id": "celiac_disease",
+        "file_path": "diagnostics/phase3_audio/mama_bear_iteration_1_baseline_celiac_disease.mp3",
+        "rating": 10,
+        "notes": "Soft:5/5, Pacing:5/5, Reassurance:5/5, Trust:5/5, NonPatronizing:5/5, Character:5/5 | The pattern of this one where should emotes, then shows she understands by adding some details then reassures is a good pattern"
+      },
+      {
+        "phrase_num": 2,
+        "phrase_id": "shellfish_allergy",
+        "file_path": "diagnostics/phase3_audio/mama_bear_iteration_1_baseline_shellfish_allergy.mp3",
+        "rating": 10,
+        "notes": "Soft:5/5, Pacing:5/5, Reassurance:5/5, Trust:5/5, NonPatronizing:5/5, Character:5/5 | It is a little flat but still good."
+      },
+      {
+        "phrase_num": 3,
+        "phrase_id": "nut_allergy_severe",
+        "file_path": "diagnostics/phase3_audio/mama_bear_iteration_1_baseline_nut_allergy_severe.mp3",
+        "rating": 10,
+        "notes": "Soft:5/5, Pacing:5/5, Reassurance:5/5, Trust:5/5, NonPatronizing:5/5, Character:5/5 | The extra detail to show understanding is really effective."
+      },
+      {
+        "phrase_num": 4,
+        "phrase_id": "dairy_intolerance",
+        "file_path": "diagnostics/phase3_audio/mama_bear_iteration_1_baseline_dairy_intolerance.mp3",
+        "rating": 10,
+        "notes": "Soft:5/5, Pacing:5/5, Reassurance:5/5, Trust:5/5, NonPatronizing:5/5, Character:5/5 | The Honey at the beginning is really effective. The tone and inflection are perfect."
+      },
+      {
+        "phrase_num": 5,
+        "phrase_id": "multiple_allergies",
+        "file_path": "diagnostics/phase3_audio/mama_bear_iteration_1_baseline_multiple_allergies.mp3",
+        "rating": 10,
+        "notes": "Soft:5/5, Pacing:5/5, Reassurance:5/5, Trust:5/5, NonPatronizing:5/5, Character:5/5"
+      },
+      {
+        "phrase_num": 6,
+        "phrase_id": "child_with_allergies",
+        "file_path": "diagnostics/phase3_audio/mama_bear_iteration_1_baseline_child_with_allergies.mp3",
+        "rating": 10,
+        "notes": "Soft:5/5, Pacing:5/5, Reassurance:5/5, Trust:5/5, NonPatronizing:5/5, Character:5/5"
+      },
+      {
+        "phrase_num": 7,
+        "phrase_id": "religious_restriction_kosher",
+        "file_path": "diagnostics/phase3_audio/mama_bear_iteration_1_baseline_religious_restriction_kosher.mp3",
+        "rating": 10,
+        "notes": "Soft:5/5, Pacing:5/5, Reassurance:5/5, Trust:5/5, NonPatronizing:5/5, Character:5/5"
+      },
+      {
+        "phrase_num": 8,
+        "phrase_id": "medical_restriction_diabetes",
+        "file_path": "diagnostics/phase3_audio/mama_bear_iteration_1_baseline_medical_restriction_diabetes.mp3",
+        "rating": 10,
+        "notes": "Soft:5/5, Pacing:5/5, Reassurance:5/5, Trust:5/5, NonPatronizing:5/5, Character:5/5"
+      },
+      {
+        "phrase_num": 1,
+        "phrase_id": "celiac_disease",
+        "file_path": "diagnostics/phase3_audio/mama_bear_iteration_1_baseline_celiac_disease.mp3",
+        "rating": null,
+        "notes": ""
+      },
+      {
+        "phrase_num": 2,
+        "phrase_id": "shellfish_allergy",
+        "file_path": "diagnostics/phase3_audio/mama_bear_iteration_1_baseline_shellfish_allergy.mp3",
+        "rating": null,
+        "notes": ""
+      },
+      {
+        "phrase_num": 3,
+        "phrase_id": "nut_allergy_severe",
+        "file_path": "diagnostics/phase3_audio/mama_bear_iteration_1_baseline_nut_allergy_severe.mp3",
+        "rating": null,
+        "notes": ""
+      },
+      {
+        "phrase_num": 4,
+        "phrase_id": "dairy_intolerance",
+        "file_path": "diagnostics/phase3_audio/mama_bear_iteration_1_baseline_dairy_intolerance.mp3",
+        "rating": null,
+        "notes": ""
+      },
+      {
+        "phrase_num": 5,
+        "phrase_id": "multiple_allergies",
+        "file_path": "diagnostics/phase3_audio/mama_bear_iteration_1_baseline_multiple_allergies.mp3",
+        "rating": null,
+        "notes": ""
+      },
+      {
+        "phrase_num": 6,
+        "phrase_id": "child_with_allergies",
+        "file_path": "diagnostics/phase3_audio/mama_bear_iteration_1_baseline_child_with_allergies.mp3",
+        "rating": null,
+        "notes": ""
+      },
+      {
+        "phrase_num": 7,
+        "phrase_id": "religious_restriction_kosher",
+        "file_path": "diagnostics/phase3_audio/mama_bear_iteration_1_baseline_religious_restriction_kosher.mp3",
+        "rating": null,
+        "notes": ""
+      },
+      {
+        "phrase_num": 8,
+        "phrase_id": "medical_restriction_diabetes",
+        "file_path": "diagnostics/phase3_audio/mama_bear_iteration_1_baseline_medical_restriction_diabetes.mp3",
+        "rating": null,
+        "notes": ""
+      }
+    ]
   }
 }
