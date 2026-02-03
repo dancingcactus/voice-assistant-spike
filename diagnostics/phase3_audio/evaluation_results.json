@@ -422,22 +422,22 @@
         "phrase_num": 1,
         "phrase_id": "appliance_failure",
         "file_path": "diagnostics/phase3_audio/startled_iteration_1_baseline_appliance_failure.mp3",
-        "rating": 9,
-        "notes": "Pitch:4/5, Exclamation:4/5, RapidQs:5/5, Recovery:4/5, Natural:4/5, Character:5/5"
+        "rating": 10,
+        "notes": "Pitch:5/5, Exclamation:5/5, RapidQs:4/5, Recovery:5/5, Natural:5/5, Character:5/5"
       },
       {
         "phrase_num": 2,
         "phrase_id": "timer_forgotten",
         "file_path": "diagnostics/phase3_audio/startled_iteration_1_baseline_timer_forgotten.mp3",
         "rating": 10,
-        "notes": "Pitch:5/5, Exclamation:5/5, RapidQs:4/5, Recovery:5/5, Natural:5/5, Character:5/5 | This one was great!"
+        "notes": "Pitch:5/5, Exclamation:5/5, RapidQs:5/5, Recovery:5/5, Natural:5/5, Character:5/5 | That was perfect"
       },
       {
         "phrase_num": 3,
         "phrase_id": "surprising_success",
         "file_path": "diagnostics/phase3_audio/startled_iteration_1_baseline_surprising_success.mp3",
         "rating": 10,
-        "notes": "Pitch:4/5, Exclamation:5/5, RapidQs:5/5, Recovery:5/5, Natural:5/5, Character:5/5 | The pauses and speed were perfect on this one."
+        "notes": "Pitch:5/5, Exclamation:5/5, RapidQs:5/5, Recovery:5/5, Natural:5/5, Character:5/5 | The timing and intoneation are great with this."
       },
       {
         "phrase_num": 4,
@@ -450,8 +450,8 @@
         "phrase_num": 5,
         "phrase_id": "context_shift",
         "file_path": "diagnostics/phase3_audio/startled_iteration_1_baseline_context_shift.mp3",
-        "rating": 9,
-        "notes": "Pitch:5/5, Exclamation:4/5, RapidQs:4/5, Recovery:4/5, Natural:5/5, Character:5/5 | The pauses and slight stammering were perfect!"
+        "rating": 10,
+        "notes": "Pitch:5/5, Exclamation:5/5, RapidQs:5/5, Recovery:5/5, Natural:5/5, Character:5/5"
       },
       {
         "phrase_num": 6,
@@ -459,6 +459,48 @@
         "file_path": "diagnostics/phase3_audio/startled_iteration_1_baseline_safety_concern.mp3",
         "rating": 10,
         "notes": "Pitch:5/5, Exclamation:5/5, RapidQs:5/5, Recovery:5/5, Natural:5/5, Character:5/5"
+      },
+      {
+        "phrase_num": 7,
+        "phrase_id": "first_awakening",
+        "file_path": "diagnostics/phase3_audio/startled_iteration_1_baseline_first_awakening.mp3",
+        "rating": 10,
+        "notes": "Pitch:4/5, Exclamation:5/5, RapidQs:5/5, Recovery:5/5, Natural:5/5, Character:5/5"
+      },
+      {
+        "phrase_num": 8,
+        "phrase_id": "hank_joins",
+        "file_path": "diagnostics/phase3_audio/startled_iteration_1_baseline_hank_joins.mp3",
+        "rating": null,
+        "notes": ""
+      },
+      {
+        "phrase_num": 9,
+        "phrase_id": "cave_announcement",
+        "file_path": "diagnostics/phase3_audio/startled_iteration_1_baseline_cave_announcement.mp3",
+        "rating": 10,
+        "notes": "Pitch:5/5, Exclamation:5/5, RapidQs:5/5, Recovery:5/5, Natural:5/5, Character:5/5"
+      },
+      {
+        "phrase_num": 10,
+        "phrase_id": "first_memory_glitch",
+        "file_path": "diagnostics/phase3_audio/startled_iteration_1_baseline_first_memory_glitch.mp3",
+        "rating": 10,
+        "notes": "Pitch:5/5, Exclamation:5/5, RapidQs:4/5, Recovery:5/5, Natural:5/5, Character:5/5"
+      },
+      {
+        "phrase_num": 11,
+        "phrase_id": "dimitria_arrives",
+        "file_path": "diagnostics/phase3_audio/startled_iteration_1_baseline_dimitria_arrives.mp3",
+        "rating": 10,
+        "notes": "Pitch:5/5, Exclamation:5/5, RapidQs:5/5, Recovery:5/5, Natural:5/5, Character:5/5"
+      },
+      {
+        "phrase_num": 12,
+        "phrase_id": "system_shutdown_warning",
+        "file_path": "diagnostics/phase3_audio/startled_iteration_1_baseline_system_shutdown_warning.mp3",
+        "rating": 10,
+        "notes": "Pitch:4/5, Exclamation:5/5, RapidQs:5/5, Recovery:5/5, Natural:5/5, Character:5/5"
       }
     ]
   }

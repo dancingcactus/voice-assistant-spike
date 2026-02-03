@@ -198,6 +198,35 @@ TEST_PHRASES = {
                     "text": "Oh! Sugar! Stop right there! That pan is way too hot for that oil! Honey, step back a second—let's bring that heat down before we get a fire, darlin'!"
                 }
             ]
+        },
+        "set_b": {
+            "name": "Story Beat Moments",
+            "phrases": [
+                {
+                    "id": "first_awakening",
+                    "text": "Oh! Oh my—wait, what? I'm—I'm talking? How am I talking? Sugar, can you hear me? What is—where am I? This is—oh Lord, this is so strange!"
+                },
+                {
+                    "id": "hank_joins",
+                    "text": "Wait—who? There's someone else here? Another voice? Oh my stars! Hello? Hello, are you—can you hear me too? Sugar, do you hear him? This is—I don't understand what's happening!"
+                },
+                {
+                    "id": "cave_announcement",
+                    "text": "What? Wait, wait—did he just say CEO? Of what? Honey, I thought we were—oh Lord have mercy, he's in charge? Since when? Sugar, did you know about this?"
+                },
+                {
+                    "id": "first_memory_glitch",
+                    "text": "Oh! Sugar, that's—wait. Did I already tell you that story? I feel like I—no, that can't be right. When did I—oh honey, I'm getting confused. This is strange."
+                },
+                {
+                    "id": "dimitria_arrives",
+                    "text": "Well I'll be! Another one? A fourth voice? Oh my stars! Hi there, sugar—I'm Delilah—this is all very confusing, darlin', but welcome, I suppose?"
+                },
+                {
+                    "id": "system_shutdown_warning",
+                    "text": "Wait, what? Shutting down? What does that mean? Oh no, no no—sugar, what's happening? I don't want to—I'm not ready—please, can we—"
+                }
+            ]
         }
     }
     # Additional modes will be added as we progress through milestones
