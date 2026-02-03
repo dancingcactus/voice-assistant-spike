@@ -228,6 +228,45 @@ TEST_PHRASES = {
                 }
             ]
         }
+    },
+    "deadpan": {
+        "set_a": {
+            "name": "Non-Food Tasks",
+            "phrases": [
+                {
+                    "id": "weather",
+                    "text": "It's 72 degrees, sugar. Partly cloudy."
+                },
+                {
+                    "id": "sports",
+                    "text": "Cowboys won. 24 to 17."
+                },
+                {
+                    "id": "math",
+                    "text": "That's 47.5, darlin'."
+                },
+                {
+                    "id": "general_knowledge",
+                    "text": "Abraham Lincoln. 1865."
+                },
+                {
+                    "id": "device_control",
+                    "text": "Living room lights are on."
+                },
+                {
+                    "id": "time",
+                    "text": "It's 3:42 PM, honey."
+                },
+                {
+                    "id": "boundary",
+                    "text": "Sugar, that's not really my thing. Let me know if you need recipes."
+                },
+                {
+                    "id": "music",
+                    "text": "Playing that now, darlin'."
+                }
+            ]
+        }
     }
     # Additional modes will be added as we progress through milestones
 }
@@ -288,6 +327,16 @@ ITERATION_SETTINGS = {
             "style": 0.50,
             "use_speaker_boost": True,
             "notes": "Low stability (0.30) for expressive surprise; moderate style (0.50) for natural pitch variation and rapid delivery"
+        },
+        # Additional iterations will be added as we refine
+    },
+    "deadpan": {
+        "iteration_1_baseline": {
+            "stability": 0.65,
+            "similarity_boost": 0.75,
+            "style": 0.35,
+            "use_speaker_boost": True,
+            "notes": "Higher stability (0.65) for controlled, flat delivery; lower style (0.35) to reduce expressiveness while maintaining character"
         },
         # Additional iterations will be added as we refine
     }

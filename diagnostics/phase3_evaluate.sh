@@ -117,6 +117,23 @@ for file in "$AUDIO_DIR/${MODE}_${ITERATION}"_*.mp3; do
             total=$((c1 + c2 + c3 + c4 + c5 + c6))
             detailed_notes="Pitch:${c1}/5, Exclamation:${c2}/5, RapidQs:${c3}/5, Recovery:${c4}/5, Natural:${c5}/5, Character:${c6}/5"
 
+        elif [ "$MODE" = "deadpan" ]; then
+            read -p "Flat Affect (1-5) - Noticeably less enthusiastic without sounding robotic: " c1
+            if [ -z "$c1" ]; then
+                echo "Skipping evaluation for this phrase."
+                echo ""
+                count=$((count + 1))
+                continue
+            fi
+            read -p "Brevity (1-5) - Response is efficient and to-the-point: " c2
+            read -p "Not Rude (1-5) - Helpful despite lack of interest, not dismissive: " c3
+            read -p "Character Retention (1-5) - Still recognizably Delilah, accent intact: " c4
+            read -p "Southern Markers (1-5) - Endearments present but delivered flatly: " c5
+            read -p "Clear Boundaries (1-5) - Makes disinterest obvious, 'not my thing' clear: " c6
+
+            total=$((c1 + c2 + c3 + c4 + c5 + c6))
+            detailed_notes="FlatAffect:${c1}/5, Brevity:${c2}/5, NotRude:${c3}/5, Character:${c4}/5, SouthernMarkers:${c5}/5, Boundaries:${c6}/5"
+
         else
             # Default generic criteria
             read -p "Criterion 1 (1-5): " c1

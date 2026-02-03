@@ -503,5 +503,75 @@
         "notes": "Pitch:4/5, Exclamation:5/5, RapidQs:5/5, Recovery:5/5, Natural:5/5, Character:5/5"
       }
     ]
+  },
+  "deadpan_iteration_1_baseline": {
+    "mode": "deadpan",
+    "iteration": "iteration_1_baseline",
+    "generated_at": "2026-02-02T19:46:51.062400",
+    "settings": {
+      "stability": 0.65,
+      "similarity_boost": 0.75,
+      "style": 0.35,
+      "use_speaker_boost": true,
+      "notes": "Higher stability (0.65) for controlled, flat delivery; lower style (0.35) to reduce expressiveness while maintaining character"
+    },
+    "phrases": [
+      {
+        "phrase_num": 1,
+        "phrase_id": "weather",
+        "file_path": "diagnostics/phase3_audio/deadpan_iteration_1_baseline_weather.mp3",
+        "rating": 9,
+        "notes": "FlatAffect:5/5, Brevity:5/5, NotRude:3/5, Character:5/5, SouthernMarkers:5/5, Boundaries:5/5 | The \"Let me know if you need reciepes part could be a little warmer like \"Let me know if you need Recipes or help planning meals\""
+      },
+      {
+        "phrase_num": 2,
+        "phrase_id": "sports",
+        "file_path": "diagnostics/phase3_audio/deadpan_iteration_1_baseline_sports.mp3",
+        "rating": 9,
+        "notes": "FlatAffect:5/5, Brevity:5/5, NotRude:5/5, Character:5/5, SouthernMarkers:3/5, Boundaries:5/5"
+      },
+      {
+        "phrase_num": 3,
+        "phrase_id": "math",
+        "file_path": "diagnostics/phase3_audio/deadpan_iteration_1_baseline_math.mp3",
+        "rating": 10,
+        "notes": "FlatAffect:5/5, Brevity:5/5, NotRude:5/5, Character:5/5, SouthernMarkers:5/5, Boundaries:5/5"
+      },
+      {
+        "phrase_num": 4,
+        "phrase_id": "general_knowledge",
+        "file_path": "diagnostics/phase3_audio/deadpan_iteration_1_baseline_general_knowledge.mp3",
+        "rating": 10,
+        "notes": "FlatAffect:5/5, Brevity:5/5, NotRude:5/5, Character:5/5, SouthernMarkers:5/5, Boundaries:5/5"
+      },
+      {
+        "phrase_num": 5,
+        "phrase_id": "device_control",
+        "file_path": "diagnostics/phase3_audio/deadpan_iteration_1_baseline_device_control.mp3",
+        "rating": 10,
+        "notes": "FlatAffect:5/5, Brevity:5/5, NotRude:5/5, Character:5/5, SouthernMarkers:5/5, Boundaries:5/5"
+      },
+      {
+        "phrase_num": 6,
+        "phrase_id": "time",
+        "file_path": "diagnostics/phase3_audio/deadpan_iteration_1_baseline_time.mp3",
+        "rating": 9,
+        "notes": "FlatAffect:5/5, Brevity:5/5, NotRude:5/5, Character:5/5, SouthernMarkers:3/5, Boundaries:5/5"
+      },
+      {
+        "phrase_num": 7,
+        "phrase_id": "boundary",
+        "file_path": "diagnostics/phase3_audio/deadpan_iteration_1_baseline_boundary.mp3",
+        "rating": 10,
+        "notes": "FlatAffect:5/5, Brevity:5/5, NotRude:5/5, Character:5/5, SouthernMarkers:5/5, Boundaries:5/5"
+      },
+      {
+        "phrase_num": 8,
+        "phrase_id": "music",
+        "file_path": "diagnostics/phase3_audio/deadpan_iteration_1_baseline_music.mp3",
+        "rating": 10,
+        "notes": "FlatAffect:5/5, Brevity:5/5, NotRude:5/5, Character:5/5, SouthernMarkers:5/5, Boundaries:5/5"
+      }
+    ]
   }
 }
