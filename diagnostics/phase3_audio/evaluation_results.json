@@ -405,5 +405,61 @@
         "notes": ""
       }
     ]
+  },
+  "startled_iteration_1_baseline": {
+    "mode": "startled",
+    "iteration": "iteration_1_baseline",
+    "generated_at": "2026-02-02T19:20:07.640656",
+    "settings": {
+      "stability": 0.3,
+      "similarity_boost": 0.75,
+      "style": 0.5,
+      "use_speaker_boost": true,
+      "notes": "Low stability (0.30) for expressive surprise; moderate style (0.50) for natural pitch variation and rapid delivery"
+    },
+    "phrases": [
+      {
+        "phrase_num": 1,
+        "phrase_id": "appliance_failure",
+        "file_path": "diagnostics/phase3_audio/startled_iteration_1_baseline_appliance_failure.mp3",
+        "rating": 9,
+        "notes": "Pitch:4/5, Exclamation:4/5, RapidQs:5/5, Recovery:4/5, Natural:4/5, Character:5/5"
+      },
+      {
+        "phrase_num": 2,
+        "phrase_id": "timer_forgotten",
+        "file_path": "diagnostics/phase3_audio/startled_iteration_1_baseline_timer_forgotten.mp3",
+        "rating": 10,
+        "notes": "Pitch:5/5, Exclamation:5/5, RapidQs:4/5, Recovery:5/5, Natural:5/5, Character:5/5 | This one was great!"
+      },
+      {
+        "phrase_num": 3,
+        "phrase_id": "surprising_success",
+        "file_path": "diagnostics/phase3_audio/startled_iteration_1_baseline_surprising_success.mp3",
+        "rating": 10,
+        "notes": "Pitch:4/5, Exclamation:5/5, RapidQs:5/5, Recovery:5/5, Natural:5/5, Character:5/5 | The pauses and speed were perfect on this one."
+      },
+      {
+        "phrase_num": 4,
+        "phrase_id": "ingredient_missing",
+        "file_path": "diagnostics/phase3_audio/startled_iteration_1_baseline_ingredient_missing.mp3",
+        "rating": 10,
+        "notes": "Pitch:5/5, Exclamation:5/5, RapidQs:5/5, Recovery:5/5, Natural:5/5, Character:5/5"
+      },
+      {
+        "phrase_num": 5,
+        "phrase_id": "context_shift",
+        "file_path": "diagnostics/phase3_audio/startled_iteration_1_baseline_context_shift.mp3",
+        "rating": 9,
+        "notes": "Pitch:5/5, Exclamation:4/5, RapidQs:4/5, Recovery:4/5, Natural:5/5, Character:5/5 | The pauses and slight stammering were perfect!"
+      },
+      {
+        "phrase_num": 6,
+        "phrase_id": "safety_concern",
+        "file_path": "diagnostics/phase3_audio/startled_iteration_1_baseline_safety_concern.mp3",
+        "rating": 10,
+        "notes": "Pitch:5/5, Exclamation:5/5, RapidQs:5/5, Recovery:5/5, Natural:5/5, Character:5/5"
+      }
+    ]
   }
 }

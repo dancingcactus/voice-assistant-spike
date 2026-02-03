@@ -100,6 +100,23 @@ for file in "$AUDIO_DIR/${MODE}_${ITERATION}"_*.mp3; do
             total=$((c1 + c2 + c3 + c4 + c5 + c6))
             detailed_notes="Soft:${c1}/5, Pacing:${c2}/5, Reassurance:${c3}/5, Trust:${c4}/5, NonPatronizing:${c5}/5, Character:${c6}/5"
 
+        elif [ "$MODE" = "startled" ]; then
+            read -p "Pitch Increase (1-5) - Noticeable higher pitch without being jarring: " c1
+            if [ -z "$c1" ]; then
+                echo "Skipping evaluation for this phrase."
+                echo ""
+                count=$((count + 1))
+                continue
+            fi
+            read -p "Exclamation Authenticity (1-5) - 'Lord have mercy', 'Well I'll be' sound genuine: " c2
+            read -p "Rapid Questions (1-5) - Quick, genuine concern comes through: " c3
+            read -p "Recovery Speed (1-5) - Transitions to problem-solving in 2-3 seconds: " c4
+            read -p "Natural Feel (1-5) - Surprise feels real, not acted: " c5
+            read -p "Character Fit (1-5) - Still sounds like Delilah, just startled: " c6
+
+            total=$((c1 + c2 + c3 + c4 + c5 + c6))
+            detailed_notes="Pitch:${c1}/5, Exclamation:${c2}/5, RapidQs:${c3}/5, Recovery:${c4}/5, Natural:${c5}/5, Character:${c6}/5"
+
         else
             # Default generic criteria
             read -p "Criterion 1 (1-5): " c1

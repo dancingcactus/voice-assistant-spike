@@ -168,6 +168,37 @@ TEST_PHRASES = {
                 }
             ]
         }
+    },
+    "startled": {
+        "set_a": {
+            "name": "Unexpected Events",
+            "phrases": [
+                {
+                    "id": "appliance_failure",
+                    "text": "Oh! Lord have mercy! Wait, wait—your oven just stopped working? Right now? Sugar, is it the breaker or—okay, okay, let me think—we can work with the stovetop, darlin'."
+                },
+                {
+                    "id": "timer_forgotten",
+                    "text": "Well I'll be! You set that timer twenty minutes ago? Oh honey! Quick now—is it in the oven or on the stove? Let's check it right now, sugar!"
+                },
+                {
+                    "id": "surprising_success",
+                    "text": "Wait, what? That's your first soufflé? Oh my stars! Sugar, that's beautiful! How did you—when did you learn—oh darlin', you're just full of surprises!"
+                },
+                {
+                    "id": "ingredient_missing",
+                    "text": "Oh! Oh no! You don't have any eggs? Right now? Sugar, we were just about to—okay, okay, hold on—do you have applesauce? Vinegar? Let me find you something, honey!"
+                },
+                {
+                    "id": "context_shift",
+                    "text": "Wait, I'm sorry—what? You need to know about car maintenance? Honey, I thought we were—I'm a cooking assistant, sugar—is this for cleaning something in the kitchen?"
+                },
+                {
+                    "id": "safety_concern",
+                    "text": "Oh! Sugar! Stop right there! That pan is way too hot for that oil! Honey, step back a second—let's bring that heat down before we get a fire, darlin'!"
+                }
+            ]
+        }
     }
     # Additional modes will be added as we progress through milestones
 }
@@ -218,6 +249,16 @@ ITERATION_SETTINGS = {
             "style": 0.40,
             "use_speaker_boost": True,
             "notes": "Higher stability (0.65) for soft, controlled delivery; lower style (0.40) for gentle, measured tone"
+        },
+        # Additional iterations will be added as we refine
+    },
+    "startled": {
+        "iteration_1_baseline": {
+            "stability": 0.30,
+            "similarity_boost": 0.75,
+            "style": 0.50,
+            "use_speaker_boost": True,
+            "notes": "Low stability (0.30) for expressive surprise; moderate style (0.50) for natural pitch variation and rapid delivery"
         },
         # Additional iterations will be added as we refine
     }
