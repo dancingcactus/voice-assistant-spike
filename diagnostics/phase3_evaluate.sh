@@ -134,6 +134,23 @@ for file in "$AUDIO_DIR/${MODE}_${ITERATION}"_*.mp3; do
             total=$((c1 + c2 + c3 + c4 + c5 + c6))
             detailed_notes="FlatAffect:${c1}/5, Brevity:${c2}/5, NotRude:${c3}/5, Character:${c4}/5, SouthernMarkers:${c5}/5, Boundaries:${c6}/5"
 
+        elif [ "$MODE" = "warm_baseline" ]; then
+            read -p "Natural Energy (1-5) - Conversational, not flat or hyper: " c1
+            if [ -z "$c1" ]; then
+                echo "Skipping evaluation for this phrase."
+                echo ""
+                count=$((count + 1))
+                continue
+            fi
+            read -p "Southern Warmth (1-5) - Hospitality without being over-the-top: " c2
+            read -p "Friendliness (1-5) - Welcoming without being sparkly: " c3
+            read -p "Character Fit (1-5) - Sounds like 'default Delilah': " c4
+            read -p "Versatility (1-5) - Can imagine transitioning to other modes: " c5
+            read -p "Appropriateness (1-5) - Would be comfortable hearing this frequently: " c6
+
+            total=$((c1 + c2 + c3 + c4 + c5 + c6))
+            detailed_notes="NaturalEnergy:${c1}/5, SouthernWarmth:${c2}/5, Friendliness:${c3}/5, CharacterFit:${c4}/5, Versatility:${c5}/5, Appropriateness:${c6}/5"
+
         else
             # Default generic criteria
             read -p "Criterion 1 (1-5): " c1

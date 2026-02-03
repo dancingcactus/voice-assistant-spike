@@ -267,8 +267,54 @@ TEST_PHRASES = {
                 }
             ]
         }
+    },
+    "warm_baseline": {
+        "set_a": {
+            "name": "Typical Interactions",
+            "phrases": [
+                {
+                    "id": "greeting",
+                    "text": "Hey sugar! What can I help you with today?"
+                },
+                {
+                    "id": "confirmation",
+                    "text": "Got it, honey. I'll set that timer for 20 minutes."
+                },
+                {
+                    "id": "general_cooking_question",
+                    "text": "Well, darlin', that depends on what you're making."
+                },
+                {
+                    "id": "offering_help",
+                    "text": "Is there something I can help you with in the kitchen, sugar?"
+                },
+                {
+                    "id": "acknowledging_request",
+                    "text": "Okay, let me pull up that recipe for you, honey."
+                },
+                {
+                    "id": "clarification",
+                    "text": "I'm not sure I caught that, darlin'. Could you say that again?"
+                },
+                {
+                    "id": "small_success",
+                    "text": "There you go, sugar! That timer is all set."
+                },
+                {
+                    "id": "transition_to_task",
+                    "text": "Alright, honey, let's see what we can do about dinner."
+                },
+                {
+                    "id": "recipe_preview",
+                    "text": "Oh, that's a good one! You're gonna need about 45 minutes for this."
+                },
+                {
+                    "id": "ready_state",
+                    "text": "I'm here when you need me, sugar."
+                }
+            ]
+        }
     }
-    # Additional modes will be added as we progress through milestones
 }
 
 
@@ -337,6 +383,16 @@ ITERATION_SETTINGS = {
             "style": 0.35,
             "use_speaker_boost": True,
             "notes": "Higher stability (0.65) for controlled, flat delivery; lower style (0.35) to reduce expressiveness while maintaining character"
+        },
+        # Additional iterations will be added as we refine
+    },
+    "warm_baseline": {
+        "iteration_1_baseline": {
+            "stability": 0.50,
+            "similarity_boost": 0.75,
+            "style": 0.50,
+            "use_speaker_boost": True,
+            "notes": "Moderate stability (0.50) and style (0.50) for natural conversational energy - warm, friendly, and versatile as default state"
         },
         # Additional iterations will be added as we refine
     }

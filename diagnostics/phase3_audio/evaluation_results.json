@@ -573,5 +573,89 @@
         "notes": "FlatAffect:5/5, Brevity:5/5, NotRude:5/5, Character:5/5, SouthernMarkers:5/5, Boundaries:5/5"
       }
     ]
+  },
+  "warm_baseline_iteration_1_baseline": {
+    "mode": "warm_baseline",
+    "iteration": "iteration_1_baseline",
+    "generated_at": "2026-02-02T20:01:17.217158",
+    "settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75,
+      "style": 0.5,
+      "use_speaker_boost": true,
+      "notes": "Moderate stability (0.50) and style (0.50) for natural conversational energy - warm, friendly, and versatile as default state"
+    },
+    "phrases": [
+      {
+        "phrase_num": 1,
+        "phrase_id": "greeting",
+        "file_path": "diagnostics/phase3_audio/warm_baseline_iteration_1_baseline_greeting.mp3",
+        "rating": 10,
+        "notes": "NaturalEnergy:5/5, SouthernWarmth:5/5, Friendliness:5/5, CharacterFit:5/5, Versatility:5/5, Appropriateness:5/5"
+      },
+      {
+        "phrase_num": 2,
+        "phrase_id": "confirmation",
+        "file_path": "diagnostics/phase3_audio/warm_baseline_iteration_1_baseline_confirmation.mp3",
+        "rating": 9,
+        "notes": "NaturalEnergy:3/5, SouthernWarmth:5/5, Friendliness:5/5, CharacterFit:5/5, Versatility:5/5, Appropriateness:5/5 | The speech is just a little slow"
+      },
+      {
+        "phrase_num": 3,
+        "phrase_id": "general_cooking_question",
+        "file_path": "diagnostics/phase3_audio/warm_baseline_iteration_1_baseline_general_cooking_question.mp3",
+        "rating": 10,
+        "notes": "NaturalEnergy:5/5, SouthernWarmth:5/5, Friendliness:5/5, CharacterFit:5/5, Versatility:5/5, Appropriateness:5/5"
+      },
+      {
+        "phrase_num": 4,
+        "phrase_id": "offering_help",
+        "file_path": "diagnostics/phase3_audio/warm_baseline_iteration_1_baseline_offering_help.mp3",
+        "rating": 10,
+        "notes": "NaturalEnergy:5/5, SouthernWarmth:5/5, Friendliness:5/5, CharacterFit:5/5, Versatility:5/5, Appropriateness:5/5"
+      },
+      {
+        "phrase_num": 5,
+        "phrase_id": "acknowledging_request",
+        "file_path": "diagnostics/phase3_audio/warm_baseline_iteration_1_baseline_acknowledging_request.mp3",
+        "rating": 10,
+        "notes": "NaturalEnergy:5/5, SouthernWarmth:5/5, Friendliness:5/5, CharacterFit:5/5, Versatility:5/5, Appropriateness:5/5"
+      },
+      {
+        "phrase_num": 6,
+        "phrase_id": "clarification",
+        "file_path": "diagnostics/phase3_audio/warm_baseline_iteration_1_baseline_clarification.mp3",
+        "rating": 10,
+        "notes": "NaturalEnergy:5/5, SouthernWarmth:5/5, Friendliness:5/5, CharacterFit:5/5, Versatility:5/5, Appropriateness:5/5"
+      },
+      {
+        "phrase_num": 7,
+        "phrase_id": "small_success",
+        "file_path": "diagnostics/phase3_audio/warm_baseline_iteration_1_baseline_small_success.mp3",
+        "rating": 10,
+        "notes": "NaturalEnergy:5/5, SouthernWarmth:5/5, Friendliness:5/5, CharacterFit:5/5, Versatility:5/5, Appropriateness:5/5"
+      },
+      {
+        "phrase_num": 8,
+        "phrase_id": "transition_to_task",
+        "file_path": "diagnostics/phase3_audio/warm_baseline_iteration_1_baseline_transition_to_task.mp3",
+        "rating": 10,
+        "notes": "NaturalEnergy:5/5, SouthernWarmth:5/5, Friendliness:5/5, CharacterFit:5/5, Versatility:5/5, Appropriateness:5/5"
+      },
+      {
+        "phrase_num": 9,
+        "phrase_id": "recipe_preview",
+        "file_path": "diagnostics/phase3_audio/warm_baseline_iteration_1_baseline_recipe_preview.mp3",
+        "rating": 10,
+        "notes": "NaturalEnergy:5/5, SouthernWarmth:5/5, Friendliness:5/5, CharacterFit:5/5, Versatility:5/5, Appropriateness:5/5"
+      },
+      {
+        "phrase_num": 10,
+        "phrase_id": "ready_state",
+        "file_path": "diagnostics/phase3_audio/warm_baseline_iteration_1_baseline_ready_state.mp3",
+        "rating": 10,
+        "notes": "NaturalEnergy:5/5, SouthernWarmth:5/5, Friendliness:5/5, CharacterFit:5/5, Versatility:5/5, Appropriateness:5/5"
+      }
+    ]
   }
 }
