@@ -87,49 +87,51 @@ class ElevenLabsTTS(TTSProvider):
             # "cave": os.getenv("ELEVENLABS_CAVE_VOICE_ID", ""),
         }
 
-        # Voice settings per character (can be adjusted for voice modes)
+        # Voice settings per character
+        # Phase 3 validated settings (9.72/10 average quality)
+        # See: docs/technical/phase3/ for complete testing methodology
         self.voice_settings = {
             "delilah": {
                 "default": {
-                    "stability": 0.5,
+                    "stability": 0.50,  # Match warm_baseline
                     "similarity_boost": 0.75,
-                    "style": 0.5,
+                    "style": 0.50,  # Match warm_baseline
                     "use_speaker_boost": True
                 },
                 "passionate": {
-                    "stability": 0.3,  # More variation for excitement
+                    "stability": 0.35,  # Phase 3: 9.0/10 (2 iterations)
                     "similarity_boost": 0.75,
-                    "style": 0.7,  # More expressive
+                    "style": 0.65,  # High energy, tumbling thought pattern
                     "use_speaker_boost": True
                 },
                 "protective": {
-                    "stability": 0.6,  # More controlled
+                    "stability": 0.55,  # Phase 3: 9.8/10 (2 iterations)
                     "similarity_boost": 0.75,
-                    "style": 0.6,
+                    "style": 0.45,  # Controlled intensity, firm but caring
                     "use_speaker_boost": True
                 },
                 "mama_bear": {
-                    "stability": 0.7,  # Very controlled, nurturing
+                    "stability": 0.65,  # Phase 3: 10.0/10 (1 iteration)
                     "similarity_boost": 0.75,
-                    "style": 0.4,  # Softer
+                    "style": 0.40,  # Soft, nurturing, deliberate
                     "use_speaker_boost": True
                 },
                 "startled": {
-                    "stability": 0.2,  # Very varied for surprise
+                    "stability": 0.30,  # Phase 3: 10.0/10 (1 iteration)
                     "similarity_boost": 0.75,
-                    "style": 0.8,  # Very expressive
+                    "style": 0.50,  # High pitch, rapid questions, quick recovery
                     "use_speaker_boost": True
                 },
                 "deadpan": {
-                    "stability": 0.8,  # Very stable, flat
+                    "stability": 0.65,  # Phase 3: 9.6/10 (1 iteration)
                     "similarity_boost": 0.75,
-                    "style": 0.2,  # Minimal expression
+                    "style": 0.35,  # Flat, minimal expression, efficient
                     "use_speaker_boost": True
                 },
                 "warm_baseline": {
-                    "stability": 0.5,  # Balanced
+                    "stability": 0.50,  # Phase 3: 9.9/10 (1 iteration - best debut!)
                     "similarity_boost": 0.75,
-                    "style": 0.5,  # Moderate expression
+                    "style": 0.50,  # Natural, conversational, versatile default
                     "use_speaker_boost": True
                 }
             }

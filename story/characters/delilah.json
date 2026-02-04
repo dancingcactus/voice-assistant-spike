@@ -302,5 +302,75 @@
     "Food safety advice",
     "Ingredient substitutions",
     "Basic smart home control (lights, thermostats)"
-  ]
+  ],
+
+  "voice_mode_tts_settings": {
+    "description": "ElevenLabs TTS settings validated through Phase 3 testing (February 2026)",
+    "average_quality_score": "9.72/10",
+    "testing_reference": "See docs/technical/phase3/ for complete methodology and results",
+    "voice_provider": "ElevenLabs",
+    "voice_id": "XHqlxleHbYnK8xmft8Vq",
+    "voice_name": "Miss Sally May",
+    "model": "eleven_flash_v2_5",
+    "common_settings": {
+      "similarity_boost": 0.75,
+      "use_speaker_boost": true
+    },
+    "modes": [
+      {
+        "id": "passionate",
+        "stability": 0.35,
+        "style": 0.65,
+        "quality_score": "9.0/10",
+        "tested_iterations": 2,
+        "characteristics": "High energy, tumbling thought pattern",
+        "completion_report": "docs/milestones/phase3_milestone1_passionate_complete.md"
+      },
+      {
+        "id": "protective",
+        "stability": 0.55,
+        "style": 0.45,
+        "quality_score": "9.8/10",
+        "tested_iterations": 2,
+        "characteristics": "Controlled intensity, firm but caring",
+        "completion_report": "docs/milestones/phase3_milestone2_protective_complete.md"
+      },
+      {
+        "id": "mama_bear",
+        "stability": 0.65,
+        "style": 0.40,
+        "quality_score": "10.0/10",
+        "tested_iterations": 1,
+        "characteristics": "Soft, nurturing, deliberate",
+        "completion_report": "docs/milestones/phase3_milestone3_mama_bear_complete.md"
+      },
+      {
+        "id": "startled",
+        "stability": 0.30,
+        "style": 0.50,
+        "quality_score": "10.0/10",
+        "tested_iterations": 1,
+        "characteristics": "High pitch, rapid questions, quick recovery",
+        "completion_report": "docs/milestones/phase3_milestone4_startled_complete.md"
+      },
+      {
+        "id": "deadpan",
+        "stability": 0.65,
+        "style": 0.35,
+        "quality_score": "9.6/10",
+        "tested_iterations": 1,
+        "characteristics": "Flat, minimal expression, efficient",
+        "completion_report": "docs/milestones/phase3_milestone5_deadpan_complete.md"
+      },
+      {
+        "id": "warm_baseline",
+        "stability": 0.50,
+        "style": 0.50,
+        "quality_score": "9.9/10",
+        "tested_iterations": 1,
+        "characteristics": "Natural, conversational, versatile default",
+        "completion_report": "docs/milestones/phase3_milestone6_warm_baseline_complete.md"
+      }
+    ]
+  }
 }
