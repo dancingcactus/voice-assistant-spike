@@ -8,6 +8,8 @@ import { useState, useEffect, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import mermaid from 'mermaid';
 import { apiClient, type ChapterSummary, type BeatSummary, type BeatDetail, type ChapterProgressSummary } from '../services/api';
+import { useStoryProgress } from '../hooks/useStoryProgress';
+import { DiagramLegend } from './story-beat/DiagramLegend';
 import './StoryBeatTool.css';
 
 // Initialize mermaid
@@ -41,10 +43,9 @@ export function StoryBeatTool({ userId }: StoryBeatToolProps) {
     queryFn: () => apiClient.listChapters(userId),
   });
 
-  // Fetch user progress
-  const { data: progress } = useQuery({
-    queryKey: ['progress', userId],
-    queryFn: () => apiClient.getUserStoryProgress(userId),
+  // Fetch user progress with real-time polling (3 second interval)
+  const { data: progress, isLoading: progressLoading } = useStoryProgress(userId, {
+    refetchInterval: 3000,
   });
 
   // Set initial chapter selection
@@ -73,10 +74,10 @@ export function StoryBeatTool({ userId }: StoryBeatToolProps) {
     enabled: selectedChapter !== null && selectedBeat !== null && showBeatDetail,
   });
 
-  // Fetch diagram
+  // Fetch diagram with user-specific coloring
   const { data: diagram } = useQuery({
-    queryKey: ['diagram', selectedChapter],
-    queryFn: () => selectedChapter ? apiClient.getChapterDiagram(selectedChapter) : Promise.resolve(null),
+    queryKey: ['diagram', selectedChapter, userId],
+    queryFn: () => selectedChapter ? apiClient.getChapterDiagram(selectedChapter, userId) : Promise.resolve(null),
     enabled: selectedChapter !== null,
   });
 
@@ -102,8 +103,9 @@ export function StoryBeatTool({ userId }: StoryBeatToolProps) {
     mutationFn: ({ beatId, variant, stage }: { beatId: string; variant: string; stage?: number }) =>
       apiClient.triggerBeat(userId, beatId, variant, stage),
     onSuccess: () => {
-      // Invalidate queries to refresh data
+      // Invalidate queries to refresh data (includes useStoryProgress hook)
       queryClient.invalidateQueries({ queryKey: ['beats', selectedChapter, userId] });
+      queryClient.invalidateQueries({ queryKey: ['storyProgress', userId] });
       queryClient.invalidateQueries({ queryKey: ['progress', userId] });
       queryClient.invalidateQueries({ queryKey: ['chapters', userId] });
       setShowBeatDetail(false);
@@ -231,6 +233,7 @@ export function StoryBeatTool({ userId }: StoryBeatToolProps) {
           {/* Chapter diagram */}
           <div className="diagram-section">
             <h3>Chapter Flow</h3>
+            <DiagramLegend compact={false} />
             <div ref={diagramRef} className="diagram-container"></div>
           </div>
         </div>

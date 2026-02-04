@@ -210,7 +210,14 @@ class StoryEngine:
         state = self.get_or_create_user_state(user_id)
         active_beats = self.get_active_beats(user_id)
 
+        logger.debug(
+            f"Evaluating beat injection for user {user_id}: "
+            f"{len(active_beats)} active beats, chapter {state.current_chapter}, "
+            f"tool_used={context.get('tool_used')}"
+        )
+
         if not active_beats:
+            logger.debug(f"No active beats for user {user_id}")
             return None
 
         # Check each active beat
@@ -228,18 +235,20 @@ class StoryEngine:
 
                     # Check if we've delivered all stages
                     if beat.stages and stage > len(beat.stages):
+                        logger.debug(f"Beat '{beat.id}' all stages complete, skipping")
                         continue  # This beat is complete
 
                 # Select variant type
                 variant_type = self._select_variant_type(context)
 
                 logger.info(
-                    f"Injecting beat '{beat.id}' (stage {stage}, variant {variant_type}) "
+                    f"✅ Injecting beat '{beat.id}' (stage {stage}, variant {variant_type}) "
                     f"for user {user_id}"
                 )
 
                 return (beat, stage, variant_type)
 
+        logger.debug(f"No beats triggered for user {user_id} (checked {len(active_beats)} beats)")
         return None
 
     def _check_beat_trigger(
@@ -259,29 +268,52 @@ class StoryEngine:
         Returns:
             True if trigger conditions are met
         """
+        logger.debug(f"Checking trigger for beat '{beat.id}'")
+
+        # FIRST: Check prerequisite conditions (must pass before checking trigger)
+        if beat.conditions:
+            if not self._check_beat_conditions(beat, state):
+                logger.debug(f"Beat '{beat.id}' conditions not met")
+                return False
+
         trigger = beat.trigger
 
         # Check interaction count trigger
         if trigger.type == "interaction_count":
             chapter_progress = state.chapter_progress.get(state.current_chapter)
             if not chapter_progress:
+                logger.debug(f"Beat '{beat.id}': No chapter progress found")
                 return False
 
             interaction_count = chapter_progress.interaction_count
 
             if trigger.min_interactions and interaction_count < trigger.min_interactions:
+                logger.debug(
+                    f"Beat '{beat.id}': Interaction count {interaction_count} < "
+                    f"min {trigger.min_interactions}"
+                )
                 return False
 
             if trigger.max_interactions and interaction_count > trigger.max_interactions:
+                logger.debug(
+                    f"Beat '{beat.id}': Interaction count {interaction_count} > "
+                    f"max {trigger.max_interactions}"
+                )
                 return False
 
+            logger.debug(f"Beat '{beat.id}': Interaction count trigger passed ({interaction_count})")
             return True
 
         # Check tool use trigger
         if trigger.type == "tool_use":
             tool_used = context.get("tool_used")
             if tool_used == trigger.tool_name:
+                logger.debug(f"Beat '{beat.id}': Tool use trigger passed (tool={tool_used})")
                 return True
+            logger.debug(
+                f"Beat '{beat.id}': Tool use trigger failed "
+                f"(expected={trigger.tool_name}, got={tool_used})"
+            )
             return False
 
         # Check user engagement trigger
@@ -290,18 +322,91 @@ class StoryEngine:
 
             # Check for keywords
             if trigger.keywords:
-                if any(keyword in user_message for keyword in trigger.keywords):
+                matched_keywords = [kw for kw in trigger.keywords if kw in user_message]
+                if matched_keywords:
                     # If requires direct address, check for character name
                     if trigger.requires_direct_address:
                         # Simple check: message contains "delilah" or similar
                         # TODO: Make this more sophisticated
-                        return "delilah" in user_message or "lila" in user_message
+                        has_address = "delilah" in user_message or "lila" in user_message
+                        if has_address:
+                            logger.debug(
+                                f"Beat '{beat.id}': User engagement trigger passed "
+                                f"(keywords={matched_keywords}, direct_address=True)"
+                            )
+                            return True
+                        else:
+                            logger.debug(
+                                f"Beat '{beat.id}': Keywords matched but direct address required"
+                            )
+                            return False
+                    logger.debug(f"Beat '{beat.id}': User engagement trigger passed (keywords={matched_keywords})")
                     return True
+                else:
+                    logger.debug(f"Beat '{beat.id}': No keywords matched (looking for {trigger.keywords})")
 
             return False
 
         logger.warning(f"Unknown trigger type: {trigger.type}")
         return False
+
+    def _check_beat_conditions(
+        self,
+        beat: StoryBeat,
+        state: UserStoryState
+    ) -> bool:
+        """
+        Check if a beat's prerequisite conditions are met.
+
+        Conditions can include:
+        - {beat_id}_delivered: true - Requires a specific beat to be delivered
+        - Other condition types can be added here
+
+        Args:
+            beat: Story beat to check
+            state: User story state
+
+        Returns:
+            True if all conditions are met
+        """
+        if not beat.conditions:
+            return True
+
+        logger.debug(f"Checking conditions for beat '{beat.id}': {beat.conditions}")
+
+        for condition_key, condition_value in beat.conditions.items():
+            # Check for beat delivery conditions (e.g., "awakening_confusion_delivered": true)
+            if condition_key.endswith("_delivered"):
+                # Extract beat_id from condition key
+                required_beat_id = condition_key.replace("_delivered", "")
+                beat_progress = state.get_beat_progress(required_beat_id)
+
+                if condition_value is True:
+                    # Requires beat to be delivered
+                    if not beat_progress or not beat_progress.delivered:
+                        logger.debug(
+                            f"Beat '{beat.id}': Condition failed - "
+                            f"requires '{required_beat_id}' to be delivered"
+                        )
+                        return False
+                    logger.debug(f"Beat '{beat.id}': Prerequisite '{required_beat_id}' is delivered ✓")
+                elif condition_value is False:
+                    # Requires beat to NOT be delivered
+                    if beat_progress and beat_progress.delivered:
+                        logger.debug(
+                            f"Beat '{beat.id}': Condition failed - "
+                            f"requires '{required_beat_id}' to NOT be delivered"
+                        )
+                        return False
+
+            # TODO: Add support for other condition types as needed
+            # Examples:
+            # - "user_seems_receptive": check user sentiment
+            # - "not_during_emergency": check system state
+            # - "requires_n_of_beats": conditional progression
+
+        logger.debug(f"Beat '{beat.id}': All conditions met ✓")
+        return True
 
     def _select_variant_type(self, context: Dict[str, Any]) -> str:
         """
@@ -385,6 +490,8 @@ class StoryEngine:
             beat_id: Beat identifier
             stage: Stage number
         """
+        logger.debug(f"Marking beat '{beat_id}' stage {stage} as delivered for user {user_id}")
+
         state = self.get_or_create_user_state(user_id)
         state.update_beat_progress(beat_id, stage)
 
@@ -396,21 +503,34 @@ class StoryEngine:
             # One-shot beats: mark as delivered after first delivery
             if beat.type == "one_shot":
                 state.mark_beat_delivered(beat_id)
+                logger.debug(f"Beat '{beat_id}' is one-shot, marking as fully delivered")
 
             # Progression beats: mark as delivered if all stages done
             elif beat.type == "progression" and beat.stages and beat_progress:
                 if len(beat_progress.delivered_stages) >= len(beat.stages):
                     state.mark_beat_delivered(beat_id)
+                    logger.debug(
+                        f"Beat '{beat_id}' progression complete "
+                        f"({len(beat_progress.delivered_stages)}/{len(beat.stages)} stages)"
+                    )
 
-        logger.info(f"Marked beat '{beat_id}' stage {stage} as delivered for user {user_id}")
+        logger.info(f"✅ Marked beat '{beat_id}' stage {stage} as delivered for user {user_id}")
 
         # Save to persistent storage
         self._save_story_state(user_id, state)
 
+        # Force reload state from memory manager on next access to ensure consistency
+        if user_id in self.user_states:
+            logger.debug(f"Invalidating cached state for user {user_id}")
+            del self.user_states[user_id]
+
     def _save_story_state(self, user_id: str, state: UserStoryState):
         """Save story state to persistent storage via Memory Manager."""
         if not self.memory_manager:
+            logger.debug(f"No memory manager configured, state not persisted for user {user_id}")
             return
+
+        logger.debug(f"Saving story state for user {user_id} to persistent storage")
 
         # Convert UserStoryState to format for memory manager
         # Collect all beat progress from all chapters
@@ -433,13 +553,21 @@ class StoryEngine:
                     first_interaction = chapter_progress.started_at
                     break
 
-        self.memory_manager.update_story_progress(
-            user_id,
-            current_chapter=state.current_chapter,
-            beats_delivered=beats_delivered,
-            interaction_count=state.total_interactions,
-            first_interaction=first_interaction
-        )
+        try:
+            self.memory_manager.update_story_progress(
+                user_id,
+                current_chapter=state.current_chapter,
+                beats_delivered=beats_delivered,
+                interaction_count=state.total_interactions,
+                first_interaction=first_interaction
+            )
+            logger.debug(
+                f"✅ Saved story state for user {user_id}: "
+                f"chapter={state.current_chapter}, beats={len(beats_delivered)}, "
+                f"interactions={state.total_interactions}"
+            )
+        except Exception as e:
+            logger.error(f"❌ Failed to save story state for user {user_id}: {str(e)}", exc_info=True)
 
     def _find_beat(self, beat_id: str, chapter_id: int) -> Optional[StoryBeat]:
         """Find a beat by ID in a specific chapter."""

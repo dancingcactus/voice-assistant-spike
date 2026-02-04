@@ -416,8 +416,9 @@ class ApiClient {
     return this.request<ChapterProgressSummary>(`/story/users/${userId}/progress`);
   }
 
-  async getChapterDiagram(chapterId: number): Promise<ChapterDiagram> {
-    return this.request<ChapterDiagram>(`/story/chapters/${chapterId}/diagram`);
+  async getChapterDiagram(chapterId: number, userId?: string): Promise<ChapterDiagram> {
+    const params = userId ? `?user_id=${encodeURIComponent(userId)}` : '';
+    return this.request<ChapterDiagram>(`/story/chapters/${chapterId}/diagram${params}`);
   }
 
   async triggerBeat(userId: string, beatId: string, variant: string = 'standard', stage?: number): Promise<any> {

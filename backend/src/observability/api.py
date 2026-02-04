@@ -316,16 +316,28 @@ async def get_user_story_progress(
 @app.get("/story/chapters/{chapter_id}/diagram")
 async def get_chapter_diagram(
     chapter_id: int,
+    user_id: Optional[str] = None,
     authorization: Optional[str] = Header(None)
 ):
-    """Get Mermaid diagram for chapter beat flow."""
+    """
+    Get Mermaid diagram for chapter beat flow.
+
+    If user_id is provided, beats will be color-coded by delivery status:
+    - Green: Delivered
+    - Yellow/Amber: Ready (can be triggered)
+    - Blue: Not started
+    - Gray: Locked (prerequisites not met)
+
+    If user_id is not provided, beats are colored by required/optional status.
+    """
     verify_token(authorization)
 
-    diagram = story_dal.generate_chapter_flow_diagram(chapter_id)
+    diagram = story_dal.generate_chapter_flow_diagram(chapter_id, user_id)
     return {
         "chapter_id": chapter_id,
         "diagram": diagram,
-        "format": "mermaid"
+        "format": "mermaid",
+        "user_specific": user_id is not None
     }
 
 
