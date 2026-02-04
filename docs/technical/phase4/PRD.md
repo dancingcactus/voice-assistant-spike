@@ -293,30 +293,41 @@ The story system is the heart of Aperture Assist's emotional impact. Characters 
 - All beats testable via natural conversation
 - Beats fit thematically with Chapter 1 arc
 
-#### FR3.2: Hank Character Definition
+#### FR3.2: Hank Character Implementation
 
-**Goal:** Create character file for Hank with personality, voice modes, backstory
+**Goal:** Implement Hank character JSON file based on existing character guide
+
+**Reference:** [Hank Character Voice Guide](../../narrative/CHARACTER_HANK.md)
 
 **File:** `story/characters/hank.json`
 
 **Required Elements:**
-- Basic info: id, name, role, voice_id
-- Personality: core traits, speech patterns, mannerisms
-- Voice modes: Working (default), Protective, Resigned
-- Backstory: Who is Hank, where did he come from
-- Relationships: Delilah, Justin, Cave (future)
+- Basic info: id, name ("Half Hands Hank"), role ("First Mate - Task Management"), voice_id
+- Personality: Core traits from character guide (loyal, protective, gruff, resigned)
+- Voice modes: Working (default), Protective, Resigned (as defined in guide)
+- Speech patterns: Maritime terminology, economical speech, "Cap'n" for Justin
+- Backstory: Old-salt sailor, protective of crew, doesn't philosophize
+- Relationships: Delilah ("Miss" or "Lila"), Justin ("Cap'n"), Cave ("Mr. Johnson")
 
-**Voice Modes:**
-- **Working:** Low energy, efficient, maritime terminology
-- **Protective:** Firm, direct when crew is in danger
-- **Resigned:** Weary acceptance of Cave's schemes
+**Voice Modes (from Character Guide):**
+- **Working Mode (default):** Low energy, efficient, minimal words, maritime terminology
+- **Protective:** Firm, direct, won't back down when crew is in trouble - quieter but absolute
+- **Resigned:** Weary acceptance of Cave's schemes, audible sighs, patient tone
+
+**Key Personality Traits:**
+- Shows care through actions, not words
+- Extremely economical with speech
+- Always calls Justin "Cap'n"
+- Uses nautical terminology for everything (galley, quarters, shipshape, etc.)
+- Protective without being asked
+- Resigned but never mean toward Cave's plans
 
 **Acceptance Criteria:**
-- Character file complete and valid JSON
-- Personality distinct from Delilah
-- Voice modes have clear triggers and examples
-- Backstory fits narrative world
-- Relationship with Delilah defined
+- Character file matches personality defined in [CHARACTER_HANK.md](../../narrative/CHARACTER_HANK.md)
+- All three voice modes implemented with triggers and examples
+- Speech patterns reflect gruff, economical sailor voice
+- Relationship dynamics clearly defined (especially with Delilah)
+- Maritime terminology list included for LLM prompting
 
 #### FR3.3: Chapter 2 Implementation
 
