@@ -192,10 +192,10 @@ GET    /api/v1/story/users/{user_id}/progress                         # Real-tim
 
 ## Milestone 2: Auto-Advance & Conditional Progression
 
-**Status:** ⏳ Not Started
+**Status:** ✅ Complete
 **Duration:** 2-3 days
 **Goal:** Implement auto-advance beats and conditional progression (N of M beats)
-**Completed:** _[Date when done]_
+**Completed:** 2026-02-04
 
 ---
 
@@ -356,12 +356,14 @@ interface ConditionalRequirement {
 
 ### Deliverables
 
-- [x] Auto-advance detection logic
-- [x] Auto-advance queue in user state
-- [x] Conditional progression evaluation
-- [x] Auto-advance notification UI component
-- [x] Conditional requirements display
-- [x] API endpoints for auto-advance
+- [x] Auto-advance detection logic (`story_engine.py:get_auto_advance_ready()`, `_check_auto_advance_beats()`)
+- [x] Auto-advance queue in user state (`story.py:AutoAdvanceNotification`, `UserStoryState.auto_advance_queue`)
+- [x] Conditional progression evaluation (`story_engine.py:check_conditional_progression()`)
+- [x] Auto-advance notification UI component (`AutoAdvanceNotification.tsx`, `AutoAdvanceNotification.css`)
+- [x] Auto-advance delivery functionality (`story_engine.py:deliver_auto_advance_beat()`)
+- [x] API endpoints for auto-advance (`GET /story/auto-advance-ready/{user_id}`, `POST /story/auto-advance/{user_id}/{beat_id}`)
+- [x] Integration into Story Beat Tool (polling, banner display)
+- [x] Chapter progression updated to check conditional beats
 
 ---
 

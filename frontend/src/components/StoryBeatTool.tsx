@@ -10,6 +10,7 @@ import mermaid from 'mermaid';
 import { apiClient, type ChapterSummary, type BeatSummary, type BeatDetail, type ChapterProgressSummary } from '../services/api';
 import { useStoryProgress } from '../hooks/useStoryProgress';
 import { DiagramLegend } from './story-beat/DiagramLegend';
+import { AutoAdvanceNotification } from './story-beat/AutoAdvanceNotification';
 import './StoryBeatTool.css';
 
 // Initialize mermaid
@@ -79,6 +80,13 @@ export function StoryBeatTool({ userId }: StoryBeatToolProps) {
     queryKey: ['diagram', selectedChapter, userId],
     queryFn: () => selectedChapter ? apiClient.getChapterDiagram(selectedChapter, userId) : Promise.resolve(null),
     enabled: selectedChapter !== null,
+  });
+
+  // Fetch auto-advance ready beats with polling
+  const { data: autoAdvanceBeats } = useQuery({
+    queryKey: ['autoAdvanceReady', userId],
+    queryFn: () => apiClient.getAutoAdvanceReady(userId),
+    refetchInterval: 5000, // Poll every 5 seconds
   });
 
   // Render diagram
@@ -152,6 +160,11 @@ export function StoryBeatTool({ userId }: StoryBeatToolProps) {
           🔄 Refresh
         </button>
       </div>
+
+      {/* Auto-Advance Notification Banner */}
+      {autoAdvanceBeats && autoAdvanceBeats.length > 0 && (
+        <AutoAdvanceNotification userId={userId} beats={autoAdvanceBeats} />
+      )}
 
       <div className="tool-layout">
         {/* Left sidebar: Chapter navigation */}
