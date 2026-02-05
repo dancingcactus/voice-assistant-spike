@@ -11,6 +11,7 @@
   margin-bottom: 2rem;
   padding-bottom: 1rem;
   border-bottom: 1px solid #333;
+  gap: 2rem;
 }
 
 .tool-header h2 {
@@ -29,6 +30,30 @@
   padding: 0.25rem 0.75rem;
   background: #2a2a2a;
   border-radius: 4px;
+}
+
+.refresh-btn {
+  padding: 0.5rem 1rem;
+  background: #2a2a2a;
+  border: 1px solid #4a90e2;
+  border-radius: 6px;
+  color: #4a90e2;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.refresh-btn:hover {
+  background: #1a3a5c;
+  border-color: #6cb2ff;
+  color: #6cb2ff;
+}
+
+.refresh-btn:active {
+  transform: scale(0.95);
 }
 
 .tool-layout {

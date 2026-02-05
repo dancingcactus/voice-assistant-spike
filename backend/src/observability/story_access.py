@@ -22,7 +22,7 @@ class StoryAccessLayer:
         """
         self.project_root = Path(project_root)
         self.story_dir = self.project_root / "story"
-        self.users_dir = self.project_root / "backend" / "data" / "users"
+        self.users_dir = self.project_root / "data" / "users"
 
         # Load story configuration
         self._chapters_cache = None

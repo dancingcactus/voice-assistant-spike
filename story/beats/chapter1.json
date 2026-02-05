@@ -39,7 +39,7 @@
       "priority": "normal",
       "trigger": {
         "type": "tool_use",
-        "tool_name": "set_timer"
+        "tool_name": "manage_timer"
       },
       "variants": {
         "brief": {

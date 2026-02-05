@@ -129,6 +129,14 @@ export function StoryBeatTool({ userId }: StoryBeatToolProps) {
     return <div className="story-beat-tool"><p>Loading...</p></div>;
   }
 
+  const handleRefresh = () => {
+    queryClient.invalidateQueries({ queryKey: ['chapters', userId] });
+    queryClient.invalidateQueries({ queryKey: ['beats', selectedChapter, userId] });
+    queryClient.invalidateQueries({ queryKey: ['storyProgress', userId] });
+    queryClient.invalidateQueries({ queryKey: ['progress', userId] });
+    queryClient.invalidateQueries({ queryKey: ['diagram', selectedChapter, userId] });
+  };
+
   return (
     <div className="story-beat-tool">
       <div className="tool-header">
@@ -140,6 +148,9 @@ export function StoryBeatTool({ userId }: StoryBeatToolProps) {
             <span>{progress.interaction_count} interactions</span>
           </div>
         )}
+        <button className="refresh-btn" onClick={handleRefresh} title="Refresh data">
+          🔄 Refresh
+        </button>
       </div>
 
       <div className="tool-layout">
