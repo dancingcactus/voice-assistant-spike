@@ -1137,7 +1137,7 @@ User: "I'm just kidding, I know better"
 
 - ✅ Voice quality baseline established for Delilah
 - ✅ TTS parameter tuning approach validated
-- ✅ Can apply learnings to other characters (Hank, Cave, Dimitria)
+- ✅ Can apply learnings to other characters (Hank, Rex, Dimitria)
 - ✅ Integration with character selection system ready
 
 ---
@@ -1169,7 +1169,7 @@ User: "I'm just kidding, I know better"
   - Milestone 6: Warm Baseline (9.9/10)
 - In Progress: Phase 4 planning
 - Blockers: None
-- Next Steps: Multi-character interactions (Delilah + Hank + Cave + Dimitria)
+- Next Steps: Multi-character interactions (Delilah + Hank + Rex + Dimitria)
 
 ---
 
@@ -1391,7 +1391,7 @@ mpv test_phrase.mp3     # Linux/cross-platform
 - Use evaluation framework with Hank-specific criteria
 - Expect 1-2 day completion per mode
 
-**For Cave (Phase 4):**
+**For Rex (Phase 4):**
 - Bombastic energy likely needs low stability (0.30-0.40)
 - High style for exaggerated delivery (0.60-0.70)
 - Probably single mode (no emotional range needed)
@@ -1400,7 +1400,7 @@ mpv test_phrase.mp3     # Linux/cross-platform
 **For Dimitria (Phase 4):**
 - Precise default likely needs high stability (0.60-0.70)
 - Low style for technical delivery (0.30-0.40)
-- Possible Confused/Frustrated mode for Cave's chaos
+- Possible Confused/Frustrated mode for Rex's chaos
 - Text structure: Over-literal, corrections, technical terms
 
 ### Process Refinements for Next Phase
@@ -1413,7 +1413,7 @@ mpv test_phrase.mp3     # Linux/cross-platform
 6. **Iterate only if below 9.0/10** (most won't need it)
 7. **Document results** and move to next mode
 
-**Expected Phase 4 Timeline:** 3-4 days for all three characters (Hank, Cave, Dimitria)
+**Expected Phase 4 Timeline:** 3-4 days for all three characters (Hank, Rex, Dimitria)
 
 ---
 
@@ -1572,7 +1572,7 @@ New section added (lines 307-375): `voice_mode_tts_settings`
 - A/B testing (Phase 3 settings vs baseline)
 - Mode selection accuracy improvements
 - Performance optimization (TTS generation latency)
-- Additional character voices (Hank, Cave, Dimitria)
+- Additional character voices (Hank, Rex, Dimitria)
 
 ---
 

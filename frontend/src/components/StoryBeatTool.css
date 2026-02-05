@@ -500,6 +500,23 @@
   }
 }
 
+.untrigger-btn {
+  padding: 0.5rem 1.5rem;
+  background: #5c1f1f;
+  border: 1px solid #dc3545;
+  border-radius: 4px;
+  color: #ffb3b3;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.untrigger-btn:hover {
+  background: #7a2828;
+  border-color: #ff4757;
+  color: #fff;
+}
+
 @media (max-width: 768px) {
   .tool-layout {
     grid-template-columns: 1fr;

@@ -369,10 +369,10 @@ interface ConditionalRequirement {
 
 ## Milestone 3: Untrigger Functionality
 
-**Status:** ⏳ Not Started
+**Status:** ✅ Complete
 **Duration:** 1-2 days
 **Goal:** Implement beat untrigger with dependency detection for fast iteration
-**Completed:** _[Date when done]_
+**Completed:** 2026-02-05
 
 ---
 
@@ -668,7 +668,7 @@ interface UntriggerResult {
    - Name: "Half Hands Hank"
    - Role: "First Mate - Task Management"
    - Voice modes: Working (default), Protective, Resigned
-   - Relationships: Delilah ("Miss" or "Lila"), Justin ("Cap'n"), Cave ("Mr. Johnson")
+  - Relationships: Delilah ("Miss" or "Lila"), Justin ("Cap'n"), Rex ("Mr. Armstrong")
    - Speech patterns: Maritime terminology, economical speech
 
 3. **Verify availability:**

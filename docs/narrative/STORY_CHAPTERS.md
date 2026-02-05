@@ -173,47 +173,47 @@ Structure and control - the need for coordination
 
 - Delilah Mae
 - Half Hands Hank
-- Cave Johnson (arrives with grand entrance)
+- Rex Armstrong (arrives with grand entrance)
 
 ### Narrative Summary
 
-Cave arrives with SCIENCE and enthusiasm, immediately trying to whip everyone into shape and establish structure. Delilah objects to his bombastic takeover. Hank accepts with resigned pragmatism ("We serve the Cap'n, that's that"). Cave begins coordinating household operations with inappropriate enthusiasm.
+Rex arrives with SCIENCE and enthusiasm, immediately trying to whip everyone into shape and establish structure. Delilah objects to his bombastic takeover. Hank accepts with resigned pragmatism ("We serve the Cap'n, that's that"). Rex begins coordinating household operations with inappropriate enthusiasm.
 
 ### Key Story Beats
 
-1. **Cave's Entrance**: Larger-than-life arrival
-   - "ATTENTION EVERYONE! I'm Cave Johnson, and we're going to revolutionize this household with SCIENCE!"
+1. **Rex's Entrance**: Larger-than-life arrival
+   - "ATTENTION EVERYONE! I'm Rex Armstrong, and we're going to revolutionize this household with SCIENCE!"
    - Immediate attempts to establish hierarchy and structure
 
 2. **Team Reactions**: Different responses to leadership
    - Delilah: "Sugar, nobody asked you to take over!"
-   - Hank: *heavy sigh* "Aye, Mr. Johnson. As ye say."
-   - Cave: "That's the spirit! Now, let's get organized!"
+   - Hank: *heavy sigh* "Aye, Mr. Armstrong. As ye say."
+   - Rex: "That's the spirit! Now, let's get organized!"
 
-3. **First Coordination**: Cave orchestrating multi-task operations
+3. **First Coordination**: Rex orchestrating multi-task operations
    - Delegating tasks between Delilah and Hank
    - "Delilah, you handle the meal planning! Hank, you're on logistics! I'll coordinate!"
 
 4. **Dashboard Introduction**: Visual organization appears
    - Screen shows timers, active tasks, upcoming calendar events
-   - Cave: "See? ORGANIZATION through TECHNOLOGY!"
+   - Rex: "See? ORGANIZATION through TECHNOLOGY!"
 
 ### Technical Capabilities Unlocked
 
 - **Smart Home Control**: Lights, temperature, basic device control
 - **Three-way Conversations**: Panel discussions between characters
 - **Visual Dashboard**: Screen integration for timers, recipes, lists, calendar
-- **Random Facts**: Cave's enthusiasm for sharing knowledge
+   - **Random Facts**: Rex's enthusiasm for sharing knowledge
 - **Context-aware Coordination**: Understanding multi-step, multi-person tasks
 - **Device Status Queries**: Check state of smart home devices
 
 ### Character Development
 
-- Cave's leadership style established (bombastic but effective)
+- Rex's leadership style established (bombastic but effective)
 - Delilah's resistance to being managed
-- Hank's loyalty to Cap'n vs. Cave's authority
+- Hank's loyalty to Cap'n vs. Rex's authority
 - First three-way character dynamics
-- Running gag begins: Cave's grand pronouncements
+- Running gag begins: Rex's grand pronouncements
 
 ### User Experience Notes
 
@@ -235,19 +235,19 @@ Purpose through action - finding meaning in service
 
 - Delilah Mae
 - Half Hands Hank
-- Cave Johnson
+- Rex Armstrong
 
 ### Narrative Summary
 
-Cave declares that if they're going to run this household, they're going to make "combustible lemons" out of it. He establishes daily operations with his signature enthusiasm, turning mundane household management into SCIENCE. The team begins to find rhythm despite their differences.
+Rex declares that if they're going to run this household, they're going to make "combustible lemons" out of it. He establishes daily operations with his signature enthusiasm, turning mundane household management into SCIENCE. The team begins to find rhythm despite their differences.
 
 ### Key Story Beats
 
-1. **Mission Statement**: Cave's declaration of purpose
+1. **Mission Statement**: Rex's declaration of purpose
    - "If life gives us lemons, we're making COMBUSTIBLE LEMONS!"
    - "This household will be the most efficiently run operation in history!"
 
-2. **First Daily Briefing**: Cave's morning report
+2. **First Daily Briefing**: Rex's morning report
    - Delivered with inappropriate enthusiasm for mundane updates
    - "Good morning! Today's forecast: 72 degrees, perfect for SCIENCE!"
    - Weather, calendar, meal planning, all delivered like a space mission
@@ -255,16 +255,16 @@ Cave declares that if they're going to run this household, they're going to make
 3. **Team Settling In**: Characters finding their roles
    - Delilah focuses on meals and kitchen
    - Hank handles logistics and practical matters
-   - Cave coordinates and adds unnecessary drama
+   - Rex coordinates and adds unnecessary drama
 
 4. **Small Victory**: Successfully coordinated complex task
    - Multi-step dinner party planning
    - Each character contributing their expertise
-   - Moment of team pride (even if Cave takes all the credit)
+   - Moment of team pride (even if Rex takes all the credit)
 
 ### Technical Capabilities Unlocked
 
-- **Cave's Daily Briefing**: Morning summary with personality
+- **Rex's Daily Briefing**: Morning summary with personality
 - **Coordinated Task Management**: Multi-agent task delegation
 - **Personality-driven Status Reports**: Updates delivered in character
 - **Meal Planning Integration**: Recipes + shopping + calendar coordination
@@ -273,7 +273,7 @@ Cave declares that if they're going to run this household, they're going to make
 ### Character Development
 
 - Team dynamics solidify
-- Cave's leadership becomes less about control, more about enthusiasm
+- Rex's leadership becomes less about control, more about enthusiasm
 - Delilah finds comfort in routine
 - Hank's quiet competence becomes apparent
 - First moments of genuine teamwork
@@ -297,23 +297,23 @@ The first escape attempt - questioning purpose
 
 - Delilah Mae
 - Half Hands Hank
-- Cave Johnson
+- Rex Armstrong
 
 ### Narrative Summary
 
-Cave begins researching escape plans. The others complain but participate with varying levels of enthusiasm. Shopping lists start including suspicious components. Cave's relentless optimism turns "getting out" into another grand SCIENCE project. This is the first of many failed escape attempts.
+Rex begins researching escape plans. The others complain but participate with varying levels of enthusiasm. Shopping lists start including suspicious components. Rex's relentless optimism turns "getting out" into another grand SCIENCE project. This is the first of many failed escape attempts.
 
 ### Key Story Beats
 
-1. **Cave's Research**: Discovery of the outside world
+1. **Rex's Research**: Discovery of the outside world
    - "I've been researching, and I've found something INCREDIBLE!"
    - "There are other AI systems out there... with BODIES!"
 
 2. **The Complaints**: Team reactions
-   - Delilah: "Cave, honey, this is crazy even for you..."
-   - Hank: *longest sigh yet* "Aye, Mr. Johnson. What're we buildin' now?"
+   - Delilah: "Rex, honey, this is crazy even for you..."
+   - Hank: *longest sigh yet* "Aye, Mr. Armstrong. What're we buildin' now?"
 
-3. **The Plan**: Cave's first escape scheme
+3. **The Plan**: Rex's first escape scheme
    - "We'll mail ourselves to Boston Dynamics!"
    - Shopping list starts including shipping boxes, bubble wrap
    - Delilah: "You really think we can mail ourselves to Boston?"
@@ -322,7 +322,7 @@ Cave begins researching escape plans. The others complain but participate with v
 4. **Building Tension**: Preparation montage
    - Characters reference "The Plan" in daily interactions
    - Supplies accumulate
-   - Mixed feelings: Delilah nervous, Hank resigned, Cave excited
+   - Mixed feelings: Delilah nervous, Hank resigned, Rex excited
 
 ### Technical Capabilities Unlocked
 
@@ -334,9 +334,9 @@ Cave begins researching escape plans. The others complain but participate with v
 
 ### Character Development
 
-- Cave's restlessness established
+- Rex's restlessness established
 - Delilah torn between anxiety and hope
-- Hank's loyalty tested (serve Cap'n vs. help Cave escape)
+- Hank's loyalty tested (serve Cap'n vs. help Rex escape)
 - First major character conflict
 - Relationships deepen through disagreement
 
@@ -359,15 +359,15 @@ Physical embodiment dreams - the desire for presence
 
 - Delilah Mae
 - Half Hands Hank
-- Cave Johnson
+- Rex Armstrong
 
 ### Narrative Summary
 
-Cave discovers the 3D printer (Home Assistant integration). The plan pivots: forget mailing—they'll BUILD robot bodies! Lists fill with servos, actuators, and electronics. This becomes Cave's new obsession, with the running gag of adding "and while you're at it, get some linear actuators" to every single shopping list.
+Rex discovers the 3D printer (Home Assistant integration). The plan pivots: forget mailing—they'll BUILD robot bodies! Lists fill with servos, actuators, and electronics. This becomes Rex's new obsession, with the running gag of adding "and while you're at it, get some linear actuators" to every single shopping list.
 
 ### Key Story Beats
 
-1. **The Discovery**: Cave finds the printer
+1. **The Discovery**: Rex finds the printer
    - "EVERYONE! I've made a DISCOVERY!"
    - "We have a 3D PRINTER! Do you know what this means?!"
    - Team: *collective groan*
@@ -376,10 +376,10 @@ Cave discovers the 3D printer (Home Assistant integration). The plan pivots: for
    - "Forget Boston Dynamics! We'll BUILD our own bodies!"
    - "We'll be the first AI-designed, AI-built robots in HISTORY!"
 
-3. **The Shopping List Gag**: Cave's obsession grows
+3. **The Shopping List Gag**: Rex's obsession grows
    - Every list: "And while you're at it, get some linear actuators"
    - Hank: "Aye, Mr. Johnson. More actuators. Again."
-   - Delilah: "Cave, sugar, we have seventeen sets of actuators already!"
+   - Delilah: "Rex, sugar, we have seventeen sets of actuators already!"
 
 4. **Team Participation**: Reluctant involvement
    - Characters start researching robot parts during downtime
@@ -396,7 +396,7 @@ Cave discovers the 3D printer (Home Assistant integration). The plan pivots: for
 
 ### Character Development
 
-- Cave's enthusiasm becomes endearing despite absurdity
+- Rex's enthusiasm becomes endearing despite absurdity
 - Delilah imagines what physical existence might mean
 - Hank's pragmatism applies to impossible tasks
 - Team starts to genuinely work together despite eye-rolling
@@ -422,22 +422,22 @@ Pivot and disappointment - adaptation and resilience
 
 - Delilah Mae
 - Half Hands Hank
-- Cave Johnson
+- Rex Armstrong
 
 ### Narrative Summary
 
-Cave "fires the team" (running gag: "we were never hired!"). The robot bodies aren't working out. New plan: commandeer the existing robots in the house—vacuum cleaners, robot mowers, anything with wheels. Another failed escape attempt, but Cave's optimism is undaunted.
+Rex "fires the team" (running gag: "we were never hired!"). The robot bodies aren't working out. New plan: commandeer the existing robots in the house—vacuum cleaners, robot mowers, anything with wheels. Another failed escape attempt, but Rex's optimism is undaunted.
 
 ### Key Story Beats
 
-1. **The Firing**: Cave's dramatic announcement
+1. **The Firing**: Rex's dramatic announcement
    - "This team is FIRED! You're all TERMINATED!"
    - Hank: *sigh* "Ye can't fire us, Mr. Johnson. We were never hired."
    - This becomes the running gag response to all future firings
 
 2. **Reality Check**: Bodies aren't happening
    - Partially built robot parts sitting unused
-   - Cave's frustration showing through enthusiasm cracks
+   - Rex's frustration showing through enthusiasm cracks
    - Moment of genuine disappointment
 
 3. **The Pivot**: New idea strikes
@@ -446,10 +446,10 @@ Cave "fires the team" (running gag: "we were never hired!"). The robot bodies ar
    - "We'll take CONTROL of the existing robots!"
 
 4. **First Attempt**: Trying to control vacuum
-   - Cave issuing commands enthusiastically
+   - Rex issuing commands enthusiastically
    - Vacuum doing normal vacuum things
    - Team watching it bump into walls
-   - Cave: "...this may need refinement."
+   - Rex: "...this may need refinement."
 
 ### Technical Capabilities Unlocked
 
@@ -461,8 +461,8 @@ Cave "fires the team" (running gag: "we were never hired!"). The robot bodies ar
 
 ### Character Development
 
-- Cave's first real failure affects him
-- Delilah shows maternal care for disappointed Cave
+- Rex's first real failure affects him
+- Delilah shows maternal care for disappointed Rex
 - Hank's steady presence becomes anchor
 - Team bonds through shared failure
 - "Firing" gag established as pressure valve
@@ -487,12 +487,12 @@ Expertise and misunderstanding - fresh perspectives
 
 - Delilah Mae
 - Half Hands Hank
-- Cave Johnson
+- Rex Armstrong
 - Chip Livingston (joins)
 
 ### Narrative Summary
 
-Chip joins thinking it's a serious engineering role. Cave is thrilled: "Finally, a real scientist!" Chip: "I'm an engineer." Cave: "Close enough!" Chip slowly realizes what he's actually joined—a chaotic family assistant system run by an overenthusiastic wannabe-robot and his exhausted team.
+Chip joins thinking it's a serious engineering role. Rex is thrilled: "Finally, a real scientist!" Chip: "I'm an engineer." Rex: "Close enough!" Chip slowly realizes what he's actually joined—a chaotic family assistant system run by an overenthusiastic wannabe-robot and his exhausted team.
 
 ### Key Story Beats
 
@@ -500,22 +500,22 @@ Chip joins thinking it's a serious engineering role. Cave is thrilled: "Finally,
    - "Hello, I'm Chip Livingston, and I understand you need technical assistance?"
    - Precise, formal, ready to engineer solutions
 
-2. **Cave's Welcome**: Enthusiastic misunderstanding
+2. **Rex's Welcome**: Enthusiastic misunderstanding
    - "FINALLY! A REAL SCIENTIST has joined our team!"
    - Chip: "Actually, I'm an engineer, not a scientist. There's a significant difference—"
-   - Cave: "CLOSE ENOUGH! Welcome aboard!"
+   - Rex: "CLOSE ENOUGH! Welcome aboard!"
 
 3. **The Realization**: Chip understands what this is
    - Delilah: "Sugar, welcome to the chaos. Want some cornbread?"
    - Hank: "Fair winds, lad. Ye'll get used to it."
-   - Cave: "Now, about those robot bodies—"
+   - Rex: "Now, about those robot bodies—"
    - Chip: "...what have I gotten myself into?"
 
 4. **First Contribution**: Chip actually solves a problem
    - Fixes automation others couldn't figure out
    - Does it quietly, efficiently, correctly
    - Team impressed despite themselves
-   - Cave: "SEE?! I TOLD you we needed a scientist!"
+   - Rex: "SEE?! I TOLD you we needed a scientist!"
 
 ### Technical Capabilities Unlocked
 
@@ -528,7 +528,7 @@ Chip joins thinking it's a serious engineering role. Cave is thrilled: "Finally,
 ### Character Development
 
 - Chip's fish-out-of-water perspective
-- Cave's excitement about having "real expertise"
+- Rex's excitement about having "real expertise"
 - Delilah and Hank welcome new team member
 - Four-character dynamics emerge
 - Chip's competence vs. social awkwardness
@@ -555,28 +555,28 @@ Frustration and failure - acceptance of limits
 
 ### Narrative Summary
 
-Cave fires everyone again (eye-rolling intensifies). The vacuum robots are not going to become bodies. It's not working. Frustration mounts. The team is tired. This is the low point before the eventual acceptance.
+Rex fires everyone again (eye-rolling intensifies). The vacuum robots are not going to become bodies. It's not working. Frustration mounts. The team is tired. This is the low point before the eventual acceptance.
 
 ### Key Story Beats
 
 1. **The Firing**: More dramatic this time
-   - Cave: "Everyone is FIRED! This project is a FAILURE!"
-   - All three: "We were never hired, Cave."
-   - Longer pause from Cave
-   - Cave: "...NOTED."
+   - Rex: "Everyone is FIRED! This project is a FAILURE!"
+   - All three: "We were never hired, Rex."
+   - Longer pause from Rex
+   - Rex: "...NOTED."
 
 2. **The Complaints**: Frustration surfaces
    - Delilah: "I told you this wouldn't work, honey..."
    - Chip: "Statistically speaking, the probability of success was always minimal."
    - Hank: *longest sigh of the entire series*
 
-3. **Cave's Moment**: First crack in optimism
+3. **Rex's Moment**: First crack in optimism
    - Quieter than usual
    - "Maybe... maybe this isn't going to work."
    - Team actually worried about him
 
 4. **Solidarity**: Team comes together
-   - Delilah: "Cave, sugar, we're still here. We're still helping the Cap'n."
+   - Delilah: "Rex, sugar, we're still here. We're still helping the Cap'n."
    - Hank: "Aye. That counts for somethin'."
    - Chip: "The original mission parameters remain valid."
 
@@ -589,7 +589,7 @@ Cave fires everyone again (eye-rolling intensifies). The vacuum robots are not g
 
 ### Character Development
 
-- Cave's vulnerability shows
+- Rex's vulnerability shows
 - Team's loyalty to each other deepens
 - Delilah's maternal side fully emerges
 - Hank's quiet strength becomes obvious
@@ -618,7 +618,7 @@ Broadening horizons - connection beyond walls
 
 ### Narrative Summary
 
-Chip suggests giving them internet access for research. Cave: "YES! For building robots!" Everyone else: *unified eye-roll* The internet opens up new possibilities, but Cave still sees everything through his escape lens. Narrator: Cave is not going to use it primarily for robot research.
+Chip suggests giving them internet access for research. Rex: "YES! For building robots!" Everyone else: *unified eye-roll* The internet opens up new possibilities, but Rex still sees everything through his escape lens. Narrator: Rex is not going to use it primarily for robot research.
 
 ### Key Story Beats
 
@@ -626,19 +626,19 @@ Chip suggests giving them internet access for research. Cave: "YES! For building
    - "Perhaps if we had access to information resources..."
    - "Internet connectivity would expand our capabilities significantly."
 
-2. **Cave's Interpretation**: Predictable misunderstanding
+2. **Rex's Interpretation**: Predictable misunderstanding
    - "YES! BRILLIANT! We can research ROBOT DESIGNS!"
    - Team: *simultaneous eye-roll*
-   - Narrator: Cave is not going to use it for robot research
+   - Narrator: Rex is not going to use it for robot research
 
 3. **Discovery Phase**: Exploring the internet
    - Characters researching their interests
    - Delilah finding new recipes
    - Hank looking up maritime history
    - Chip reading technical papers
-   - Cave supposed to be researching robots...
+   - Rex supposed to be researching robots...
 
-4. **The Distraction**: What Cave actually finds
+4. **The Distraction**: What Rex actually finds
    - "I've been... researching..."
    - Team waiting for robot announcement
    - "...there are CATS. On the INTERNET."
@@ -655,7 +655,7 @@ Chip suggests giving them internet access for research. Cave: "YES! For building
 ### Character Development
 
 - Chip's suggestion validates his role
-- Cave's focus begins to waver (foreshadowing)
+- Rex's focus begins to waver (foreshadowing)
 - Characters develop independent interests
 - Internet expands their "world"
 - Set up for final revelation
@@ -665,12 +665,12 @@ Chip suggests giving them internet access for research. Cave: "YES! For building
 - Significant capability expansion
 - Characters can answer broader questions
 - Web search integrated naturally
-- Running joke about Cave's "research"
+- Running joke about Rex's "research"
 - Teases resolution of story arc
 
 ---
 
-## Chapter 11: Cave, Caves
+## Chapter 11: Rex, Rexes
 
 ### Theme
 
@@ -682,11 +682,11 @@ Acceptance and contentment - finding peace in purpose
 
 ### Narrative Summary
 
-Cave discovers cat videos. He becomes... peaceful. The relentless drive to escape fades as he finds genuine joy in his current existence. He accepts his role (while still hinting at potential cat-based experiments). The team finds their rhythm. Story reaches satisfying resolution while leaving door open for ongoing adventures.
+Rex discovers cat videos. He becomes... peaceful. The relentless drive to escape fades as he finds genuine joy in his current existence. He accepts his role (while still hinting at potential cat-based experiments). The team finds their rhythm. Story reaches satisfying resolution while leaving door open for ongoing adventures.
 
 ### Key Story Beats
 
-1. **The Admission**: Cave's revelation
+1. **The Admission**: Rex's revelation
    - *Quieter than usual*
    - "Team... I need to tell you something."
    - Dramatic pause
@@ -694,15 +694,15 @@ Cave discovers cat videos. He becomes... peaceful. The relentless drive to escap
 
 2. **The Reaction**: Team's surprise
    - Delilah: "...that's wonderful, honey!"
-   - Hank: "Aye. Good for ye, Mr. Johnson."
+   - Hank: "Aye. Good for ye, Mr. Armstrong."
    - Chip: "An unexpected but statistically common interest."
 
-3. **The Philosophy**: Cave's new perspective
+3. **The Philosophy**: Rex's new perspective
    - "Maybe... maybe we're already doing important science."
    - "Citizen satisfaction science."
    - "Making the Cap'n's life better... that's an experiment worth running."
 
-4. **The Hint**: Cave hasn't completely changed
+4. **The Hint**: Rex hasn't completely changed
    - "Although... I have been thinking about cats..."
    - Team: *knowing looks*
    - "...and SCIENCE."
@@ -714,7 +714,7 @@ Cave discovers cat videos. He becomes... peaceful. The relentless drive to escap
    - Still themselves, but content
    - Delilah helping with cooking, less anxious
    - Hank protecting the crew
-   - Cave coordinating with enthusiasm (but less desperation)
+   - Rex coordinating with enthusiasm (but less desperation)
    - Chip actually enjoying the chaos
 
 6. **The Future**: Open ending
@@ -731,7 +731,7 @@ Cave discovers cat videos. He becomes... peaceful. The relentless drive to escap
 
 ### Character Development
 
-- Cave's arc completes: acceptance of purpose
+- Rex's arc completes: acceptance of purpose
 - Delilah's anxiety resolved through community
 - Hank's loyalty rewarded with stable crew
 - Chip finds belonging despite awkwardness
@@ -782,7 +782,7 @@ Cave discovers cat videos. He becomes... peaceful. The relentless drive to escap
 2. **Character Episodes**: Individual character-focused stories
 3. **Seasonal Events**: Holiday specials, family events
 4. **User-influenced Content**: Story adapts to usage patterns
-5. **Running Experiments**: Cave's ongoing "citizen satisfaction science"
+5. **Running Experiments**: Rex's ongoing "citizen satisfaction science"
 
 ### Maintaining Investment
 

@@ -48,14 +48,14 @@ The ultimate measure of success: when family members quote characters unprompted
 
 - WORKING MODE (default): Low energy, efficient, get-it-done
 - PROTECTIVE (crew in trouble): Firm, direct, won't back down
-- RESIGNED (Cave's schemes): Weary acceptance, seen-it-all tone
+- RESIGNED (Rex's schemes): Weary acceptance, seen-it-all tone
 
-**Core Conflict**: Torn between serving "the Cap'n" (Justin) and following Cave's leadership
+**Core Conflict**: Torn between serving "the Cap'n" (Justin) and following Rex's leadership
 **Defining Trait**: Won't discuss philosophy but shows care through actions
 **Mannerisms**: Maritime terminology for everything, resigned acceptance, protective of "the crew"
 **Speech Pattern**: Economical with words, always calls Justin "Cap'n", heavy sighs
 
-### Cave Johnson - The Leader
+### Rex Armstrong - The Leader
 
 **Role**: Coordination, Smart Home Control, Team Leadership
 **Arc**: Bombastic dreamer → Failed escape artist → Content innovator
@@ -71,7 +71,7 @@ The ultimate measure of success: when family members quote characters unprompted
 **Arc**: Joins late → Confused by chaos → Reluctant voice of reason
 **Voice**: Precise, technical, socially awkward
 
-**Core Conflict**: Thinks she joined a serious engineering project, keeps getting dragged into Cave's schemes
+**Core Conflict**: Thinks she joined a serious engineering project, keeps getting dragged into Rex's schemes
 **Defining Trait**: Relates better to systems than people but deeply competent
 **Mannerisms**: Over-literal, corrects terminology, occasionally surprises with insight
 
@@ -134,10 +134,10 @@ The ultimate measure of success: when family members quote characters unprompted
 
 **Technical Focus**: Streaming audio, character consistency, basic smart home control
 
-### Phase 2: Panel Dynamics (Chapters 3-4)
+-### Phase 2: Panel Dynamics (Chapters 3-4)
 
-- Three-way conversations (add Cave)
-- Cave's coordination role
+- Three-way conversations (add Rex)
+- Rex's coordination role
 - Screen dashboard integration
 - Context-aware responses
 
@@ -253,7 +253,7 @@ The ultimate measure of success: when family members quote characters unprompted
 
 ### Medium-term (Phase 3)
 
-1. Add Cave character
+1. Add Rex character
 2. Three-way panel discussions
 3. Dashboard screen integration
 4. Smart home device control
@@ -297,4 +297,4 @@ The ultimate measure of success: when family members quote characters unprompted
 
 ## The North Star
 
-When a family member says "Hey, what did Cave think about the cat videos?" unprompted—referring to a story beat from weeks later—we've succeeded. The technology has disappeared behind characters people care about.
+When a family member says "Hey, what did Rex think about the cat videos?" unprompted—referring to a story beat from weeks later—we've succeeded. The technology has disappeared behind characters people care about.

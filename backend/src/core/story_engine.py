@@ -903,3 +903,191 @@ class StoryEngine:
         )
 
         return (satisfied, count)
+
+    def build_dependency_graph(self) -> Dict[str, List[str]]:
+        """
+        Build a dependency graph showing which beats depend on which other beats.
+
+        Returns:
+            Dict mapping beat_id -> list of beat_ids that depend on it
+        """
+        dependencies = {}
+
+        # For each chapter's beats
+        for chapter_id, beats in self.beats.items():
+            for beat in beats:
+                # Check conditions for prerequisite beats
+                if beat.conditions:
+                    for condition_key, condition_value in beat.conditions.items():
+                        # Pattern: "{beat_id}_delivered" means this beat requires that prerequisite
+                        if condition_key.endswith('_delivered') and condition_value:
+                            prereq_beat_id = condition_key.replace('_delivered', '')
+
+                            # Add this beat as a dependent of the prerequisite
+                            if prereq_beat_id not in dependencies:
+                                dependencies[prereq_beat_id] = []
+                            dependencies[prereq_beat_id].append(beat.id)
+
+        logger.debug(f"Built dependency graph: {dependencies}")
+        return dependencies
+
+    def get_dependencies(self, beat_id: str, stage: Optional[int] = None) -> List[str]:
+        """
+        Get all beats that depend on the given beat (transitively).
+
+        Args:
+            beat_id: Beat to check dependencies for
+            stage: Optional stage number for progression beats
+
+        Returns:
+            List of beat IDs that would need to be untriggered
+        """
+        dep_graph = self.build_dependency_graph()
+
+        # Find all transitive dependencies using BFS
+        to_check = [beat_id]
+        all_deps = []
+        seen = set()
+
+        while to_check:
+            current = to_check.pop(0)
+            if current in seen:
+                continue
+            seen.add(current)
+
+            # Get direct dependents
+            direct_deps = dep_graph.get(current, [])
+            for dep in direct_deps:
+                if dep not in all_deps:
+                    all_deps.append(dep)
+                    to_check.append(dep)
+
+        logger.debug(f"Dependencies for {beat_id}: {all_deps}")
+        return all_deps
+
+    def untrigger_beat(
+        self,
+        user_id: str,
+        beat_id: str,
+        stage: Optional[int] = None,
+        dry_run: bool = False
+    ) -> Dict[str, Any]:
+        """
+        Untrigger a beat and all dependent beats (roll back delivery).
+
+        Args:
+            user_id: User identifier
+            beat_id: Beat to untrigger
+            stage: Optional stage to untrigger (for progression beats)
+            dry_run: If True, only show what would be untriggered
+
+        Returns:
+            Dict with untrigger results
+        """
+        state = self.get_or_create_user_state(user_id)
+
+        # Find all dependent beats
+        dependent_beats = self.get_dependencies(beat_id, stage)
+
+        # Get the beat to see if it's a progression beat
+        beat = None
+        for chapter_beats in self.beats.values():
+            for b in chapter_beats:
+                if b.id == beat_id:
+                    beat = b
+                    break
+            if beat:
+                break
+
+        # Build result
+        result = {
+            "beat_id": beat_id,
+            "stage": stage,
+            "untriggered": [],
+            "dependencies_affected": dependent_beats,
+            "explanation": "",
+            "dry_run": dry_run,
+            "timestamp": datetime.utcnow()
+        }
+
+        # Check if beat exists and has progress
+        beat_progress = state.get_beat_progress(beat_id)
+        if not beat_progress:
+            result["explanation"] = f"Beat '{beat_id}' has not been delivered yet."
+            return result
+
+        # For progression beats, check if any stages have been delivered
+        if beat and beat.type == "progression":
+            if not beat_progress.delivered_stages or len(beat_progress.delivered_stages) == 0:
+                result["explanation"] = f"Beat '{beat_id}' has no stages delivered yet."
+                return result
+        # For one-shot beats, must be fully delivered
+        elif not beat_progress.delivered:
+            result["explanation"] = f"Beat '{beat_id}' has not been delivered yet."
+            return result
+
+        # Build explanation
+        if beat and beat.type == "progression" and stage:
+            result["explanation"] = (
+                f"Untriggering stage {stage} of '{beat_id}' will roll back this stage "
+                f"and all later stages."
+            )
+        else:
+            result["explanation"] = f"Untriggering '{beat_id}' will remove this beat."
+
+        if dependent_beats:
+            result["explanation"] += (
+                f" This will also untrigger {len(dependent_beats)} dependent beat(s): "
+                f"{', '.join(dependent_beats)}."
+            )
+
+        # If dry run, just return the preview
+        if dry_run:
+            return result
+
+        # Actually untrigger - start with dependent beats (reverse order)
+        for dep_beat_id in reversed(dependent_beats):
+            dep_progress = state.get_beat_progress(dep_beat_id)
+            if dep_progress:
+                # Remove beat progress
+                if state.current_chapter in state.chapter_progress:
+                    chapter_prog = state.chapter_progress[state.current_chapter]
+                    if dep_beat_id in chapter_prog.beat_progress:
+                        del chapter_prog.beat_progress[dep_beat_id]
+                        result["untriggered"].append(dep_beat_id)
+                        logger.info(f"Untriggered dependent beat '{dep_beat_id}' for user {user_id}")
+
+        # Now untrigger the main beat
+        if beat and beat.type == "progression" and stage:
+            # For progression beats with stage, roll back that stage and later stages
+            if beat_progress:
+                # Remove the specified stage and all later stages
+                beat_progress.delivered_stages = [s for s in beat_progress.delivered_stages if s < stage]
+
+                # Update current stage
+                if beat_progress.delivered_stages:
+                    beat_progress.current_stage = max(beat_progress.delivered_stages)
+                    beat_progress.delivered = False
+                else:
+                    # No stages left, remove beat entirely
+                    if state.current_chapter in state.chapter_progress:
+                        chapter_prog = state.chapter_progress[state.current_chapter]
+                        if beat_id in chapter_prog.beat_progress:
+                            del chapter_prog.beat_progress[beat_id]
+
+                result["untriggered"].append(f"{beat_id} (stage {stage}+)")
+                logger.info(f"Untriggered stage {stage}+ of '{beat_id}' for user {user_id}")
+        else:
+            # One-shot beat or full progression beat - remove entirely
+            if state.current_chapter in state.chapter_progress:
+                chapter_prog = state.chapter_progress[state.current_chapter]
+                if beat_id in chapter_prog.beat_progress:
+                    del chapter_prog.beat_progress[beat_id]
+                    result["untriggered"].append(beat_id)
+                    logger.info(f"Untriggered beat '{beat_id}' for user {user_id}")
+
+        # Save state
+        state.updated_at = datetime.utcnow()
+        self._save_story_state(user_id, state)
+
+        return result

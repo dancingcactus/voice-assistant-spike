@@ -141,7 +141,7 @@ Hey Chat! is a modular, narrative-driven voice assistant system built around cle
 
 - Phase 2: Test harness UI for inspecting automated test runs
 - Phase 3: Visual indicators for two characters (Delilah + Hank)
-- Phase 4: Panel view for three characters (add Cave)
+- Phase 4: Panel view for three characters (add Rex)
 - Phase 5: Full four-character panel (add Dimitria), dashboard view with detailed state
 - Phase 6+: Mobile app, voice-only mode
 
@@ -275,7 +275,7 @@ class CharacterSystem:
 
 - Phase 2: Test assertions for character consistency
 - Phase 3: Two characters (Delilah + Hank), character selection logic
-- Phase 4: Three characters (add Cave), panel coordination
+- Phase 4: Three characters (add Rex), panel coordination
 - Phase 5: Four characters (add Dimitria), full multi-character coordination
 - Phase 6+: Character relationship tracking, dynamic personality adjustment, character memory systems
 
@@ -490,7 +490,7 @@ The engine prioritizes which beat to inject based on:
 
 - Phase 2: Test scenarios for story beat validation
 - Phase 3: Two-character beats (Delilah + Hank), character interaction tracking
-- Phase 4: Three-character beats (add Cave), running gags system
+- Phase 4: Three-character beats (add Rex), running gags system
 - Phase 5: Four-character beats (add Dimitria), callback humor tracking
 - Phase 6+: Branching narratives, user influence on story
 
@@ -894,7 +894,7 @@ class ElevenLabsTTS(TTSProvider):
 
 - Delilah: ElevenLabs voice with Southern accent, warm tone
 - (Phase 2+) Hank: Gruff, lower register
-- (Phase 2+) Cave: Bombastic, energetic
+- (Phase 2+) Rex: Bombastic, energetic
 - (Phase 3+) Dimitria: Precise, neutral accent
 
 **Optimization**:
@@ -907,7 +907,7 @@ class ElevenLabsTTS(TTSProvider):
 
 - Phase 2: Cache TTS for faster test execution
 - Phase 3: Add Hank's voice (gruff, lower register)
-- Phase 4: Add Cave's voice (bombastic, energetic)
+- Phase 4: Add Rex's voice (bombastic, energetic)
 - Phase 5: Add Dimitria's voice (precise, neutral accent)
 - Phase 6+: Consider Piper (local, faster, lower cost)
 - Future: Custom voice cloning for perfect character match, real-time voice modulation
@@ -1302,7 +1302,7 @@ class MockTTSProvider(TTSProvider):
 **Upgrade Path**:
 
 - Phase 3: Two-character test scenarios (Delilah + Hank)
-- Phase 4: Three-character test scenarios (add Cave)
+- Phase 4: Three-character test scenarios (add Rex)
 - Phase 5: Four-character test scenarios (add Dimitria)
 - Phase 6+: Parallel test execution, visual regression testing, load testing
 
@@ -1493,7 +1493,7 @@ voice-assistant-spike/
 │   ├── characters/
 │   │   ├── delilah.json
 │   │   ├── hank.json        # Phase 2+
-│   │   ├── cave.json        # Phase 2+
+│   │   ├── rex.json        # Phase 2+
 │   │   └── dimitria.json    # Phase 3+
 │   ├── beats/
 │   │   ├── chapter1.json
@@ -1984,13 +1984,13 @@ Primary testing approach for Phase 2+:
 
 **Phase 3 Goal**: Validate that multi-character dynamics work and are engaging before further expansion
 
-### Phase 4: Three-Character Panel (Cave)
+### Phase 4: Three-Character Panel (Rex)
 
 **Module Additions**:
 
-- Add Cave character definition
+- Add Rex character definition
 - Three-way conversation coordination
-- Cave's leadership and coordination role
+- Rex's leadership and coordination role
 - Chapter 3 story beats
 - Advanced context management (vector DB, semantic search)
 - Character memory systems
@@ -2009,7 +2009,7 @@ Primary testing approach for Phase 2+:
    - Callback humor system
 
 3. **TTS Integration**
-   - Cave's bombastic voice
+  - Rex's bombastic voice
    - Three-voice mixing and timing
 
 **Phase 4 Goal**: Prove the full character panel experience before committing to device integration
@@ -2154,7 +2154,7 @@ Primary testing approach for Phase 2+:
 ### Long-term Roadmap
 
 - **Phase 3**: Multi-character coordination (Hank integration)
-- **Phase 4**: Three-character panel (Cave integration)
+- **Phase 4**: Three-character panel (Rex integration)
 - **Phase 5**: Full character panel (Dimitria) + advanced features
 - **Phase 6**: Real Home Assistant device integration (only if character experience succeeds)
 

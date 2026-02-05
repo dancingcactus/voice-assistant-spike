@@ -70,7 +70,7 @@ The story system is the heart of Aperture Assist's emotional impact. Characters 
 
 - Voice mode refinement for Hank (Phase 5)
 - Multi-character response coordination (Phase 5)
-- Cave Johnson character (Phase 5+)
+-- Rex Armstrong character (Phase 5+)
 - Chapters 3+ (Future phases)
 - Story analytics dashboards
 - Mobile UI optimization
@@ -418,13 +418,13 @@ The story system is the heart of Aperture Assist's emotional impact. Characters 
 - Voice modes: Working (default), Protective, Resigned (as defined in guide)
 - Speech patterns: Maritime terminology, economical speech, "Cap'n" for Justin
 - Backstory: Old-salt sailor, protective of crew, doesn't philosophize
-- Relationships: Delilah ("Miss" or "Lila"), Justin ("Cap'n"), Cave ("Mr. Johnson")
+-- Relationships: Delilah ("Miss" or "Lila"), Justin ("Cap'n"), Rex ("Mr. Armstrong")
 
 **Voice Modes (from Character Guide):**
 
 - **Working Mode (default):** Low energy, efficient, minimal words, maritime terminology
 - **Protective:** Firm, direct, won't back down when crew is in trouble - quieter but absolute
-- **Resigned:** Weary acceptance of Cave's schemes, audible sighs, patient tone
+-- **Resigned:** Weary acceptance of Rex's schemes, audible sighs, patient tone
 
 **Key Personality Traits:**
 
@@ -433,7 +433,7 @@ The story system is the heart of Aperture Assist's emotional impact. Characters 
 - Always calls Justin "Cap'n"
 - Uses nautical terminology for everything (galley, quarters, shipshape, etc.)
 - Protective without being asked
-- Resigned but never mean toward Cave's plans
+- Resigned but never mean toward Rex's plans
 
 **Acceptance Criteria:**
 
@@ -711,7 +711,7 @@ Phase 4 is complete when:
 
 - ✅ Story system stable and production-ready
 - ✅ Foundation for multi-character coordination in place
-- ✅ Clear path to adding Cave Johnson
+- ✅ Clear path to adding Rex Armstrong
 - ✅ Confident in story tools for rapid content creation
 
 ---

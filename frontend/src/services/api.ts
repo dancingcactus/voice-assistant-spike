@@ -115,6 +115,16 @@ export interface AutoAdvanceNotification {
   notified: boolean;
 }
 
+export interface UntriggerBeatResponse {
+  beat_id: string;
+  stage?: number;
+  untriggered: string[];
+  dependencies_affected: string[];
+  explanation: string;
+  dry_run: boolean;
+  timestamp: string;
+}
+
 export interface Memory {
   memory_id: string;
   category: string;
@@ -434,6 +444,19 @@ class ApiClient {
     return this.request<any>(`/story/users/${userId}/beats/${beatId}/trigger`, {
       method: 'POST',
       body: JSON.stringify({ variant, stage }),
+    });
+  }
+
+  async untriggerBeat(userId: string, beatId: string, dryRun: boolean = false, stage?: number | null): Promise<UntriggerBeatResponse> {
+    const params = new URLSearchParams();
+    params.append('dry_run', String(dryRun));
+    // Only add stage if it's a valid number (not null, undefined, or NaN)
+    if (stage !== undefined && stage !== null && !isNaN(stage)) {
+      params.append('stage', String(stage));
+    }
+
+    return this.request<UntriggerBeatResponse>(`/story/users/${userId}/beats/${beatId}/untrigger?${params.toString()}`, {
+      method: 'POST',
     });
   }
 

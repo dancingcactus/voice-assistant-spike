@@ -975,7 +975,7 @@ When reporting a bug, include:
 
 ### Immediate Improvements
 
-- Add remaining characters (Hank, Cave, Dimitria)
+- Add remaining characters (Hank, Rex, Dimitria)
 - Real-time WebSocket updates
 - Bulk memory import/export
 - Advanced search across all tools

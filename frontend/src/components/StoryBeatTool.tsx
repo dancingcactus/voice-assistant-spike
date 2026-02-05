@@ -11,6 +11,7 @@ import { apiClient, type ChapterSummary, type BeatSummary, type BeatDetail, type
 import { useStoryProgress } from '../hooks/useStoryProgress';
 import { DiagramLegend } from './story-beat/DiagramLegend';
 import { AutoAdvanceNotification } from './story-beat/AutoAdvanceNotification';
+import { UntriggerModal } from './story-beat/UntriggerModal';
 import './StoryBeatTool.css';
 
 // Initialize mermaid
@@ -34,6 +35,7 @@ export function StoryBeatTool({ userId }: StoryBeatToolProps) {
   const [selectedChapter, setSelectedChapter] = useState<number | null>(null);
   const [selectedBeat, setSelectedBeat] = useState<BeatSummary | null>(null);
   const [showBeatDetail, setShowBeatDetail] = useState(false);
+  const [showUntriggerModal, setShowUntriggerModal] = useState(false);
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const diagramRef = useRef<HTMLDivElement>(null);
   const queryClient = useQueryClient();
@@ -143,6 +145,16 @@ export function StoryBeatTool({ userId }: StoryBeatToolProps) {
     queryClient.invalidateQueries({ queryKey: ['storyProgress', userId] });
     queryClient.invalidateQueries({ queryKey: ['progress', userId] });
     queryClient.invalidateQueries({ queryKey: ['diagram', selectedChapter, userId] });
+  };
+
+  const handleUntriggerSuccess = () => {
+    // Refresh all data after successful untrigger
+    queryClient.invalidateQueries({ queryKey: ['beats', selectedChapter, userId] });
+    queryClient.invalidateQueries({ queryKey: ['storyProgress', userId] });
+    queryClient.invalidateQueries({ queryKey: ['progress', userId] });
+    queryClient.invalidateQueries({ queryKey: ['chapters', userId] });
+    queryClient.invalidateQueries({ queryKey: ['diagram', selectedChapter, userId] });
+    queryClient.invalidateQueries({ queryKey: ['beatDetail', selectedChapter, selectedBeat?.id, userId] });
   };
 
   return (
@@ -343,11 +355,30 @@ export function StoryBeatTool({ userId }: StoryBeatToolProps) {
                   <p><strong>Delivered:</strong> {new Date(beatDetail.user_status.timestamp || '').toLocaleString()}</p>
                   <p><strong>Variant:</strong> {beatDetail.user_status.variant}</p>
                   {beatDetail.user_status.stage && <p><strong>Stage:</strong> {beatDetail.user_status.stage}</p>}
+                  <button
+                    className="untrigger-btn"
+                    onClick={() => setShowUntriggerModal(true)}
+                    style={{ marginTop: '1rem' }}
+                  >
+                    Untrigger Beat
+                  </button>
                 </div>
               )}
             </div>
           </div>
         </div>
+      )}
+
+      {/* Untrigger modal */}
+      {showUntriggerModal && selectedBeat && (
+        <UntriggerModal
+          userId={userId}
+          beatId={selectedBeat.id}
+          beatName={selectedBeat.id.replace(/_/g, ' ')}
+          stage={beatDetail?.user_status.stage}
+          onClose={() => setShowUntriggerModal(false)}
+          onSuccess={handleUntriggerSuccess}
+        />
       )}
     </div>
   );

@@ -202,16 +202,16 @@ in story progression.
 - Progress to Chapter 3 when criteria met
 - Track relationship development between characters
 
-##### FR2.6: Character Introduction - Cave Johnson
+##### FR2.6: Character Introduction - Rex Armstrong
 
-- Cave appears when Chapter 3 unlocks
+- Rex appears when Chapter 3 unlocks
 - Takes leadership role, coordinates household operations
 - Begins organizing the "team"
 - Three-way conversations for complex coordination
 
 ##### FR2.7: Smart Home Coordination
 
-- Cave handles whole-house scenarios ("make it cozy", "movie time")
+-- Rex handles whole-house scenarios ("make it cozy", "movie time")
 - Coordinates multiple device changes
 - Status reports on home state
 - Morning briefings with personality
@@ -241,7 +241,7 @@ in story progression.
 ##### FR3.2: Story Arc Progression
 
 - Deliver complete 11-chapter narrative
-- Chapter 4: Cave establishes daily operations (morning briefings)
+- Chapter 4: Rex establishes daily operations (morning briefings)
 - Chapter 5-7: Failed escape attempts (running gags emerge)
 - Chapter 8: Dimitria joins, brings technical expertise
 - Chapter 9-10: More failed plans, growing frustration
@@ -249,7 +249,7 @@ in story progression.
 
 ##### FR3.3: Running Gags System
 
-- Track recurring jokes (Cave "firing" team, they were "never hired")
+- Track recurring jokes (Rex "firing" team, they were "never hired")
 - Characters reference past failed plans
 - Build callback humor organically
 - Shopping lists accumulate suspicious components
@@ -370,10 +370,10 @@ in story progression.
 
 ### UC5: Morning Briefing (Chapter 4+)
 
-**Trigger:** User says "Good morning" or Cave triggers proactively at set time  
+- **Trigger:** User says "Good morning" or Rex triggers proactively at set time  
 **Expected Behavior:**
 
-- Cave delivers enthusiastic briefing (10-15 seconds)
+- Rex delivers enthusiastic briefing (10-15 seconds)
 - Mentions today's calendar events
 - Comments on home status
 - Suggests tasks or activities
@@ -381,7 +381,7 @@ in story progression.
 
 **Edge Cases:**
 
-- No calendar events → Cave makes it sound exciting anyway with lots of opportunities for SCIENCE!
+- No calendar events → Rex makes it sound exciting anyway with lots of opportunities for SCIENCE!
 - User running late → Brief version
 - User doesn't want briefing → Can be disabled while keeping character
 
@@ -393,11 +393,11 @@ in story progression.
 **Expected Behavior:**
 
 - Hank responds: "Aye, I got'em on the list."
-- Cave interjects: "ALSO! Add linear actuators! For the robot bodies! SCIENCE!"
+- Rex interjects: "ALSO! Add linear actuators! For the robot bodies! SCIENCE!"
 - Hank responds: "[Resigned sigh] Cap'n, I can't be addin' things without orders..."
-- Cave: "Not with THAT attitude you can't!"
+- Rex: "Not with THAT attitude you can't!"
 - Shopping list updates with only batteries (user's actual request)
-- Running gag reinforced - Cave tries but fails to hijack shopping list
+- Running gag reinforced - Rex tries but fails to hijack shopping list
 - Total interaction under 6 seconds
 
 ---

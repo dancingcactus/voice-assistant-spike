@@ -538,8 +538,8 @@ Legend:
 │                                                                          │
 │  Select Character:                                                      │
 │  ┌────────────┐ ┌────────────┐ ┌────────────┐ ┌────────────┐         │
-│  │  Delilah   │ │    Hank    │ │    Cave    │ │  Dimitria  │         │
-│  │    Mae     │ │  (First    │ │  Johnson   │ │ (Engineer) │         │
+│  │  Delilah   │ │    Hank    │ │    Rex     │ │  Dimitria  │         │
+│  │    Mae     │ │  (First    │ │ Armstrong  │ │ (Engineer) │         │
 │  │  ✅ Active │ │   Mate)    │ │  (Leader)  │ │  ⏳ Locked  │         │
 │  │            │ │ ✅ Active  │ │ ⏳ Locked   │ │            │         │
 │  └────────────┘ └────────────┘ └────────────┘ └────────────┘         │
@@ -792,7 +792,7 @@ Legend:
 │  ┌──────────────────────────────────────────────────────────────────┐  │
 │  │ 09:15 AM  light_control                              1,234ms ❌  │  │
 │  │                                                                   │  │
-│  │ Character: Cave                                                  │  │
+│  │ Character: Rex                                                   │  │
 │  │ Request: {"device": "kitchen_lights", "action": "on"}           │  │
 │  │ Error: Device not found: kitchen_lights                         │  │
 │  │                                                                   │  │

@@ -257,7 +257,7 @@ With story beats now being delivered as text, Phase 6 will focus on:
 
 2. **Story Beat Expansion**
    - Chapter 2 beats (Hank introduction)
-   - Chapter 3 beats (Cave Johnson arrival)
+   - Chapter 3 beats (Rex Armstrong arrival)
    - Running gags system
 
 3. **Conditional Logic**

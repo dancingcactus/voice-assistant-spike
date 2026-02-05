@@ -88,12 +88,12 @@ TOOLS = {
     },
 }
 
-CHARACTERS = ["Delilah", "Hank", "Cave"]
+CHARACTERS = ["Delilah", "Hank", "Rex"]
 
 CHARACTER_TOOL_PREFERENCES = {
     "Delilah": ["get_recipe", "set_timer", "unit_conversion"],
     "Hank": ["light_control", "set_timer"],
-    "Cave": ["get_calendar_events", "light_control"],
+    "Rex": ["get_calendar_events", "light_control"],
 }
 
 
@@ -182,7 +182,7 @@ def generate_reasoning(character: str, tool_name: str) -> str:
             "Got it, Cap'n",
             "Right away",
         ],
-        "Cave": [
+        "Rex": [
             f"SCIENCE demands we execute {tool_name}!",
             "This is exactly what we're built for!",
             "Let's make this happen!",

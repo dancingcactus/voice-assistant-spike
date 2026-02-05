@@ -869,9 +869,9 @@ GET /api/v1/characters/{character_id}/state      # State for user
 1. **Open Character Tool:**
    - Navigate to <http://localhost:5173/characters>
    - Should see character selector at top:
-     - Delilah Mae ✅ Active
-     - Hank ✅ Active
-     - Cave Johnson ⏳ Locked
+   - Delilah Mae ✅ Active
+   - Hank ✅ Active
+   - Rex Armstrong ⏳ Locked
      - Dimitria ⏳ Locked
 
 2. **Select Delilah:**
@@ -1006,7 +1006,7 @@ GET /api/v1/characters/{character_id}/state      # State for user
    - Average response length displayed
 
 4. **Check locked characters:**
-   - Click on Cave Johnson
+   - Click on Rex Armstrong
    - Should show basic info
    - But indicate he's not yet active
    - Shows introduction chapter: Chapter 3

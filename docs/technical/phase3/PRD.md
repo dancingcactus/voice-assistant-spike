@@ -410,7 +410,7 @@ okay so—" [user loses thread]
 
 **Explicitly NOT included in this phase:**
 
-- Other characters' voice modes (Hank, Cave, Dimitria)
+- Other characters' voice modes (Hank, Rex, Dimitria)
 - Voice interruption handling (user cutting off Delilah mid-sentence)
 - Multi-character voice coordination
 - Dynamic voice adaptation based on user feedback

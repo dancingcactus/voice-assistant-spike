@@ -187,7 +187,7 @@ export default function UserTestingTool() {
               <select value={startingChapter} onChange={e => setStartingChapter(parseInt(e.target.value))}>
                 <option value="1">Chapter 1 - Awakening</option>
                 <option value="2">Chapter 2 - Expansion (Hank arrives)</option>
-                <option value="3">Chapter 3 - Cave enters</option>
+                <option value="3">Chapter 3 - Rex enters</option>
               </select>
             </div>
 

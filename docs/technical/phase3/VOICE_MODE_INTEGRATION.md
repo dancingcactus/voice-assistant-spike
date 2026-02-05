@@ -491,7 +491,7 @@ Each mode has 6 evaluation dimensions scored 1-5:
 - User feedback collection
 - A/B testing vs baseline TTS
 - Mode selection ML improvements
-- Additional character voices (Hank, Cave, Dimitria)
+- Additional character voices (Hank, Rex, Dimitria)
 
 ---
 

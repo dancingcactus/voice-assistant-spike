@@ -284,7 +284,7 @@ Delilah now has:
 
 ### Phase 4 Planning
 With voice modes complete, next phase focuses on:
-- Multi-character interactions (Delilah + Hank + Cave + Dimitria)
+- Multi-character interactions (Delilah + Hank + Rex + Dimitria)
 - Agent coordination and bidding system
 - Cross-character dynamics
 - Panel discussion implementation
@@ -319,7 +319,7 @@ With voice modes complete, next phase focuses on:
 
 This methodology can now be applied to:
 - **Hank's voice modes** (Working, Protective, Resigned)
-- **Cave's voice modes** (Bombastic default, likely just one mode)
+- **Rex's voice modes** (Bombastic default, likely just one mode)
 - **Dimitria's voice modes** (Precise default, Confused/Frustrated)
 
 The Phase 3 process is a **repeatable, proven system** for character voice development.
