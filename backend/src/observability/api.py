@@ -37,9 +37,9 @@ from .tool_call_models import (
 API_AUTH_TOKEN = os.getenv("API_AUTH_TOKEN", "dev_token_12345")
 CORS_ORIGINS = os.getenv("CORS_ORIGINS", "http://localhost:5173").split(",")
 
-# Find data directory
-data_dir = Path(__file__).parent.parent.parent / "data"
+# Find project root and use its data directory for consistency across DALs
 project_root = Path(__file__).parent.parent.parent.parent
+data_dir = project_root / "data"
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -402,6 +402,133 @@ async def trigger_beat(
         "variant": request.variant,
         "stage": request.stage
     }
+
+
+# -----------------------------
+# Milestone 3: Untrigger API
+# -----------------------------
+
+class UntriggerRequest(BaseModel):
+    stage: Optional[int] = None
+
+
+class UntriggerResult(BaseModel):
+    beat_id: str
+    stage: Optional[int] = None
+    untriggered: List[str]
+    dependencies_affected: List[str]
+    explanation: str
+    dry_run: bool
+    timestamp: str
+
+
+def _find_dependent_beats(chapter_id: int, target_beat_id: str) -> List[str]:
+    """Find beats in the same chapter that depend on target_beat_id (directly)."""
+    dependents: List[str] = []
+    beats = story_dal.get_chapter_beats(chapter_id)
+    prereq_key = f"{target_beat_id}_delivered"
+
+    for beat in beats:
+        conditions = beat.get("conditions", {}) or {}
+        if conditions.get(prereq_key) is True:
+            dependents.append(beat.get("id"))
+    return dependents
+
+
+def _find_transitive_dependents(chapter_id: int, beat_id: str, delivered_map: dict) -> List[str]:
+    """Breadth-first search of dependents that are currently delivered."""
+    to_visit = [beat_id]
+    affected: List[str] = []
+    seen = set()
+
+    while to_visit:
+        current = to_visit.pop(0)
+        if current in seen:
+            continue
+        seen.add(current)
+
+        direct = _find_dependent_beats(chapter_id, current)
+        for dep in direct:
+            # Only include if currently delivered
+            if delivered_map.get(dep, {}).get("delivered"):
+                if dep not in affected:
+                    affected.append(dep)
+                to_visit.append(dep)
+
+    # Remove the root beat if it got added inadvertently
+    return [b for b in affected if b != beat_id]
+
+
+@app.post("/story/users/{user_id}/beats/{beat_id}/untrigger", response_model=UntriggerResult)
+async def untrigger_beat(
+    user_id: str,
+    beat_id: str,
+    request: UntriggerRequest,
+    dry_run: bool = True,
+    authorization: Optional[str] = Header(None)
+):
+    """
+    Roll back a delivered beat (and any dependents). If dry_run=true, returns
+    a preview of what would be changed without mutating user state.
+
+    Notes:
+    - Dependency detection is currently based on same-chapter prerequisites
+      declared via conditions like "<beat_id>_delivered": true.
+    - Progression beats: if a stage is provided, higher stages are implicitly
+      considered affected.
+    """
+    verify_token(authorization)
+
+    user_data = dal.get_user(user_id)
+    if not user_data:
+        raise HTTPException(status_code=404, detail=f"User {user_id} not found")
+
+    story_progress = user_data.get("story_progress", {})
+    current_chapter = story_progress.get("current_chapter", 1)
+    beats_delivered = story_progress.get("beats_delivered", {})
+
+    # Build dependency list (transitive, currently delivered only)
+    dependents = _find_transitive_dependents(current_chapter, beat_id, beats_delivered)
+
+    # If a stage is specified, add a note to explanation but we reset the whole beat for now
+    explanation_parts = [
+        f"Untriggering '{beat_id}' will roll back it and {len(dependents)} dependent beat(s)."
+    ]
+    if request.stage is not None:
+        explanation_parts.append(
+            f"Requested stage {request.stage}; stage-specific rollback will reset the beat's entry."
+        )
+
+    to_remove = [beat_id] + dependents
+
+    result = UntriggerResult(
+        beat_id=beat_id,
+        stage=request.stage,
+        untriggered=to_remove,
+        dependencies_affected=dependents,
+        explanation=" ".join(explanation_parts),
+        dry_run=dry_run,
+        timestamp=datetime.utcnow().isoformat()
+    )
+
+    if dry_run:
+        return result
+
+    # Apply mutation: remove beats from beats_delivered
+    mutated = False
+    for b in to_remove:
+        if b in beats_delivered:
+            del beats_delivered[b]
+            mutated = True
+
+    if mutated:
+        # Persist changes
+        story_progress["beats_delivered"] = beats_delivered
+        user_data["story_progress"] = story_progress
+        user_data["updated_at"] = datetime.utcnow().isoformat()
+        dal.save_user(user_id, user_data)
+
+    return result
 
 
 @app.get("/story/auto-advance-ready/{user_id}", response_model=List[AutoAdvanceNotificationResponse])

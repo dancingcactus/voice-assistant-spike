@@ -127,6 +127,48 @@ export function StoryBeatTool({ userId }: StoryBeatToolProps) {
     }
   };
 
+  // Untrigger beat mutation (commit)
+  const untriggerCommit = useMutation({
+    mutationFn: ({ beatId, stage }: { beatId: string; stage?: number }) =>
+      apiClient.untriggerBeat(userId, beatId, { stage, dryRun: false }),
+    onSuccess: (_data, variables) => {
+      // Optimistically update beat detail cache to hide Delivery Status immediately
+      queryClient.setQueryData(['beatDetail', selectedChapter, variables.beatId, userId], (old: any) => {
+        if (!old) return old;
+        return {
+          ...old,
+          user_status: {
+            delivered: false,
+            timestamp: undefined,
+            variant: undefined,
+            stage: undefined,
+          },
+        };
+      });
+
+      // Invalidate related queries to refresh UI from server
+      queryClient.invalidateQueries({ queryKey: ['beatDetail', selectedChapter, variables.beatId, userId] });
+      queryClient.invalidateQueries({ queryKey: ['beats', selectedChapter, userId] });
+      queryClient.invalidateQueries({ queryKey: ['storyProgress', userId] });
+      queryClient.invalidateQueries({ queryKey: ['progress', userId] });
+      queryClient.invalidateQueries({ queryKey: ['chapters', userId] });
+      queryClient.invalidateQueries({ queryKey: ['diagram', selectedChapter, userId] });
+    },
+  });
+
+  const handleUntriggerBeat = async (beatId: string, stage?: number) => {
+    try {
+      // Preview (dry-run) first
+      const preview = await apiClient.untriggerBeat(userId, beatId, { stage, dryRun: true });
+      const list = preview.untriggered.join(', ');
+      const ok = confirm(`Untrigger "${beatId}"?\n\nThis will also untrigger: ${preview.dependencies_affected.length ? preview.dependencies_affected.join(', ') : 'none'}\n\nProceed?`);
+      if (!ok) return;
+      untriggerCommit.mutate({ beatId, stage });
+    } catch (e) {
+      alert(`Failed to untrigger: ${String(e)}`);
+    }
+  };
+
   // Filter beats
   const filteredBeats = beats?.filter(beat => {
     if (filterStatus === 'all') return true;
@@ -343,6 +385,15 @@ export function StoryBeatTool({ userId }: StoryBeatToolProps) {
                   <p><strong>Delivered:</strong> {new Date(beatDetail.user_status.timestamp || '').toLocaleString()}</p>
                   <p><strong>Variant:</strong> {beatDetail.user_status.variant}</p>
                   {beatDetail.user_status.stage && <p><strong>Stage:</strong> {beatDetail.user_status.stage}</p>}
+                  <div style={{ marginTop: '8px' }}>
+                    <button
+                      className="trigger-btn"
+                      onClick={() => handleUntriggerBeat(beatDetail.id, beatDetail.user_status.stage)}
+                      disabled={untriggerCommit.isPending}
+                    >
+                      {untriggerCommit.isPending ? 'Untriggering...' : 'Untrigger'}
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
