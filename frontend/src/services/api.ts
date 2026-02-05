@@ -106,6 +106,15 @@ export interface ChapterDiagram {
   format: string;
 }
 
+export interface AutoAdvanceNotification {
+  beat_id: string;
+  name: string;
+  chapter_id: number;
+  ready_since: string;
+  content: string;
+  notified: boolean;
+}
+
 export interface Memory {
   memory_id: string;
   category: string;
@@ -426,6 +435,17 @@ class ApiClient {
       method: 'POST',
       body: JSON.stringify({ variant, stage }),
     });
+  }
+
+  async getAutoAdvanceReady(userId: string): Promise<AutoAdvanceNotification[]> {
+    return this.request<AutoAdvanceNotification[]>(`/story/auto-advance-ready/${userId}`);
+  }
+
+  async deliverAutoAdvanceBeat(userId: string, beatId: string): Promise<{ status: string; message: string; beat_id: string; content: string }> {
+    return this.request<{ status: string; message: string; beat_id: string; content: string }>(
+      `/story/auto-advance/${userId}/${beatId}`,
+      { method: 'POST' }
+    );
   }
 
   // Memory endpoints

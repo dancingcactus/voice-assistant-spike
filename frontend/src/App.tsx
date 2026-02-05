@@ -5,7 +5,7 @@ import type { Message } from './services/websocket';
 import { AudioPlayer } from './components/AudioPlayer';
 import { VoiceInput } from './components/VoiceInput';
 import { apiClient } from './services/api';
-import type { UserSummary } from './services/api';
+import type { UserSummary, AutoAdvanceNotification } from './services/api';
 
 function App() {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -15,6 +15,7 @@ function App() {
   const [isThinking, setIsThinking] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState<string>('user_justin');
   const [users, setUsers] = useState<UserSummary[]>([]);
+  const [autoAdvanceBeats, setAutoAdvanceBeats] = useState<AutoAdvanceNotification[]>([]);
   const wsRef = useRef<WebSocketService | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -84,6 +85,28 @@ function App() {
     loadUsers();
   }, []);
 
+  useEffect(() => {
+    // Poll for auto-advance beats every 5 seconds
+    const pollAutoAdvance = async () => {
+      if (!selectedUserId) return;
+
+      try {
+        const beats = await apiClient.getAutoAdvanceReady(selectedUserId);
+        setAutoAdvanceBeats(beats);
+      } catch (error) {
+        console.error('Failed to poll auto-advance beats:', error);
+      }
+    };
+
+    // Poll immediately on mount or user change
+    pollAutoAdvance();
+
+    // Then poll every 5 seconds
+    const interval = setInterval(pollAutoAdvance, 5000);
+
+    return () => clearInterval(interval);
+  }, [selectedUserId]);
+
   const handleSend = () => {
     if (!inputText.trim() || !wsRef.current) return;
 
@@ -130,6 +153,17 @@ function App() {
   const handleVoiceError = (error: string) => {
     console.error('Voice input error:', error);
     setStatusMessage(error);
+  };
+
+  const handleDeliverBeat = async (beatId: string) => {
+    try {
+      await apiClient.deliverAutoAdvanceBeat(selectedUserId, beatId);
+      // Remove the delivered beat from the list
+      setAutoAdvanceBeats(beats => beats.filter(b => b.beat_id !== beatId));
+    } catch (error) {
+      console.error('Failed to deliver beat:', error);
+      setStatusMessage('Failed to deliver story beat');
+    }
   };
 
   const getStatusColor = () => {
@@ -193,6 +227,38 @@ function App() {
       </header>
 
       <main className="chat-container">
+        {/* Auto-advance notification banner */}
+        {autoAdvanceBeats.length > 0 && (
+          <div className="auto-advance-banner">
+            <div className="banner-header">
+              <span className="banner-icon">📖</span>
+              <h3>Story Update Available</h3>
+            </div>
+            <div className="banner-content">
+              <h4>{autoAdvanceBeats[0].name}</h4>
+              <p className="content-preview">
+                {autoAdvanceBeats[0].content.substring(0, 150)}
+                {autoAdvanceBeats[0].content.length > 150 ? '...' : ''}
+              </p>
+            </div>
+            <div className="banner-actions">
+              <button
+                className="btn-continue-story"
+                onClick={() => {
+                  if (confirm(`Continue story with "${autoAdvanceBeats[0].name}"?`)) {
+                    handleDeliverBeat(autoAdvanceBeats[0].beat_id);
+                  }
+                }}
+              >
+                Continue Story
+              </button>
+              {autoAdvanceBeats.length > 1 && (
+                <span className="more-beats">+{autoAdvanceBeats.length - 1} more</span>
+              )}
+            </div>
+          </div>
+        )}
+
         <div className="messages">
           {messages.length === 0 && (
             <div className="empty-state">

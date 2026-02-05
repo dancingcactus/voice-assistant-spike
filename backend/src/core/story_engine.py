@@ -18,7 +18,8 @@ from pathlib import Path
 
 from models.story import (
     StoryBeat, Chapter, UserStoryState, BeatProgress,
-    ChapterProgress, BeatVariant, BeatTrigger, BeatStage
+    ChapterProgress, BeatVariant, BeatTrigger, BeatStage,
+    AutoAdvanceNotification, ConditionalRequirement
 )
 from typing import TYPE_CHECKING
 
@@ -49,6 +50,8 @@ class StoryEngine:
         self._load_chapters()
         self._load_beats()
 
+        print(f"📖 Story Engine initialized: {len(self.chapters)} chapters, "
+              f"{sum(len(b) for b in self.beats.values())} beats")
         logger.info(
             f"Story Engine initialized: {len(self.chapters)} chapters, "
             f"{sum(len(b) for b in self.beats.values())} beats, "
@@ -633,6 +636,20 @@ class StoryEngine:
                     if required_stage not in beat_progress.delivered_stages:
                         return None
 
+        # Check conditional beats (N of M requirement)
+        if criteria.conditional_beats:
+            satisfied, count = self.check_conditional_progression(
+                user_id,
+                criteria.conditional_beats.beats,
+                criteria.conditional_beats.n
+            )
+            if not satisfied:
+                logger.debug(
+                    f"Conditional beats not satisfied: {count}/{len(criteria.conditional_beats.beats)}, "
+                    f"requires {criteria.conditional_beats.n}"
+                )
+                return None
+
         # Check interaction count
         if chapter_progress.interaction_count < criteria.minimum_interactions:
             return None
@@ -696,3 +713,193 @@ class StoryEngine:
                     summary["delivered_beats"].append(beat_id)
 
         return summary
+
+    def get_auto_advance_ready(self, user_id: str) -> List[AutoAdvanceNotification]:
+        """
+        Get all auto-advance beats that are ready for delivery.
+
+        Args:
+            user_id: User identifier
+
+        Returns:
+            List of auto-advance notifications
+        """
+        state = self.get_or_create_user_state(user_id)
+
+        # Check for auto-advance beats in the auto-advance queue
+        ready_beats = [beat for beat in state.auto_advance_queue if not beat.notified]
+
+        # Check for new auto-advance beats that should be added to the queue
+        self._check_auto_advance_beats(user_id, state)
+
+        return state.auto_advance_queue
+
+    def _check_auto_advance_beats(self, user_id: str, state: UserStoryState):
+        """
+        Check for auto-advance beats that are ready and add them to the queue.
+
+        Args:
+            user_id: User identifier
+            state: User story state
+        """
+        chapter_beats = self.beats.get(state.current_chapter, [])
+
+        for beat in chapter_beats:
+            # Skip if not auto-advance or already delivered
+            if not beat.auto_advance:
+                continue
+
+            beat_progress = state.get_beat_progress(beat.id)
+            if beat_progress and beat_progress.delivered:
+                continue
+
+            # Skip if already in queue
+            if any(n.beat_id == beat.id for n in state.auto_advance_queue):
+                continue
+
+            # Check if prerequisite conditions are met
+            if beat.conditions and not self._check_beat_conditions(beat, state):
+                logger.debug(f"Auto-advance beat '{beat.id}' conditions not met")
+                continue
+
+            # Check if trigger conditions are met (without user context)
+            if not self._check_auto_advance_trigger(beat, state):
+                logger.debug(f"Auto-advance beat '{beat.id}' trigger not met")
+                continue
+
+            # Beat is ready! Add to queue
+            notification = AutoAdvanceNotification(
+                beat_id=beat.id,
+                name=beat.id.replace('_', ' ').title(),  # Simple formatting
+                chapter_id=state.current_chapter,
+                ready_since=datetime.utcnow(),
+                content=beat.content or "",
+                notified=False
+            )
+
+            state.auto_advance_queue.append(notification)
+            logger.info(f"✅ Auto-advance beat '{beat.id}' ready for user {user_id}")
+
+            # Save state
+            self._save_story_state(user_id, state)
+
+    def _check_auto_advance_trigger(self, beat: StoryBeat, state: UserStoryState) -> bool:
+        """
+        Check if an auto-advance beat's trigger is met (without user context).
+
+        Only checks triggers that don't require user interaction context:
+        - interaction_count: Check if user has enough interactions
+
+        Args:
+            beat: Story beat to check
+            state: User story state
+
+        Returns:
+            True if trigger is met
+        """
+        trigger = beat.trigger
+
+        # Check interaction count trigger
+        if trigger.type == "interaction_count":
+            chapter_progress = state.chapter_progress.get(state.current_chapter)
+            if not chapter_progress:
+                logger.debug(f"Auto-advance beat '{beat.id}': No chapter progress found")
+                return False
+
+            interaction_count = chapter_progress.interaction_count
+
+            if trigger.min_interactions and interaction_count < trigger.min_interactions:
+                logger.debug(
+                    f"Auto-advance beat '{beat.id}': Interaction count {interaction_count} < "
+                    f"min {trigger.min_interactions}"
+                )
+                return False
+
+            if trigger.max_interactions and interaction_count > trigger.max_interactions:
+                logger.debug(
+                    f"Auto-advance beat '{beat.id}': Interaction count {interaction_count} > "
+                    f"max {trigger.max_interactions}"
+                )
+                return False
+
+            logger.debug(f"Auto-advance beat '{beat.id}': Interaction count trigger passed ({interaction_count})")
+            return True
+
+        # Other trigger types (tool_use, user_engagement) require context
+        # and should not be used with auto-advance beats
+        logger.warning(
+            f"Auto-advance beat '{beat.id}' has trigger type '{trigger.type}' "
+            "which requires user context and cannot be used with auto-advance"
+        )
+        return False
+
+    def deliver_auto_advance_beat(self, user_id: str, beat_id: str) -> Optional[str]:
+        """
+        Deliver an auto-advance beat to the user.
+
+        Args:
+            user_id: User identifier
+            beat_id: Beat identifier
+
+        Returns:
+            Beat content if successful, None otherwise
+        """
+        state = self.get_or_create_user_state(user_id)
+
+        # Find the beat in the queue
+        notification = None
+        for n in state.auto_advance_queue:
+            if n.beat_id == beat_id:
+                notification = n
+                break
+
+        if not notification:
+            logger.warning(f"Auto-advance beat '{beat_id}' not in queue for user {user_id}")
+            return None
+
+        # Mark beat as delivered
+        self.mark_beat_stage_delivered(user_id, beat_id, 1)
+
+        # Remove from queue
+        state.auto_advance_queue = [n for n in state.auto_advance_queue if n.beat_id != beat_id]
+
+        # Save state
+        self._save_story_state(user_id, state)
+
+        logger.info(f"✅ Delivered auto-advance beat '{beat_id}' to user {user_id}")
+
+        return notification.content
+
+    def check_conditional_progression(
+        self,
+        user_id: str,
+        required_beats: List[str],
+        n: int
+    ) -> Tuple[bool, int]:
+        """
+        Check if N of M conditional progression requirements are met.
+
+        Args:
+            user_id: User identifier
+            required_beats: List of beat IDs to check
+            n: Number of beats required
+
+        Returns:
+            Tuple of (satisfied, current_count)
+        """
+        state = self.get_or_create_user_state(user_id)
+
+        # Count how many of the required beats have been delivered
+        count = 0
+        for beat_id in required_beats:
+            beat_progress = state.get_beat_progress(beat_id)
+            if beat_progress and beat_progress.delivered:
+                count += 1
+
+        satisfied = count >= n
+        logger.debug(
+            f"Conditional progression check for user {user_id}: "
+            f"{count}/{len(required_beats)} beats, requires {n}, satisfied={satisfied}"
+        )
+
+        return (satisfied, count)

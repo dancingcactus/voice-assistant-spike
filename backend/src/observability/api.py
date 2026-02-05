@@ -18,6 +18,11 @@ from .memory_access import MemoryAccessor
 from .user_testing_access import UserTestingAccessor
 from .tool_call_access import ToolCallDataAccess
 from .character_access import CharacterAccessLayer
+
+# Import StoryEngine for auto-advance functionality
+import sys
+sys.path.insert(0, str(Path(__file__).parent.parent))
+from core.story_engine import StoryEngine
 from .tool_call_models import (
     ToolCallLog,
     ToolCallFilter,
@@ -53,6 +58,9 @@ memory_dal = MemoryAccessor(data_dir=str(data_dir))
 user_testing_dal = UserTestingAccessor(data_dir=str(data_dir))
 tool_call_dal = ToolCallDataAccess(data_dir=str(data_dir))
 character_dal = CharacterAccessLayer(project_root=project_root)
+
+# Initialize Story Engine for auto-advance and conditional progression
+story_engine = StoryEngine(story_dir=str(project_root / "story"), memory_manager=None)
 
 
 # Authentication
@@ -127,6 +135,15 @@ class ChapterProgressSummary(BaseModel):
 class TriggerBeatRequest(BaseModel):
     variant: str = "standard"
     stage: Optional[int] = 1
+
+
+class AutoAdvanceNotificationResponse(BaseModel):
+    beat_id: str
+    name: str
+    chapter_id: int
+    ready_since: str
+    content: str
+    notified: bool
 
 
 class MemoryResponse(BaseModel):
@@ -384,6 +401,115 @@ async def trigger_beat(
         "beat_id": beat_id,
         "variant": request.variant,
         "stage": request.stage
+    }
+
+
+@app.get("/story/auto-advance-ready/{user_id}", response_model=List[AutoAdvanceNotificationResponse])
+async def get_auto_advance_ready(
+    user_id: str,
+    authorization: Optional[str] = Header(None)
+):
+    """
+    Get all auto-advance beats that are ready for delivery.
+    """
+    verify_token(authorization)
+
+    # Sync user state from DAL to story engine (since story engine has no memory_manager)
+    user_data = dal.get_user(user_id)
+    if user_data:
+        # Get or create user state in story engine
+        state = story_engine.get_or_create_user_state(user_id)
+        # Update chapter from user data
+        current_chapter = user_data.get("story_progress", {}).get("current_chapter", 1)
+        state.current_chapter = current_chapter
+
+        # Initialize chapter progress if needed
+        if current_chapter not in state.chapter_progress:
+            from models.story import ChapterProgress, BeatProgress
+            state.chapter_progress[current_chapter] = ChapterProgress(
+                chapter_id=current_chapter,
+                started_at=user_data.get("story_progress", {}).get("chapter_start_time"),
+                interaction_count=user_data.get("story_progress", {}).get("interaction_count", 0)
+            )
+
+        # Load beat progress from user data
+        beats_delivered = user_data.get("story_progress", {}).get("beats_delivered", {})
+        if beats_delivered:
+            from models.story import BeatProgress
+            for beat_id, beat_data in beats_delivered.items():
+                if beat_data.get("delivered"):
+                    # Add beat progress to the chapter
+                    beat_progress = BeatProgress(
+                        beat_id=beat_id,
+                        delivered=True,
+                        current_stage=beat_data.get("current_stage", 1),
+                        delivered_stages=set(beat_data.get("delivered_stages", [])),
+                        first_delivered_at=beat_data.get("first_delivered_at")
+                    )
+                    state.chapter_progress[current_chapter].beat_progress[beat_id] = beat_progress
+
+    # Get ready beats from story engine
+    ready_beats = story_engine.get_auto_advance_ready(user_id)
+
+    # Convert to response format
+    return [
+        AutoAdvanceNotificationResponse(
+            beat_id=beat.beat_id,
+            name=beat.name,
+            chapter_id=beat.chapter_id,
+            ready_since=beat.ready_since.isoformat(),
+            content=beat.content,
+            notified=beat.notified
+        )
+        for beat in ready_beats
+    ]
+
+
+@app.post("/story/auto-advance/{user_id}/{beat_id}")
+async def deliver_auto_advance_beat(
+    user_id: str,
+    beat_id: str,
+    authorization: Optional[str] = Header(None)
+):
+    """
+    Deliver an auto-advance beat to the user.
+    """
+    verify_token(authorization)
+
+    # Deliver the beat
+    content = story_engine.deliver_auto_advance_beat(user_id, beat_id)
+
+    if not content:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Auto-advance beat {beat_id} not found in queue for user {user_id}"
+        )
+
+    # Sync the updated state back to DAL (since story_engine has no memory_manager)
+    user_data = dal.get_user(user_id)
+    if user_data:
+        # Update beats_delivered in user data
+        if "story_progress" not in user_data:
+            user_data["story_progress"] = {}
+        if "beats_delivered" not in user_data["story_progress"]:
+            user_data["story_progress"]["beats_delivered"] = {}
+
+        # Mark beat as delivered
+        user_data["story_progress"]["beats_delivered"][beat_id] = {
+            "delivered": True,
+            "current_stage": 1,
+            "delivered_stages": [1],
+            "first_delivered_at": datetime.utcnow().isoformat()
+        }
+
+        # Save back to DAL
+        dal.save_user(user_id, user_data)
+
+    return {
+        "status": "success",
+        "message": f"Auto-advance beat {beat_id} delivered successfully",
+        "beat_id": beat_id,
+        "content": content
     }
 
 
