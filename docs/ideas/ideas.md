@@ -1,6 +1,6 @@
 # Things that could improve
 
-
+- Create a chat tool that shows the prompt assemblies and evaluations for each chat
 - Make it so they can't move too fast through the story beats
 - The home automation tool can't check on the status of devices
 - Show story and current state in the UI

@@ -12,8 +12,8 @@
  * ```
  */
 
-import { useQuery, UseQueryOptions, UseQueryResult } from '@tanstack/react-query';
-import { apiClient, ChapterProgressSummary } from '../services/api';
+import { useQuery, type UseQueryResult } from '@tanstack/react-query';
+import { apiClient, type ChapterProgressSummary } from '../services/api';
 
 export interface UseStoryProgressOptions {
   /**
@@ -58,7 +58,7 @@ export function useStoryProgress(
       if (!userId) {
         throw new Error('User ID is required');
       }
-      return apiClient.getUserProgress(userId);
+      return apiClient.getUserStoryProgress(userId);
     },
     enabled: enabled && !!userId,
     refetchInterval,

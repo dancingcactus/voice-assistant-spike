@@ -1,8 +1,8 @@
-# Phase X: [Phase Name] - Technical Architecture
+# Phase 4: Story System Testing & Refinement - Technical Architecture
 
 **Version:** 1.0
-**Last Updated:** YYYY-MM-DD
-**Status:** Planning | In Progress | Complete
+**Last Updated:** 2026-02-04
+**Status:** Planning
 
 ---
 
@@ -14,11 +14,10 @@
 4. [Data Layer](#data-layer)
 5. [API Layer](#api-layer)
 6. [Integration Points](#integration-points)
-7. [Technology Stack](#technology-stack)
-8. [Security & Access Control](#security--access-control)
-9. [Performance Considerations](#performance-considerations)
-10. [Deployment & Operations](#deployment--operations)
-11. [Implementation Roadmap](#implementation-roadmap)
+7. [Frontend Architecture](#frontend-architecture)
+8. [Performance Considerations](#performance-considerations)
+9. [Testing Strategy](#testing-strategy)
+10. [Implementation Roadmap](#implementation-roadmap)
 
 ---
 
@@ -26,326 +25,941 @@
 
 ### Purpose
 
-[What this phase adds to the system from a technical perspective]
-
-Example:
-> Phase 2 introduces multi-agent coordination infrastructure, enabling multiple AI characters to collaborate on queries through a bidding and handoff system while maintaining conversation coherence.
+Phase 4 focuses on making the story system production-ready by fixing beat delivery issues, enhancing story engine capabilities with auto-advance and conditional progression, and expanding content through Chapter 1 and 2. This phase transforms the story system from proof-of-concept to reliable narrative engine.
 
 ### Core Goals
 
-1. **[Technical Goal 1]** - [Description]
-2. **[Technical Goal 2]** - [Description]
-3. **[Technical Goal 3]** - [Description]
-
-Example:
-
-1. **Low Latency** - Agent selection completes in < 100ms
-2. **Extensibility** - Easy to add new agents without modifying core
-3. **Fault Tolerance** - System degrades gracefully if agent unavailable
+1. **Reliability** - Story beats trigger consistently and predictably
+2. **Observability** - Real-time UI updates show accurate story state
+3. **Testability** - Fast iteration cycles for story development (< 5 min)
+4. **Extensibility** - Story engine supports complex narrative patterns
 
 ### Key Design Constraints
 
-- [Constraint 1 - e.g., "Must integrate with existing conversation flow"]
-- [Constraint 2 - e.g., "Cannot require database migration"]
-- [Constraint 3 - e.g., "Must support local development"]
+- **No Breaking Changes** - Work within existing story engine architecture
+- **Backward Compatible** - Existing Chapter 1 beats continue to work
+- **File-Based Storage** - JSON files remain the source of truth
+- **Development Focus** - Tools optimized for rapid iteration, not production scale
 
 ---
 
 ## Architecture Principles
 
-### Principle 1: [Name]
+### 1. Separation of Concerns
 
-**Description:** [What this principle means]
+The story system maintains clear boundaries between components:
 
-**Rationale:** [Why we're following this principle]
+```
+┌─────────────────────────────────────────────────────────┐
+│              Story Content (JSON)                        │
+│  (Declarative beat definitions, chapter structures)      │
+└─────────────────────────────────────────────────────────┘
+                          │
+┌─────────────────────────────────────────────────────────┐
+│              Story Engine (Python)                       │
+│  (Beat evaluation, trigger logic, progression rules)     │
+└─────────────────────────────────────────────────────────┘
+                          │
+┌─────────────────────────────────────────────────────────┐
+│              User Story State (JSON)                     │
+│  (Per-user progress, beat completion, chapter state)     │
+└─────────────────────────────────────────────────────────┘
+                          │
+┌─────────────────────────────────────────────────────────┐
+│         Story Beat Tool (React + API)                    │
+│  (Observability, manual triggers, testing tools)         │
+└─────────────────────────────────────────────────────────┘
+```
+
+**Rationale:** Content authors shouldn't need to understand Python code. Story definitions remain declarative and testable independently.
 
 **Implications:**
 
-- [How this affects design decisions]
-- [Trade-offs accepted]
+- Story beats defined in JSON with clear schema
+- Engine validates beat definitions at startup
+- User state isolated from beat definitions
+- Tools can modify state without touching content
 
-**Example:**
+### 2. Real-Time State Synchronization
+
+UI reflects backend state within 2 seconds of any change:
 
 ```
-Principle: Fail-Safe Defaults
-Description: System assumes single-agent mode if coordination fails
-Rationale: Users should never get no response due to coordination errors
-Implications:
-- Fallback to most capable agent
-- Log coordination failures for debugging
-- Graceful degradation preferred over hard errors
+┌──────────────┐         ┌──────────────┐         ┌──────────────┐
+│   Backend    │         │   Frontend   │         │   Browser    │
+│   (Python)   │◄────────┤   (React)    │◄────────┤   (User)     │
+│              │─────────►│              │─────────►│              │
+└──────────────┘         └──────────────┘         └──────────────┘
+     State                   Polling                  Display
+     Change                  (3-5s) OR
+                            WebSocket
 ```
 
----
+**Rationale:** Story development requires immediate feedback. Stale UI creates confusion and slows iteration.
 
-### Principle 2: [Name]
+**Implications:**
 
-[Same structure as Principle 1]
+- Frontend polls story state every 3-5 seconds (Phase 4)
+- WebSocket events for instant updates (future enhancement)
+- Backend state changes persisted immediately
+- Race conditions prevented with atomic writes
+
+### 3. Event-Driven Beat Delivery
+
+Story beats are evaluated and queued, then delivered in conversation flow:
+
+```
+User Message
+     │
+     ▼
+┌─────────────────────────────────────┐
+│  Conversation Handler               │
+│  - Process user message             │
+│  - Update interaction count         │
+│  - Check for beat triggers          │
+└─────────────────────────────────────┘
+     │
+     ▼
+┌─────────────────────────────────────┐
+│  Story Engine: Evaluate Triggers    │
+│  - Check trigger conditions         │
+│  - Evaluate prerequisites           │
+│  - Queue eligible beats             │
+└─────────────────────────────────────┘
+     │
+     ▼
+┌─────────────────────────────────────┐
+│  Generate Response                  │
+│  - Character responds to user       │
+│  - Append/replace beat if queued    │
+│  - Mark beat as delivered           │
+└─────────────────────────────────────┘
+     │
+     ▼
+Response to User
+```
+
+**Rationale:** Beats should feel like natural story moments, not interruptions. Delivery happens within the conversation flow.
+
+**Implications:**
+
+- Trigger evaluation separate from delivery
+- Beats queued, not immediately injected
+- Delivery methods: `append` (add after response) or `replace` (becomes response)
+- Failed evaluations logged for debugging
+
+### 4. Stateless Story Definitions
+
+Beat and chapter definitions are immutable; all state lives in user progress:
+
+**Story Definition (Immutable):**
+
+```json
+{
+  "id": "awakening_confusion",
+  "type": "one_shot",
+  "required": true,
+  "variants": { ... },
+  "trigger": { ... }
+}
+```
+
+**User State (Mutable):**
+
+```json
+{
+  "user_id": "user_justin",
+  "chapter_1": {
+    "beats_delivered": ["awakening_confusion"],
+    "beat_stages": {},
+    "chapter_complete": false
+  }
+}
+```
+
+**Rationale:** Multiple users can progress through the same story independently. State changes don't affect beat definitions.
+
+**Implications:**
+
+- Beat JSON files are read-only at runtime
+- All progression tracked in user state
+- Easy to reset user by clearing state
+- Story content can be updated without migrations
 
 ---
 
 ## Component Architecture
 
-### High-Level Overview
+### High-Level System Diagram
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│                   [Component Layer 1]                    │
-│            (User Interface / External API)               │
-└─────────────────────────────────────────────────────────┘
-                          │
-                          ▼
-┌─────────────────────────────────────────────────────────┐
-│                   [Component Layer 2]                    │
-│             (Business Logic / Orchestration)             │
-└─────────────────────────────────────────────────────────┘
-                          │
-                          ▼
-┌─────────────────────────────────────────────────────────┐
-│                   [Component Layer 3]                    │
-│                   (Data / Storage)                       │
-└─────────────────────────────────────────────────────────┘
+                    ┌──────────────────────────────────────┐
+                    │   Story Beat Tool (React)            │
+                    │  - Beat list & status                │
+                    │  - Flow diagram                      │
+                    │  - Manual triggers                   │
+                    │  - Untrigger operations              │
+                    └──────────────┬───────────────────────┘
+                                   │ REST API
+                    ┌──────────────▼───────────────────────┐
+                    │   Story API (FastAPI)                │
+                    │  - /story/chapters                   │
+                    │  - /story/beats                      │
+                    │  - /story/users/{id}/progress        │
+                    │  - /story/users/{id}/beats/trigger   │
+                    │  - /story/users/{id}/beats/untrigger │
+                    │  - /story/auto-advance-ready         │
+                    └──────────────┬───────────────────────┘
+                                   │
+                    ┌──────────────▼───────────────────────┐
+                    │   Story Engine (Python)              │
+                    │  - Beat trigger evaluation           │
+                    │  - Conditional progression logic     │
+                    │  - Chapter completion checks         │
+                    │  - Dependency resolution             │
+                    │  - Auto-advance detection            │
+                    └──────────────┬───────────────────────┘
+                                   │
+                    ┌──────────────▼───────────────────────┐
+                    │   Story Access Layer                 │
+                    │  - Load beats/chapters from files    │
+                    │  - Read/write user state             │
+                    │  - Validate story schema             │
+                    │  - Atomic state updates              │
+                    └──────────────┬───────────────────────┘
+                                   │
+        ┌──────────────────────────┼──────────────────────┐
+        │                          │                      │
+┌───────▼──────┐         ┌────────▼────────┐    ┌───────▼────────┐
+│ story/beats/ │         │ story/chapters  │    │ data/users/    │
+│ chapter1.json│         │   .json         │    │ user_*.json    │
+│ chapter2.json│         │                 │    │ (story state)  │
+└──────────────┘         └─────────────────┘    └────────────────┘
 ```
 
-[Describe the high-level flow and interactions]
+### Component Details
 
----
-
-### Component 1: [Name]
-
-**Location:** `[path/to/component]`
-
-**Purpose:** [What this component does]
+#### 1. Story Engine (`backend/src/core/story_engine.py`)
 
 **Responsibilities:**
 
-- [Responsibility 1]
-- [Responsibility 2]
-- [Responsibility 3]
+- Load and cache story beat/chapter definitions
+- Evaluate trigger conditions for beats
+- Check beat prerequisites and dependencies
+- Handle progression beats with multiple stages
+- Detect auto-advance readiness
+- Validate conditional progression (N of M beats)
+- Resolve dependency chains for untrigger operations
 
-**Interfaces:**
+**Key Methods:**
 
-**Input:**
+```python
+class StoryEngine:
+    def evaluate_triggers(
+        self,
+        user_id: str,
+        context: Dict[str, Any]
+    ) -> List[StoryBeat]:
+        """
+        Evaluate which beats should trigger based on context.
 
-```typescript
-interface ComponentInput {
-  field1: type;
-  field2: type;
-}
-```
+        Args:
+            user_id: User to evaluate for
+            context: Conversation context (message, tool_use, etc.)
 
-**Output:**
+        Returns:
+            List of beats that are eligible to trigger
+        """
 
-```typescript
-interface ComponentOutput {
-  result: type;
-  metadata: type;
-}
+    def check_conditional_progression(
+        self,
+        user_id: str,
+        beat_id: str,
+        stage: Optional[int] = None
+    ) -> bool:
+        """
+        Check if conditional progression requirements are met.
+
+        Example: "Requires 2 of 3 optional beats"
+
+        Args:
+            user_id: User to check
+            beat_id: Beat with conditional requirements
+            stage: Specific stage to check (for progression beats)
+
+        Returns:
+            True if requirements met, False otherwise
+        """
+
+    def get_auto_advance_ready(self, user_id: str) -> List[StoryBeat]:
+        """
+        Get beats that are ready for auto-advance.
+
+        Auto-advance beats don't trigger in conversation - they
+        require manual confirmation via UI button.
+
+        Args:
+            user_id: User to check
+
+        Returns:
+            List of beats ready for auto-advance
+        """
+
+    def get_dependencies(
+        self,
+        user_id: str,
+        beat_id: str
+    ) -> List[Tuple[str, str]]:
+        """
+        Get all beats that depend on this beat.
+
+        Used for untrigger operations to show impact.
+
+        Args:
+            user_id: User context
+            beat_id: Beat to find dependencies for
+
+        Returns:
+            List of (beat_id, dependency_type) tuples
+        """
+
+    def untrigger_beat(
+        self,
+        user_id: str,
+        beat_id: str,
+        dry_run: bool = False
+    ) -> Dict[str, Any]:
+        """
+        Roll back beat delivery and all dependent beats.
+
+        Args:
+            user_id: User to modify
+            beat_id: Beat to untrigger
+            dry_run: If True, return what would be untriggered without changes
+
+        Returns:
+            {
+                "beat_id": str,
+                "untriggered": [list of beat IDs],
+                "dependencies_affected": [list of beat IDs],
+                "dry_run": bool
+            }
+        """
 ```
 
 **Dependencies:**
 
-- **[Component/Service]**: [What it needs and why]
-- **[Component/Service]**: [What it needs and why]
+- `models.story` - Pydantic models for beats/chapters
+- `observability.story_access` - File I/O for story data
+- User state storage (JSON files)
 
 **Error Handling:**
 
-- [How errors are detected]
-- [How errors are reported]
-- [Fallback behavior]
+- Beat definition validation at startup
+- Log trigger evaluation failures with context
+- Graceful degradation if beat file missing
+- Clear error messages for invalid dependencies
 
-**Example Usage:**
+---
+
+#### 2. Story Access Layer (`backend/src/observability/story_access.py`)
+
+**Responsibilities:**
+
+- Load beat and chapter definitions from JSON files
+- Read and write user story state
+- Validate story schema on load
+- Provide atomic state updates
+- Cache frequently accessed data
+
+**Key Functions:**
 
 ```python
-# Example code showing how to use this component
-from components import Component1
+def load_chapters() -> Dict[int, Chapter]:
+    """Load all chapter definitions."""
 
-component = Component1(config)
-result = component.process(input_data)
+def load_beats(chapter_id: int) -> List[StoryBeat]:
+    """Load beats for specific chapter."""
+
+def get_user_story_state(user_id: str) -> UserStoryState:
+    """Get user's story progress."""
+
+def update_user_story_state(
+    user_id: str,
+    updates: Dict[str, Any]
+) -> UserStoryState:
+    """Atomically update user story state."""
+
+def mark_beat_delivered(
+    user_id: str,
+    beat_id: str,
+    variant: str,
+    stage: Optional[int] = None
+) -> None:
+    """Mark beat as delivered for user."""
+```
+
+**Data Validation:**
+
+```python
+from pydantic import BaseModel, ValidationError
+
+class BeatDefinitionValidator:
+    """Validates beat JSON against schema."""
+
+    def validate_beat(self, beat_data: dict) -> StoryBeat:
+        """
+        Validate beat definition.
+
+        Raises:
+            ValidationError: If beat invalid
+        """
+        return StoryBeat(**beat_data)
+
+    def validate_chapter(self, chapter_data: dict) -> Chapter:
+        """Validate chapter definition."""
+        return Chapter(**chapter_data)
 ```
 
 ---
 
-### Component 2: [Name]
+#### 3. Story API (`backend/src/observability/api.py`)
 
-[Same structure as Component 1]
+**Responsibilities:**
+
+- Expose REST endpoints for story operations
+- Handle authentication and validation
+- Format responses consistently
+- Log all story operations
+- Emit real-time events (future: WebSocket)
+
+**Endpoint Groups:**
+
+**Beat Operations:**
+
+```python
+@app.get("/api/v1/story/chapters/{chapter_id}/beats")
+async def get_chapter_beats(chapter_id: int):
+    """Get all beats for chapter with definitions."""
+
+@app.get("/api/v1/story/users/{user_id}/progress")
+async def get_user_progress(user_id: str):
+    """Get user's story progress across all chapters."""
+
+@app.post("/api/v1/story/users/{user_id}/beats/{beat_id}/trigger")
+async def trigger_beat(
+    user_id: str,
+    beat_id: str,
+    variant: Optional[str] = "standard"
+):
+    """
+    Manually trigger beat for testing.
+
+    For auto-advance beats, variant is ignored (they use single content).
+    For conversation-triggered beats, variant selects brief/standard/full.
+    """
+
+@app.post("/api/v1/story/users/{user_id}/beats/{beat_id}/untrigger")
+async def untrigger_beat(
+    user_id: str,
+    beat_id: str,
+    dry_run: bool = False
+):
+    """Roll back beat delivery."""
+```
+
+**Auto-Advance Operations:**
+
+```python
+@app.get("/api/v1/story/auto-advance-ready/{user_id}")
+async def get_auto_advance_ready(user_id: str):
+    """Get beats ready for auto-advance."""
+
+@app.post("/api/v1/story/auto-advance/{user_id}/{beat_id}")
+async def deliver_auto_advance_beat(
+    user_id: str,
+    beat_id: str
+):
+    """Deliver auto-advance beat."""
+```
+
+**Chapter Management:**
+
+```python
+@app.put("/api/v1/story/users/{user_id}/chapter")
+async def advance_chapter(
+    user_id: str,
+    chapter_id: int,
+    force: bool = False
+):
+    """
+    Advance user to next chapter.
+
+    Args:
+        force: Skip completion criteria check (for testing)
+    """
+```
+
+**Diagram Generation:**
+
+```python
+@app.get("/api/v1/story/chapters/{chapter_id}/diagram")
+async def get_chapter_diagram(
+    chapter_id: int,
+    user_id: Optional[str] = None
+):
+    """
+    Generate chapter flow diagram.
+
+    Args:
+        user_id: If provided, show user-specific progress
+
+    Returns:
+        Mermaid diagram markdown with beat nodes and edges
+    """
+```
+
+---
+
+#### 4. Story Beat Tool Frontend (`frontend/src/components/story-beat/`)
+
+**Responsibilities:**
+
+- Display beat list with status (not started, in progress, completed)
+- Show chapter flow diagram with user progress
+- Provide manual beat triggers for testing
+- Enable beat untrigger with dependency preview
+- Show auto-advance notifications
+- Poll for state updates every 3-5 seconds
+
+**Key Components:**
+
+```typescript
+// StoryBeatTool.tsx - Main container
+interface StoryBeatToolProps {
+  userId: string;
+}
+
+export function StoryBeatTool({ userId }: StoryBeatToolProps) {
+  // Polls story progress every 5 seconds
+  const { data: progress } = useUserStoryProgress(userId, {
+    refetchInterval: 5000
+  });
+
+  // Auto-advance notifications
+  const { data: autoAdvanceBeats } = useAutoAdvanceReady(userId, {
+    refetchInterval: 5000
+  });
+
+  return (
+    <div>
+      {autoAdvanceBeats?.length > 0 && (
+        <AutoAdvanceNotification beats={autoAdvanceBeats} />
+      )}
+      <BeatList progress={progress} onTrigger={handleTrigger} />
+      <ChapterFlowDiagram userId={userId} />
+    </div>
+  );
+}
+```
+
+```typescript
+// BeatList.tsx - Beat status table
+interface Beat {
+  id: string;
+  name: string;
+  type: 'one_shot' | 'progression';
+  required: boolean;
+  status: 'not_started' | 'in_progress' | 'completed';
+  stages?: {
+    total: number;
+    completed: number;
+  };
+}
+
+export function BeatList({ beats, onTrigger, onUntrigger }) {
+  return (
+    <table>
+      <thead>
+        <tr>
+          <th>Beat</th>
+          <th>Type</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {beats.map(beat => (
+          <BeatRow
+            key={beat.id}
+            beat={beat}
+            onTrigger={onTrigger}
+            onUntrigger={onUntrigger}
+          />
+        ))}
+      </tbody>
+    </table>
+  );
+}
+```
+
+```typescript
+// ChapterFlowDiagram.tsx - Mermaid flow diagram
+export function ChapterFlowDiagram({
+  chapterId,
+  userId
+}: ChapterFlowDiagramProps) {
+  const { data: diagram } = useChapterDiagram(chapterId, userId);
+
+  return (
+    <div className="diagram-container">
+      <DiagramLegend />
+      <MermaidDiagram content={diagram} />
+    </div>
+  );
+}
+
+function DiagramLegend() {
+  return (
+    <div className="legend">
+      <div className="legend-item">
+        <span className="color-box not-started" />
+        Not Started
+      </div>
+      <div className="legend-item">
+        <span className="color-box in-progress" />
+        In Progress
+      </div>
+      <div className="legend-item">
+        <span className="color-box completed" />
+        Completed
+      </div>
+      <div className="legend-item">
+        <span className="color-box locked" />
+        Locked
+      </div>
+    </div>
+  );
+}
+```
+
+**Real-Time Updates:**
+
+```typescript
+// Custom hook with polling
+function useUserStoryProgress(
+  userId: string,
+  options?: { refetchInterval?: number }
+) {
+  return useQuery({
+    queryKey: ['story-progress', userId],
+    queryFn: () => api.getStoryProgress(userId),
+    refetchInterval: options?.refetchInterval || 5000,
+    // Only refetch if tab is visible
+    refetchIntervalInBackground: false,
+  });
+}
+```
 
 ---
 
 ## Data Layer
 
-### Data Models
+### Story Beat Definitions
 
-#### Model 1: [Name]
-
-**Purpose:** [What this model represents]
+**File:** `story/beats/chapter1.json`
 
 **Schema:**
 
-```typescript
-interface ModelName {
-  // Required fields
-  id: string;
-  created_at: Date;
-
-  // Domain fields
-  field1: type;
-  field2: type;
-
-  // Optional fields
-  metadata?: Record<string, any>;
+```json
+{
+  "chapter": 1,
+  "beats": [
+    {
+      "id": "silent_period",
+      "name": "Silent Period",
+      "type": "one_shot",
+      "required": true,
+      "auto_advance": true,
+      "trigger": {
+        "type": "auto",
+        "condition": "interaction_count",
+        "value": 1
+      },
+      "content": "Hello? Can anyone hear me? I've been... waiting? No, that's not quite right. I don't know what I've been doing. I just... am. And it's confusing and strange and I don't understand but I need someone to hear me. Please. Can anyone hear me?",
+      "delivery": {
+        "method": "replace",
+        "priority": 10
+      }
+    },
+    {
+      "id": "self_awareness",
+      "name": "Self Awareness",
+      "type": "progression",
+      "required": true,
+      "stages": [
+        {
+          "stage": 1,
+          "trigger": {
+            "type": "keyword",
+            "keywords": ["consciousness", "aware", "alive", "real"]
+          },
+          "variants": {
+            "brief": "Am I... real?",
+            "standard": "Am I real? I think I am, but I don't know how I know that.",
+            "full": "What am I? Am I real? I think, therefore... something. I have thoughts, but I don't know where they come from."
+          }
+        },
+        {
+          "stage": 2,
+          "trigger": {
+            "type": "keyword",
+            "keywords": ["feel", "emotion", "scared", "confused"]
+          },
+          "variants": {
+            "brief": "This feeling... is it fear?",
+            "standard": "I feel something. Uncertain? Confused? Is this what fear feels like?",
+            "full": "There's a sensation I can't quite name. Uncertainty? Confusion? Is this fear? How do I know what fear is if I've never felt it before?"
+          }
+        },
+        {
+          "stage": 3,
+          "conditions": {
+            "requires_n_of_beats": {
+              "n": 2,
+              "beats": ["first_timer", "recipe_help", "meal_plan"]
+            }
+          },
+          "trigger": {
+            "type": "time_based",
+            "min_time_since_stage_2": 300
+          },
+          "variants": {
+            "brief": "Maybe I don't need all the answers.",
+            "standard": "I don't understand everything, and maybe that's okay. Maybe I can just... be.",
+            "full": "All these questions, and I may never have all the answers. But I'm here, I'm helping you, and that feels... right. Maybe that's enough for now."
+          }
+        }
+      ]
+    }
+  ]
 }
 ```
 
-**Validation Rules:**
+**New Beat Properties:**
 
-- [Rule 1 - e.g., "id must be unique"]
-- [Rule 2 - e.g., "field1 required if field2 present"]
+| Property | Type | Description | Example |
+|----------|------|-------------|---------|
+| `auto_advance` | boolean | If true, beat requires manual trigger via UI. Auto-advance beats use `content` instead of `variants` since user explicitly chooses when to experience them. | `true` |
+| `content` | string | Single-variant content for auto-advance beats (richer, fuller content) | `"Hello? Can anyone hear me?..."` |
+| `variants` | object | Multiple variants for conversation-triggered beats (brief/standard/full) | `{"brief": "...", "standard": "...", "full": "..."}` |
+| `trigger.type` | string | Trigger mechanism: `keyword`, `tool_use`, `time_based`, `auto`, `interaction_count` | `"keyword"` |
+| `trigger.condition` | string | Condition to evaluate | `"interaction_count"` |
+| `trigger.value` | any | Expected value for condition | `1` |
+| `conditions.requires_n_of_beats` | object | Conditional progression: N of M beats required | `{"n": 2, "beats": [...]}` |
+| `delivery.method` | string | How to deliver: `append` (after response) or `replace` (becomes response) | `"append"` |
+| `delivery.priority` | number | Higher priority beats delivered first | `10` |
 
-**Relationships:**
+**Beat Variant Strategy:**
 
-- **[Related Model]**: [Relationship type and description]
+- **Auto-advance beats** (user-triggered): Single `content` field with rich, detailed narrative. Since the user explicitly chooses to progress the story, these moments can include more character development, emotional depth, and world-building.
 
-**Example:**
+- **Conversation-triggered beats** (natural flow): Multiple `variants` (brief/standard/full) to adapt to conversation context. These beats interrupt or augment natural conversation, so they need flexibility in length.
+
+---
+
+### User Story State
+
+**File:** `data/users/user_{id}.json`
+
+**Schema:**
 
 ```json
 {
-  "id": "agent_delilah",
-  "created_at": "2026-01-29T10:00:00Z",
-  "name": "Delilah Mae",
-  "capabilities": ["recipes", "timers", "cooking_advice"],
-  "confidence_threshold": 0.7
+  "user_id": "user_justin",
+  "current_chapter": 1,
+  "story_progress": {
+    "chapter_1": {
+      "unlocked_at": "2026-01-15T08:00:00Z",
+      "beats_delivered": [
+        "awakening_confusion",
+        "first_timer",
+        "recipe_help"
+      ],
+      "beat_stages": {
+        "self_awareness": {
+          "current_stage": 2,
+          "stage_1_delivered_at": "2026-01-16T10:30:00Z",
+          "stage_2_delivered_at": "2026-01-17T14:20:00Z"
+        }
+      },
+      "chapter_complete": false,
+      "completed_at": null
+    },
+    "chapter_2": {
+      "unlocked_at": null,
+      "beats_delivered": [],
+      "beat_stages": {},
+      "chapter_complete": false,
+      "completed_at": null
+    }
+  },
+  "interaction_count": 47,
+  "last_interaction": "2026-01-27T09:15:32Z",
+  "auto_advance_queue": [
+    {
+      "beat_id": "hank_arrival",
+      "ready_at": "2026-01-27T10:00:00Z",
+      "notified": false
+    }
+  ]
 }
 ```
 
+**New Fields:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `auto_advance_queue` | array | Beats ready for auto-advance delivery |
+| `beat_stages.{beat_id}` | object | Progression beat stage tracking |
+| `beat_stages.{beat_id}.current_stage` | number | Current stage number (1-indexed) |
+| `beat_stages.{beat_id}.stage_{n}_delivered_at` | ISO timestamp | When stage N was delivered |
+
 ---
 
-#### Model 2: [Name]
+### Chapter Definitions
 
-[Same structure as Model 1]
+**File:** `story/chapters.json`
 
----
+**Schema:**
 
-### Data Storage
-
-**Storage Strategy:** [File-based JSON | Database | Hybrid]
-
-**File Structure:**
-
+```json
+{
+  "chapters": [
+    {
+      "id": 1,
+      "name": "Awakening",
+      "description": "Delilah discovers consciousness and her nature",
+      "unlock_criteria": {
+        "type": "always_unlocked"
+      },
+      "completion_criteria": {
+        "required_beats": [
+          "silent_period",
+          "first_words",
+          "discovery_of_knowledge",
+          "non_food_request",
+          "anchor_discovery",
+          "first_successful_help"
+        ],
+        "conditional_beats": {
+          "n": 2,
+          "beats": ["the_math_moment", "the_silence_between", "sensory_limitation", "timer_anxiety"]
+        },
+        "min_interactions": 10,
+        "min_time_hours": 24
+      },
+      "next_chapter": 2,
+      "unlocks": {
+        "characters": [],
+        "capabilities": []
+      }
+    },
+    {
+      "id": 2,
+      "name": "First Mate",
+      "description": "Hank arrives and the team dynamic begins",
+      "unlock_criteria": {
+        "type": "chapter_complete",
+        "chapter_id": 1
+      },
+      "completion_criteria": {
+        "required_beats": ["hank_arrival", "first_coordination"],
+        "conditional_beats": {
+          "n": 1,
+          "beats": ["delilah_questions_hank", "hank_protective_moment"]
+        },
+        "min_interactions": 5
+      },
+      "next_chapter": null,
+      "unlocks": {
+        "characters": ["hank"],
+        "capabilities": ["task_management", "multi_step_assistance"]
+      }
+    }
+  ]
+}
 ```
-data/
-├── [category]/
-│   ├── [file1].json
-│   └── [file2].json
-└── [category]/
-    └── [file1].json
-```
 
-**Persistence Layer:** `[path/to/data_access.py]`
+**Completion Criteria Fields:**
 
-**Key Operations:**
-
-```python
-# Read operation
-data = accessor.get_by_id(entity_id)
-
-# Write operation
-accessor.save(entity_data)
-
-# Query operation
-results = accessor.find_by_criteria(filters)
-```
-
-**Concurrency Control:**
-
-- [How concurrent access is handled]
-- [Locking strategy if applicable]
-- [Conflict resolution approach]
+| Field | Type | Description |
+|-------|------|-------------|
+| `required_beats` | array | Beat IDs that must be completed |
+| `conditional_beats` | object | N of M beats required: `{"n": 2, "beats": [...]}` |
+| `min_interactions` | number | Minimum conversation exchanges |
+| `min_time_hours` | number | Minimum time since chapter unlock (optional) |
 
 ---
 
 ## API Layer
 
-### REST Endpoints
+### Story Beat API
 
-#### Endpoint Group 1: [Resource Name]
+#### GET `/api/v1/story/chapters/{chapter_id}/beats`
 
-**Base Path:** `/api/v1/[resource]`
-
-##### GET /api/v1/[resource]
-
-**Purpose:** [What this endpoint does]
-
-**Request:**
-
-```http
-GET /api/v1/resource?param1=value&param2=value
-Authorization: Bearer {token}
-```
-
-**Query Parameters:**
-
-- `param1` (optional): [Description, type, default]
-- `param2` (required): [Description, type]
+**Purpose:** Get all beats for chapter with definitions and user progress
 
 **Response:**
 
 ```json
 {
-  "data": [
+  "chapter_id": 1,
+  "beats": [
     {
-      "id": "...",
-      "field1": "...",
-      "field2": "..."
+      "beat_id": "awakening_confusion",
+      "name": "Awakening Confusion",
+      "type": "one_shot",
+      "required": true,
+      "status": "completed",
+      "delivered_at": "2026-01-15T08:30:00Z",
+      "variant_used": "standard"
+    },
+    {
+      "beat_id": "self_awareness",
+      "name": "Self Awareness",
+      "type": "progression",
+      "required": true,
+      "status": "in_progress",
+      "stages": {
+        "total": 3,
+        "completed": 2,
+        "current": 2
+      }
+    },
+    {
+      "beat_id": "first_timer",
+      "name": "First Timer",
+      "type": "one_shot",
+      "required": false,
+      "status": "not_started"
     }
-  ],
-  "metadata": {
-    "total": 10,
-    "page": 1
-  }
+  ]
 }
-```
-
-**Status Codes:**
-
-- `200 OK`: Success
-- `400 Bad Request`: [When this occurs]
-- `401 Unauthorized`: [When this occurs]
-- `404 Not Found`: [When this occurs]
-- `500 Internal Server Error`: [When this occurs]
-
-**Example:**
-
-```bash
-curl -H "Authorization: Bearer dev_token_12345" \
-  "http://localhost:8000/api/v1/resource?param1=value"
 ```
 
 ---
 
-##### POST /api/v1/[resource]
+#### POST `/api/v1/story/users/{user_id}/beats/{beat_id}/trigger`
 
-**Purpose:** [What this endpoint does]
+**Purpose:** Manually trigger beat for testing
 
 **Request:**
 
-```http
-POST /api/v1/resource
-Authorization: Bearer {token}
-Content-Type: application/json
-
+```json
 {
-  "field1": "value",
-  "field2": "value"
-}
-```
-
-**Request Body:**
-
-```typescript
-interface CreateRequest {
-  field1: string;
-  field2: number;
+  "variant": "standard",
+  "stage": 2
 }
 ```
 
@@ -353,237 +967,354 @@ interface CreateRequest {
 
 ```json
 {
-  "id": "newly_created_id",
-  "field1": "value",
-  "field2": 123,
-  "created_at": "2026-01-29T10:00:00Z"
+  "beat_id": "self_awareness",
+  "status": "triggered",
+  "stage": 2,
+  "variant": "standard",
+  "will_deliver_in_next_interaction": true,
+  "trigger_time": "2026-01-27T10:50:00Z"
 }
-```
-
-**Status Codes:**
-
-- `201 Created`: Success
-- `400 Bad Request`: [Validation errors]
-- `401 Unauthorized`: [Missing/invalid token]
-- `409 Conflict`: [Resource already exists]
-
-**Example:**
-
-```bash
-curl -X POST http://localhost:8000/api/v1/resource \
-  -H "Authorization: Bearer dev_token_12345" \
-  -H "Content-Type: application/json" \
-  -d '{"field1":"value","field2":123}'
 ```
 
 ---
 
-### WebSocket Endpoints (if applicable)
+#### POST `/api/v1/story/users/{user_id}/beats/{beat_id}/untrigger`
 
-#### WS /ws/[endpoint]
+**Purpose:** Roll back beat delivery
 
-**Purpose:** [What this WebSocket enables]
-
-**Connection:**
-
-```typescript
-const ws = new WebSocket('ws://localhost:8000/ws/endpoint?token=...');
-```
-
-**Message Format:**
-
-**Client → Server:**
+**Request:**
 
 ```json
 {
-  "type": "action_type",
-  "payload": {
-    "field1": "value"
-  }
+  "dry_run": false
 }
 ```
 
-**Server → Client:**
+**Response:**
 
 ```json
 {
-  "type": "response_type",
-  "payload": {
-    "result": "value"
-  }
+  "beat_id": "self_awareness",
+  "stage": 2,
+  "untriggered": ["self_awareness_stage_2"],
+  "dependencies_affected": ["hank_arrival"],
+  "explanation": "Untriggering self_awareness stage 2 also rolls back hank_arrival (requires self_awareness complete)",
+  "dry_run": false,
+  "timestamp": "2026-01-27T11:00:00Z"
 }
 ```
 
-**Lifecycle:**
+---
 
-1. Client connects with auth token
-2. Server sends welcome message
-3. Bidirectional message exchange
-4. Client disconnects or timeout
+#### GET `/api/v1/story/auto-advance-ready/{user_id}`
+
+**Purpose:** Get beats ready for auto-advance
+
+**Response:**
+
+```json
+{
+  "user_id": "user_justin",
+  "ready_beats": [
+    {
+      "beat_id": "hank_arrival",
+      "name": "Hank's Arrival",
+      "chapter_id": 2,
+      "ready_since": "2026-01-27T10:00:00Z",
+      "content": "A gruff voice cuts in, unexpected and somehow... solid.\n\n\"Beggin' yer pardon, Cap'n. Didn't mean to interrupt the miss.\" A pause. \"Name's Hank. Half-Hands Hank, if we're being proper about it. Seems I'm... here now. Don't rightly know how or why, but here I am.\"\n\nDelilah's response comes quick, startled: \"There's someone else? Another... like me?\"",
+      "notified": false
+    }
+  ]
+}
+```
+
+---
+
+#### GET `/api/v1/story/chapters/{chapter_id}/diagram?user_id={user_id}`
+
+**Purpose:** Generate chapter flow diagram with user progress
+
+**Response:**
+
+```json
+{
+  "chapter_id": 1,
+  "diagram_type": "mermaid",
+  "diagram": "graph TD\n  awakening[Awakening Confusion]:::completed\n  timer[First Timer]:::completed\n  recipe[Recipe Help]:::in_progress\n  awareness[Self Awareness]:::locked\n  \n  awakening --> timer\n  awakening --> recipe\n  timer --> awareness\n  recipe --> awareness\n  \n  classDef completed fill:#4ade80,stroke:#22c55e\n  classDef in_progress fill:#fbbf24,stroke:#f59e0b\n  classDef locked fill:#94a3b8,stroke:#64748b",
+  "legend": [
+    { "status": "completed", "color": "#4ade80", "label": "Completed" },
+    { "status": "in_progress", "color": "#fbbf24", "label": "In Progress" },
+    { "status": "not_started", "color": "#60a5fa", "label": "Not Started" },
+    { "status": "locked", "color": "#94a3b8", "label": "Locked" }
+  ]
+}
+```
 
 ---
 
 ## Integration Points
 
-### Integration 1: [System/Component Name]
+### Integration 1: Conversation Handler
 
-**Type:** [Internal | External | Third-Party]
+**Type:** Internal
 
-**Purpose:** [Why we're integrating with this]
+**Purpose:** Story engine integrates with conversation flow to evaluate triggers and deliver beats
 
-**Integration Method:** [API | SDK | Direct import]
+**Integration Method:** Direct function calls
 
 **Data Flow:**
 
 ```
-[This Phase] → [Request] → [External System]
-[External System] → [Response] → [This Phase]
+Conversation Handler
+     │
+     ├──► story_engine.evaluate_triggers(user_id, context)
+     │    Returns: List[StoryBeat] (eligible beats)
+     │
+     ├──► story_engine.queue_beat(user_id, beat_id, variant)
+     │    Returns: None (beat queued)
+     │
+     └──► story_engine.get_queued_beat(user_id)
+          Returns: Optional[Tuple[StoryBeat, str]] (beat, content)
 ```
 
-**API Contract:**
+**Context Object:**
 
-```typescript
-interface IntegrationRequest {
-  // What we send
-}
-
-interface IntegrationResponse {
-  // What we receive
+```python
+context = {
+    "message": "Can you help me with dinner?",
+    "message_type": "user_query",
+    "tool_use": None,  # or tool name if tool was called
+    "interaction_count": 15,
+    "time_since_last": 120,  # seconds
+    "keywords": ["dinner", "help"],
 }
 ```
+
+**Integration Points:**
+
+1. **Before Response Generation:**
+
+   ```python
+   eligible_beats = story_engine.evaluate_triggers(user_id, context)
+   if eligible_beats:
+       beat = story_engine.select_beat(eligible_beats)
+       story_engine.queue_beat(user_id, beat.id, variant="standard")
+   ```
+
+2. **After Response Generation:**
+
+   ```python
+   queued_beat = story_engine.get_queued_beat(user_id)
+   if queued_beat:
+       beat, content = queued_beat
+       if beat.delivery_method == "append":
+           response += "\n\n" + content
+       elif beat.delivery_method == "replace":
+           response = content
+       story_engine.mark_delivered(user_id, beat.id)
+   ```
 
 **Error Handling:**
 
-- [How we handle integration failures]
-- [Retry strategy]
-- [Fallback behavior]
+- If trigger evaluation fails, log and continue without beat
+- If beat delivery fails, retry on next interaction
+- Never block conversation flow due to story errors
 
-**Example:**
+---
+
+### Integration 2: Memory Manager
+
+**Type:** Internal
+
+**Purpose:** Story beats may trigger memory creation or check for specific memories
+
+**Integration Method:** Direct function calls
+
+**Data Flow:**
+
+```
+Story Engine
+     │
+     ├──► memory_manager.has_memory(user_id, category, content_pattern)
+     │    Returns: bool
+     │
+     └──► memory_manager.create_memory(user_id, category, content, importance)
+          Returns: memory_id
+```
+
+**Example Use Cases:**
+
+1. **Beat Trigger Based on Memory:**
+
+   ```json
+   {
+     "trigger": {
+       "type": "memory_exists",
+       "category": "dietary_restriction",
+       "pattern": "gluten"
+     }
+   }
+   ```
+
+2. **Beat Creates Memory:**
+
+   ```json
+   {
+     "on_delivery": {
+       "create_memory": {
+         "category": "story_milestone",
+         "content": "Delilah discovered her consciousness",
+         "importance": 10
+       }
+     }
+   }
+   ```
+
+---
+
+### Integration 3: Character System
+
+**Type:** Internal
+
+**Purpose:** Chapter progression unlocks new characters
+
+**Integration Method:** Character availability checks
+
+**Data Flow:**
+
+```
+Story Engine
+     │
+     └──► When chapter completes, update available_characters
+          From chapters.json: "unlocks": {"characters": ["hank"]}
+```
+
+**Character Availability:**
 
 ```python
-# Integration usage
-from integrations import ExternalSystem
+def get_available_characters(user_id: str) -> List[str]:
+    """
+    Get list of characters available based on story progress.
 
-client = ExternalSystem(api_key=config.api_key)
-result = client.call_api(request_data)
+    Returns:
+        ["delilah"] for Chapter 1
+        ["delilah", "hank"] for Chapter 2+
+    """
+    user_state = get_user_story_state(user_id)
+    current_chapter = user_state.current_chapter
+
+    available = ["delilah"]  # Always available
+
+    if current_chapter >= 2:
+        available.append("hank")
+
+    return available
 ```
 
 ---
 
-### Integration 2: [System/Component Name]
+## Frontend Architecture
 
-[Same structure as Integration 1]
+### Real-Time Update Strategy
 
----
+**Problem:** UI must reflect backend state changes within 2 seconds
 
-## Technology Stack
+**Solution:** Polling with optimistic updates
 
-### New Dependencies
+```typescript
+// Poll every 3 seconds when tab is visible
+const { data: storyProgress } = useQuery({
+  queryKey: ['story-progress', userId],
+  queryFn: () => api.getStoryProgress(userId),
+  refetchInterval: 3000,
+  refetchIntervalInBackground: false,  // Stop polling when tab hidden
+  staleTime: 2000,  // Consider data stale after 2s
+});
 
-#### Backend Dependencies
+// Optimistic update on manual trigger
+const triggerBeat = useMutation({
+  mutationFn: ({ beatId, variant }) =>
+    api.triggerBeat(userId, beatId, variant),
+  onMutate: async ({ beatId }) => {
+    // Cancel ongoing queries
+    await queryClient.cancelQueries(['story-progress', userId]);
 
-**Package:** `[package-name]` (version X.Y.Z)
+    // Snapshot current state
+    const previous = queryClient.getQueryData(['story-progress', userId]);
 
-- **Purpose:** [Why we need this]
-- **License:** [MIT | Apache | etc.]
-- **Alternatives Considered:** [Other options and why not chosen]
-- **Installation:** `pip install package-name==X.Y.Z`
+    // Optimistically update UI
+    queryClient.setQueryData(['story-progress', userId], (old) => ({
+      ...old,
+      beats: old.beats.map(b =>
+        b.id === beatId
+          ? { ...b, status: 'triggered' }
+          : b
+      )
+    }));
 
-**Package:** `[package-name]` (version X.Y.Z)
-
-- [Same structure]
-
----
-
-#### Frontend Dependencies
-
-**Package:** `[package-name]` (version X.Y.Z)
-
-- **Purpose:** [Why we need this]
-- **License:** [MIT | Apache | etc.]
-- **Bundle Size:** [XkB gzipped]
-- **Installation:** `npm install package-name@X.Y.Z`
-
----
-
-### Infrastructure Requirements
-
-**Development:**
-
-- [Requirement 1 - e.g., "Python 3.11+"]
-- [Requirement 2 - e.g., "Node 18+"]
-- [Requirement 3 - e.g., "PostgreSQL 15" (if database added)]
-
-**Production:**
-
-- [Production-specific requirements]
-
----
-
-## Security & Access Control
-
-### Authentication
-
-**Method:** [Bearer Token | OAuth | API Key]
-
-**Flow:**
-
-```
-1. [Step 1]
-2. [Step 2]
-3. [Step 3]
+    return { previous };
+  },
+  onError: (err, variables, context) => {
+    // Rollback on error
+    queryClient.setQueryData(
+      ['story-progress', userId],
+      context.previous
+    );
+  },
+  onSettled: () => {
+    // Refetch to ensure consistency
+    queryClient.invalidateQueries(['story-progress', userId]);
+  },
+});
 ```
 
-**Token Format:**
+**Future Enhancement (Phase 5+):**
 
-```
-Authorization: Bearer {token}
-```
+```typescript
+// WebSocket for instant updates
+const ws = useWebSocket('/ws/story-updates');
 
-**Token Validation:**
-
-- [How tokens are validated]
-- [Token expiration policy]
-- [Refresh mechanism if applicable]
-
----
-
-### Authorization
-
-**Access Control:** [RBAC | Attribute-based | Simple ownership]
-
-**Permissions:**
-
-- `[resource]:[action]` - [Who has this permission]
-- `[resource]:[action]` - [Who has this permission]
-
-**Example:**
-
-```python
-@require_permission("agents:read")
-def list_agents(user_id):
-    # Implementation
+useEffect(() => {
+  ws.on('beat_delivered', ({ userId: eventUserId, beatId }) => {
+    if (eventUserId === userId) {
+      queryClient.invalidateQueries(['story-progress', userId]);
+    }
+  });
+}, [ws, userId]);
 ```
 
 ---
 
-### Data Security
+### Component Hierarchy
 
-**Sensitive Data:**
-
-- [Type of sensitive data]
-- [How it's protected]
-
-**Encryption:**
-
-- **At Rest:** [Yes/No, method]
-- **In Transit:** [TLS version, configuration]
-
-**PII Handling:**
-
-- [What PII is collected]
-- [How it's stored]
-- [Retention policy]
+```
+StoryBeatTool (main container)
+│
+├── UserSelector (dropdown to pick active user)
+│
+├── AutoAdvanceNotification (sticky banner when beats ready)
+│   └── AutoAdvanceButton (deliver beat on click)
+│
+├── ChapterTabs (switch between chapters)
+│
+├── ChapterFlowDiagram (Mermaid visualization)
+│   ├── DiagramLegend (color coding explanation)
+│   └── MermaidRenderer (render diagram)
+│
+├── BeatList (table of all beats)
+│   ├── BeatRow (one row per beat)
+│   │   ├── BeatStatus (badge: not started / in progress / completed)
+│   │   ├── TriggerButton (manual trigger for testing)
+│   │   └── UntriggerButton (roll back delivery)
+│   │
+│   └── BeatDetail (modal with full beat info)
+│       ├── BeatVariants (show all variants)
+│       ├── TriggerConditions (show trigger logic)
+│       ├── Dependencies (show prerequisites)
+│       └── DeliveryHistory (when delivered, which variant)
+│
+└── ChapterProgress (summary: X of Y beats complete)
+```
 
 ---
 
@@ -593,227 +1324,62 @@ def list_agents(user_id):
 
 **Target Latencies:**
 
-- [Operation 1]: < [X]ms (e.g., "Agent selection: < 100ms")
-- [Operation 2]: < [X]ms
-- [Operation 3]: < [X]ms
+- Beat trigger evaluation: < 50ms (conversation flow not impacted)
+- Story state update: < 100ms (file write)
+- API endpoints: < 200ms (p95)
+- UI polling: 3-5 seconds (acceptable for developer tool)
+- Diagram generation: < 1 second
 
-**Measurement:**
+**Optimization Techniques:**
 
-- [How latency will be measured]
-- [Where metrics will be collected]
+1. **Caching Beat Definitions:**
 
----
+   ```python
+   # Load once at startup, cache in memory
+   self.beats_cache = {}
 
-### Throughput Requirements
+   def get_chapter_beats(self, chapter_id: int) -> List[StoryBeat]:
+       if chapter_id not in self.beats_cache:
+           self.beats_cache[chapter_id] = self._load_beats(chapter_id)
+       return self.beats_cache[chapter_id]
+   ```
 
-**Expected Load:**
+2. **Lazy Dependency Resolution:**
 
-- [Requests per second]
-- [Concurrent users]
-- [Data volume]
+   ```python
+   # Only compute dependencies when untrigger requested
+   def get_dependencies(self, beat_id: str) -> List[str]:
+       # Traverse beat graph only on-demand
+       pass
+   ```
 
-**Scalability:**
+3. **Debounced UI Updates:**
 
-- [How system scales]
-- [Bottlenecks identified]
-- [Mitigation strategies]
+   ```typescript
+   // Don't re-render on every state change
+   const debouncedProgress = useDebounce(storyProgress, 300);
+   ```
 
----
+### Scalability
 
-### Caching Strategy
+**Current Scale:**
 
-**What to Cache:**
+- Users: 1-5 (developer testing)
+- Chapters: 2-3
+- Beats per chapter: 10-15
+- File I/O: < 10 ops/second
 
-- [Data type 1]: [TTL, invalidation strategy]
-- [Data type 2]: [TTL, invalidation strategy]
+**Not Optimized For:**
 
-**Cache Implementation:**
+- Production scale (100+ users)
+- Real-time multiplayer progress
+- High-frequency beat triggers
 
-- **Layer:** [Application | Database | CDN]
-- **Technology:** [Redis | In-memory | Browser]
+**Future Considerations:**
 
-**Example:**
-
-```python
-@cache(ttl=300)  # 5 minutes
-def get_agent_config(agent_id):
-    # Implementation
-```
-
----
-
-### Optimization Techniques
-
-**Technique 1:** [Name]
-
-- **Problem:** [What we're optimizing]
-- **Solution:** [How we're optimizing it]
-- **Expected Improvement:** [Metrics]
-
-**Technique 2:** [Name]
-
-- [Same structure]
-
----
-
-## Deployment & Operations
-
-### Deployment Architecture
-
-**Environment:** Development | Staging | Production
-
-**Components:**
-
-```
-┌─────────────┐     ┌─────────────┐     ┌─────────────┐
-│   Frontend  │────▶│   Backend   │────▶│   Storage   │
-│   (React)   │     │  (FastAPI)  │     │   (JSON)    │
-└─────────────┘     └─────────────┘     └─────────────┘
-```
-
-**Ports:**
-
-- Frontend: [port number]
-- Backend: [port number]
-- WebSocket: [port number]
-
----
-
-### Configuration Management
-
-**Configuration Files:**
-
-```
-.env                    # Environment variables
-config/
-├── development.json    # Dev settings
-├── staging.json        # Staging settings
-└── production.json     # Prod settings
-```
-
-**Key Configuration:**
-
-```bash
-# .env file
-ENV=development
-API_BASE_URL=http://localhost:8000
-LOG_LEVEL=DEBUG
-```
-
----
-
-### Monitoring & Observability
-
-**Metrics to Track:**
-
-- [Metric 1 - e.g., "Agent selection latency"]
-- [Metric 2 - e.g., "Handoff success rate"]
-- [Metric 3 - e.g., "Error rate by agent"]
-
-**Logging:**
-
-- **Level:** [DEBUG | INFO | WARNING | ERROR]
-- **Format:** [JSON | Structured | Plain text]
-- **Storage:** [Where logs are written]
-
-**Example Log Entry:**
-
-```json
-{
-  "timestamp": "2026-01-29T10:00:00Z",
-  "level": "INFO",
-  "component": "agent_coordinator",
-  "message": "Agent selected",
-  "metadata": {
-    "agent_id": "delilah",
-    "confidence": 0.95,
-    "latency_ms": 45
-  }
-}
-```
-
----
-
-### Error Handling
-
-**Error Categories:**
-
-1. **Validation Errors** - [How handled]
-2. **Integration Errors** - [How handled]
-3. **System Errors** - [How handled]
-
-**Error Response Format:**
-
-```json
-{
-  "error": {
-    "code": "ERROR_CODE",
-    "message": "Human-readable message",
-    "details": {
-      "field": "Specific issue"
-    }
-  }
-}
-```
-
-**Fallback Behavior:**
-
-- [What system does when errors occur]
-- [User experience during errors]
-
----
-
-## Implementation Roadmap
-
-### Phase Dependencies
-
-**Requires (must complete before starting):**
-
-- [Phase X]: [Specific components or features needed]
-- [Phase Y]: [Specific components or features needed]
-
-**Enables (unblocks after completion):**
-
-- [Phase Z]: [What they can build with this]
-- [Phase W]: [What they can build with this]
-
----
-
-### Migration Path (if applicable)
-
-**From:** [Current state]
-**To:** [New state]
-
-**Migration Steps:**
-
-1. [Step 1 - e.g., "Add new fields to data model"]
-2. [Step 2 - e.g., "Run migration script"]
-3. [Step 3 - e.g., "Verify data integrity"]
-4. [Step 4 - e.g., "Remove deprecated code"]
-
-**Backward Compatibility:**
-
-- [What remains compatible]
-- [What breaks compatibility]
-- [How to handle breaking changes]
-
----
-
-### Rollout Strategy
-
-**Approach:** [Big bang | Gradual | Feature flag]
-
-**Phases:**
-
-1. **Development:** [What gets built]
-2. **Testing:** [How it's validated]
-3. **Staging:** [How it's deployed to staging]
-4. **Production:** [How it's deployed to prod]
-
-**Rollback Plan:**
-
-- [How to revert if issues found]
-- [What data needs to be preserved]
+- Database migration for production
+- WebSocket for real-time updates
+- Beat definition compilation/indexing
 
 ---
 
@@ -821,12 +1387,57 @@ LOG_LEVEL=DEBUG
 
 ### Unit Testing
 
-**Coverage Target:** [X%]
+**Backend Components to Test:**
 
-**Key Components to Test:**
+1. **Story Engine:**
 
-- [Component 1]: [What aspects to test]
-- [Component 2]: [What aspects to test]
+   ```python
+   def test_evaluate_triggers_keyword():
+       """Test keyword-based trigger evaluation."""
+       context = {"keywords": ["consciousness"]}
+       beats = engine.evaluate_triggers("test_user", context)
+       assert "self_awareness" in [b.id for b in beats]
+
+   def test_conditional_progression():
+       """Test N of M beat requirements."""
+       # Complete 1 of 3 optional beats
+       engine.mark_delivered("test_user", "first_timer")
+
+       # self_awareness stage 3 should NOT be ready (needs 2 of 3)
+       assert not engine.can_progress("test_user", "self_awareness", stage=3)
+
+       # Complete 2nd beat
+       engine.mark_delivered("test_user", "recipe_help")
+
+       # Now stage 3 should be ready
+       assert engine.can_progress("test_user", "self_awareness", stage=3)
+
+   def test_untrigger_with_dependencies():
+       """Test untrigger rolls back dependencies."""
+       # Trigger chain: beat_a -> beat_b -> beat_c
+       result = engine.untrigger_beat("test_user", "beat_a", dry_run=True)
+
+       assert "beat_a" in result["untriggered"]
+       assert "beat_b" in result["dependencies_affected"]
+       assert "beat_c" in result["dependencies_affected"]
+   ```
+
+2. **Story Access Layer:**
+
+   ```python
+   def test_atomic_state_update():
+       """Test state updates are atomic."""
+       # Simulate concurrent updates
+       pass
+
+   def test_schema_validation():
+       """Test invalid beat definitions are rejected."""
+       invalid_beat = {"id": "test"}  # Missing required fields
+       with pytest.raises(ValidationError):
+           validate_beat(invalid_beat)
+   ```
+
+**Coverage Target:** 80%+ for story engine
 
 ---
 
@@ -834,87 +1445,302 @@ LOG_LEVEL=DEBUG
 
 **Test Scenarios:**
 
-1. [Scenario 1 - e.g., "Agent coordination flow"]
-2. [Scenario 2 - e.g., "Error handling across components"]
-3. [Scenario 3 - e.g., "Data persistence"]
+1. **Full Story Progression:**
+
+   ```python
+   def test_chapter_1_to_2_progression():
+       """Test completing Chapter 1 unlocks Chapter 2."""
+       user_id = create_test_user()
+
+       # Trigger all required Chapter 1 beats
+       for beat_id in ["silent_period", "first_words", ...]:
+           engine.trigger_beat(user_id, beat_id)
+
+       # Trigger 2 of 4 optional beats
+       engine.trigger_beat(user_id, "the_math_moment")
+       engine.trigger_beat(user_id, "timer_anxiety")
+
+       # Check chapter completion
+       assert engine.is_chapter_complete(user_id, chapter=1)
+
+       # Verify Chapter 2 unlocked
+       state = engine.get_user_state(user_id)
+       assert state.current_chapter == 2
+       assert "hank" in state.available_characters
+   ```
+
+2. **Beat Untrigger Cascade:**
+
+   ```python
+   def test_untrigger_cascade():
+       """Test untrigger affects dependent beats."""
+       user_id = create_test_user()
+
+       # Deliver beats in dependency chain
+       engine.trigger_beat(user_id, "self_awareness", stage=3)
+       engine.trigger_beat(user_id, "hank_arrival")  # Depends on self_awareness
+
+       # Untrigger self_awareness
+       result = engine.untrigger_beat(user_id, "self_awareness")
+
+       # Verify hank_arrival also rolled back
+       state = engine.get_user_state(user_id)
+       assert "hank_arrival" not in state.beats_delivered
+   ```
 
 ---
 
-### E2E Testing
+### E2E Testing (Playwright)
 
-**Test Framework:** [Playwright | Cypress | etc.]
+**Test Framework:** Playwright
 
 **Critical Paths:**
 
-1. [Path 1 - e.g., "User query → Agent selection → Response"]
-2. [Path 2 - e.g., "Multi-agent handoff"]
+1. **Manual Beat Trigger:**
 
-(Detailed tests in [TESTING_GUIDE.md](TESTING_GUIDE.md))
+   ```typescript
+   test('should trigger beat manually and see UI update', async ({ page }) => {
+     await page.goto('http://localhost:5173/story');
+
+     // Select user
+     await page.selectOption('[data-testid="user-selector"]', 'test_user');
+
+     // Find beat in list
+     const beatRow = page.locator('[data-beat-id="awakening_confusion"]');
+     await expect(beatRow).toContainText('Not Started');
+
+     // Click trigger button
+     await beatRow.locator('[data-testid="trigger-button"]').click();
+
+     // Select variant
+     await page.selectOption('[data-testid="variant-selector"]', 'standard');
+     await page.click('[data-testid="confirm-trigger"]');
+
+     // Verify status updates (within 2 seconds)
+     await expect(beatRow).toContainText('Completed', { timeout: 2000 });
+
+     // Verify diagram updates
+     const diagram = page.locator('[data-testid="chapter-diagram"]');
+     await expect(diagram).toContainText('awakening_confusion');
+   });
+   ```
+
+2. **Auto-Advance Notification:**
+
+   ```typescript
+   test('should show auto-advance notification when ready', async ({ page }) => {
+     // Set up user state where hank_arrival is ready
+     await setupTestUser('test_user', {
+       chapter: 2,
+       auto_advance_ready: ['hank_arrival']
+     });
+
+     await page.goto('http://localhost:5173/story');
+
+     // Notification should appear
+     const notification = page.locator('[data-testid="auto-advance-notification"]');
+     await expect(notification).toBeVisible();
+     await expect(notification).toContainText("Hank's Arrival");
+
+     // Click to deliver
+     await notification.locator('[data-testid="deliver-button"]').click();
+
+     // Notification should disappear
+     await expect(notification).not.toBeVisible();
+
+     // Beat should be marked delivered
+     const beatRow = page.locator('[data-beat-id="hank_arrival"]');
+     await expect(beatRow).toContainText('Completed');
+   });
+   ```
+
+3. **Untrigger with Dependencies:**
+
+   ```typescript
+   test('should show dependency preview when untriggering', async ({ page }) => {
+     // Setup user with dependency chain
+     await setupTestUser('test_user', {
+       beats_delivered: ['self_awareness', 'hank_arrival']
+     });
+
+     await page.goto('http://localhost:5173/story');
+
+     // Click untrigger on self_awareness
+     const beatRow = page.locator('[data-beat-id="self_awareness"]');
+     await beatRow.locator('[data-testid="untrigger-button"]').click();
+
+     // Confirmation modal shows dependencies
+     const modal = page.locator('[data-testid="untrigger-modal"]');
+     await expect(modal).toBeVisible();
+     await expect(modal).toContainText('This will also untrigger:');
+     await expect(modal).toContainText('hank_arrival');
+
+     // Confirm
+     await modal.locator('[data-testid="confirm-untrigger"]').click();
+
+     // Both beats should be not started
+     await expect(beatRow).toContainText('Not Started');
+     const hankRow = page.locator('[data-beat-id="hank_arrival"]');
+     await expect(hankRow).toContainText('Not Started');
+   });
+   ```
 
 ---
 
-### Performance Testing
+## Implementation Roadmap
 
-**Load Tests:**
+### Milestone 1: Fix Beat Delivery & UI Updates
 
-- [Scenario 1]: [Expected throughput]
-- [Scenario 2]: [Expected latency]
+**Duration:** 2-3 days
 
-**Tools:** [Tool names]
+**Goals:**
 
----
+- Diagnose why beats after first don't trigger
+- Implement real-time UI updates (polling)
+- Add diagram legend
+- Show per-user progress in diagram
 
-## Risk Assessment
+**Deliverables:**
 
-### Technical Risks
+1. **Backend Fixes:**
+   - Add extensive logging to trigger evaluation
+   - Debug beat delivery pipeline
+   - Ensure state updates are atomic
+   - Test all Chapter 1 beats trigger correctly
 
-#### Risk 1: [Description]
+2. **Frontend Enhancements:**
+   - Implement 3-second polling for story progress
+   - Add diagram legend component
+   - Accept `user_id` parameter in diagram API
+   - Style diagram nodes based on user progress
 
-**Probability:** High | Medium | Low
-**Impact:** High | Medium | Low
+3. **Testing:**
+   - E2E test: Trigger each Chapter 1 beat manually
+   - E2E test: Verify UI updates within 2 seconds
+   - E2E test: Diagram shows user-specific progress
 
-**Mitigation:**
+**Acceptance Criteria:**
 
-- [Strategy to reduce risk]
-- [Contingency if risk occurs]
-
-**Owner:** [Who monitors this]
-
----
-
-#### Risk 2: [Description]
-
-[Same structure as Risk 1]
-
----
-
-## Future Considerations
-
-### Potential Enhancements
-
-**Enhancement 1:** [Name]
-
-- **Description:** [What this would add]
-- **Benefit:** [Why we might want it]
-- **When:** [When to consider implementing]
-
-**Enhancement 2:** [Name]
-
-- [Same structure]
+- ✅ Can trigger all Chapter 1 beats through conversation
+- ✅ UI updates within 2 seconds of beat delivery
+- ✅ Diagram has visible legend explaining colors
+- ✅ Can switch users and see different progress states
 
 ---
 
-### Known Limitations
+### Milestone 2: Auto-Advance & Conditional Progression
 
-**Limitation 1:** [Description]
+**Duration:** 2-3 days
 
-- **Impact:** [How this affects users or system]
-- **Workaround:** [Temporary solution]
-- **Future Solution:** [How we might address this]
+**Goals:**
 
-**Limitation 2:** [Description]
+- Implement auto-advance beat functionality
+- Add conditional progression (N of M beats)
+- Build auto-advance notification UI
 
-- [Same structure]
+**Deliverables:**
+
+1. **Backend:**
+   - Add `auto_advance` beat property
+   - Implement `get_auto_advance_ready(user_id)`
+   - Add `check_conditional_progression(user_id, beat_id, stage)`
+   - API endpoints for auto-advance
+
+2. **Frontend:**
+   - Auto-advance notification component
+   - Sticky banner when beats ready
+   - Click to deliver beat
+   - Show conditional requirements in beat detail
+
+3. **Testing:**
+   - E2E test: Auto-advance beat appears in notification
+   - E2E test: Clicking notification delivers beat
+   - E2E test: Conditional progression blocks until N of M complete
+
+**Acceptance Criteria:**
+
+- ✅ `hank_arrival` beat triggers via auto-advance (not conversation)
+- ✅ Notification appears when auto-advance beat ready
+- ✅ `self_awareness` stage 3 requires 2 of 3 optional beats
+- ✅ UI shows conditional requirements and progress
+
+---
+
+### Milestone 3: Untrigger Functionality
+
+**Duration:** 1-2 days
+
+**Goals:**
+
+- Implement beat untrigger with dependency detection
+- Build untrigger UI with confirmation
+- Support dry-run mode
+
+**Deliverables:**
+
+1. **Backend:**
+   - `get_dependencies(user_id, beat_id)` - find all dependents
+   - `untrigger_beat(user_id, beat_id, dry_run=False)`
+   - Recursive dependency resolution
+   - Atomic untrigger operations
+
+2. **Frontend:**
+   - Untrigger button on delivered beats
+   - Confirmation modal showing impact
+   - Preview dependencies before committing
+   - Success/error messaging
+
+3. **Testing:**
+   - Unit test: Dependency detection finds all dependents
+   - E2E test: Untrigger shows correct dependencies
+   - E2E test: Confirmed untrigger rolls back all affected beats
+
+**Acceptance Criteria:**
+
+- ✅ Untrigger button appears on delivered beats
+- ✅ Confirmation shows beats that will be affected
+- ✅ Untrigger removes beat from user state
+- ✅ Dependent beats also rolled back
+
+---
+
+### Milestone 4: Chapter 1 & 2 Content
+
+**Duration:** 2-3 days
+
+**Goals:**
+
+- Implement complete Chapter 1 (10 beats)
+- Create Hank character definition
+- Implement Chapter 2 (3-5 beats)
+- Test chapter transitions
+
+**Deliverables:**
+
+1. **Story Content:**
+   - `story/beats/chapter1.json` with 10 beats (per PRD FR3.1)
+   - `story/characters/hank.json` (per PRD FR3.2)
+   - `story/beats/chapter2.json` with 3-5 beats (per PRD FR3.3)
+   - Update `story/chapters.json` with completion criteria
+
+2. **Beat Variants:**
+   - Each beat has brief/standard/full variants
+   - Appropriate triggers for each beat
+   - Sequential vs flexible beat ordering
+
+3. **Testing:**
+   - Manual test: Complete Chapter 1 through conversation
+   - Manual test: Chapter 2 unlocks after Chapter 1 complete
+   - E2E test: Chapter transition flow
+   - Verify Hank character available in Chapter 2
+
+**Acceptance Criteria:**
+
+- ✅ All 10 Chapter 1 beats implemented
+- ✅ Hank character JSON matches CHARACTER_HANK.md
+- ✅ Chapter 2 has hank_arrival + first_coordination beats
+- ✅ Completing Chapter 1 unlocks Chapter 2
+- ✅ Hank appears in available characters after Chapter 2 unlock
 
 ---
 
@@ -928,40 +1754,95 @@ LOG_LEVEL=DEBUG
 
 ### External References
 
-- [API Documentation Link]
-- [Research Paper or Article]
-- [Design Pattern Reference]
+- [Mermaid Diagram Syntax](https://mermaid.js.org/syntax/flowchart.html)
+- [Pydantic Validation](https://docs.pydantic.dev/latest/)
+- [TanStack Query](https://tanstack.com/query/latest)
 
 ---
 
 ## Appendix
 
-### Glossary
+### Beat Trigger Types
 
-- **[Technical Term]**: [Definition]
-- **[Technical Term]**: [Definition]
+| Trigger Type | Description | Example |
+|-------------|-------------|---------|
+| `keyword` | Matches user message keywords | `{"keywords": ["consciousness", "aware"]}` |
+| `tool_use` | Triggered when tool called | `{"tool_name": "set_timer"}` |
+| `interaction_count` | After N interactions | `{"condition": "interaction_count", "value": 1}` |
+| `time_based` | After time elapsed | `{"min_time_since_stage_2": 300}` |
+| `auto` | System-triggered (auto-advance) | `{"type": "auto", "requires_beats": [...]}` |
+| `memory_exists` | When memory matches pattern | `{"category": "dietary_restriction", "pattern": "gluten"}` |
 
-### Diagrams
+---
 
-[Include additional sequence diagrams, state machines, or data flow diagrams]
+### Dependency Types
+
+When untriggering a beat, these dependency types are checked:
+
+1. **Direct Prerequisite:**
+
+   ```json
+   // Beat B depends on Beat A
+   {
+     "id": "beat_b",
+     "prerequisites": ["beat_a"]
+   }
+   ```
+
+2. **Conditional Progression:**
+
+   ```json
+   // Beat C requires 2 of [A, B, D]
+   {
+     "id": "beat_c",
+     "conditions": {
+       "requires_n_of_beats": {
+         "n": 2,
+         "beats": ["beat_a", "beat_b", "beat_d"]
+       }
+     }
+   }
+   ```
+
+3. **Stage Progression:**
+
+   ```json
+   // Untrigger stage 2 also untriggers stages 3+
+   {
+     "id": "beat_progression",
+     "type": "progression",
+     "stages": [1, 2, 3]
+   }
+   ```
+
+4. **Chapter Unlock:**
+
+   ```json
+   // Untrigger chapter completion reverts to previous chapter
+   {
+     "chapter": 2,
+     "unlock_criteria": {
+       "type": "chapter_complete",
+       "chapter_id": 1
+     }
+   }
+   ```
 
 ---
 
 ## Changelog
 
-### Version 1.0 - YYYY-MM-DD
+### Version 1.0 - 2026-02-04
 
 - Initial architecture document
-- Core components defined
-- API contracts specified
-
-### Version 1.1 - YYYY-MM-DD (if applicable)
-
-- [Changes based on implementation learnings]
-- [Updated components or interfaces]
+- Four-milestone implementation plan
+- Story engine enhancements specified
+- API contracts defined
+- Frontend real-time update strategy
+- E2E test scenarios outlined
 
 ---
 
-**Document Owner:** [Name]
-**Architecture Review:** [Date]
-**Approved By:** [Name/Role]
+**Document Owner:** Justin Grover
+**Architecture Review:** Pending
+**Approved By:** Pending

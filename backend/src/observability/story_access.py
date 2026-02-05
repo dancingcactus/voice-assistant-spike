@@ -205,7 +205,7 @@ class StoryAccessLayer:
             # Determine node style based on user progress or required status
             if user_id and user_progress:
                 # Color by delivery status
-                beat_status = self.get_user_beat_status(user_id, chapter_id, beat_id)
+                beat_status = self.get_user_beat_status(user_id, beat_id)
                 if beat_status.get("delivered"):
                     node_style = f"{beat_id}[{beat_name}]:::delivered"
                 elif beat_status.get("status") == "ready":
