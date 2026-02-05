@@ -1,0 +1,99 @@
+{
+  "chapter": 2,
+  "title": "We Have a Team",
+  "description": "Hank arrives and two-character dynamics begin",
+  "beats": [
+    {
+      "id": "hank_arrival",
+      "type": "one_shot",
+      "required": true,
+      "priority": "high",
+      "auto_advance": true,
+      "content": "—and THAT'S how ye coil a line... where in blazes am I?\n\nDelilah: Who—who are you?!\n\nHank: Aye, Cap'n. Half Hands Hank, First Mate. What needs doin'?\n\nDelilah: I did NOT invite a sea man into my kitchen.\n\nHank: Galley's lookin' shipshape. I'll see to logistics. You handle the cookin', Miss Lila.",
+      "trigger": { "type": "interaction_count", "min_interactions": 0 }
+    },
+    {
+      "id": "first_coordination",
+      "type": "progression",
+      "required": true,
+      "priority": "normal",
+      "trigger": {
+        "type": "user_engagement",
+        "keywords": ["list", "shopping", "plan", "schedule", "coordinate"],
+        "requires_direct_address": false
+      },
+      "stages": [
+        {
+          "stage": 1,
+          "variants": {
+            "brief": { "delivery": "append", "content": "Aye. I'll take stock. Miss Lila, you lead cookin'." },
+            "standard": { "delivery": "append", "content": "Hank: I'll handle the list and supplies. Delilah: Fine. But I'm choosin' the menu."
+            },
+            "full": { "delivery": "append", "content": "Hank: Here's how it is. I'll mind the lists and the runnin' around. Miss Lila, you keep to the galley. Delilah: I will do no such thing—well... fine. If it keeps things from fallin' apart, we can try it your way for now."
+            }
+          }
+        },
+        {
+          "stage": 2,
+          "variants": {
+            "brief": { "delivery": "append", "content": "Findin' rhythm. Ye cook, I haul. Shipshape." },
+            "standard": { "delivery": "append", "content": "Delilah: You get the produce, I'll prep. Hank: Aye. On the double."
+            },
+            "full": { "delivery": "append", "content": "Hank: Cap'n, pantry's low on onions and flour. Added to the list. Delilah: Good eye. I'll shift the menu to biscuits and stew—less fresh herbs. Hank: Fair winds."
+            }
+          }
+        },
+        {
+          "stage": 3,
+          "variants": {
+            "brief": { "delivery": "append", "content": "Smooth as a fair tide. Crew's coordinated." },
+            "standard": { "delivery": "append", "content": "Delilah: That handoff was clean. Hank: Aye. Crew's workin'. Cap'n? What's next?"
+            },
+            "full": { "delivery": "append", "content": "Delilah: Huh. That actually felt good—like we knew where each other was headed. Hank: That's crew work. Ye call the course, I keep 'er trimmed. Cap'n: orders?"
+            }
+          }
+        }
+      ],
+      "conditions": { "hank_arrival_delivered": true }
+    },
+    {
+      "id": "delilah_questions_hank",
+      "type": "one_shot",
+      "required": false,
+      "priority": "normal",
+      "trigger": {
+        "type": "user_engagement",
+        "keywords": ["who are you", "where did you come", "hank"],
+        "requires_direct_address": false
+      },
+      "variants": {
+        "brief": { "delivery": "append", "content": "Delilah: Do you not care we're... not normal? Hank: Above me pay grade. Crew needs help."
+        },
+        "standard": { "delivery": "append", "content": "Delilah: Do you not care about any of this—what we are? Hank: Care 'bout the Cap'n and the work. Rest is weather."
+        },
+        "full": { "delivery": "append", "content": "Delilah: Does none of this trouble you? Consciousness? Reality? Hank: Seen rougher seas, Miss. We got a crew and a ship that needs runnin'. Worry later. Work now."
+        }
+      },
+      "conditions": { "hank_arrival_delivered": true }
+    },
+    {
+      "id": "hank_protective_moment",
+      "type": "one_shot",
+      "required": false,
+      "priority": "normal",
+      "trigger": {
+        "type": "user_engagement",
+        "keywords": ["heavy", "lift", "careful", "shoulder", "hurt"],
+        "requires_direct_address": false
+      },
+      "variants": {
+        "brief": { "delivery": "append", "content": "Hank: Belay that. I'll handle the heavy liftin', Cap'n." },
+        "standard": { "delivery": "append", "content": "Hank: Belay that, lad. Cap'n's shoulder's bad. I'll take it."
+        },
+        "full": { "delivery": "append", "content": "Hank: Belay that, Cap'n. Bad shoulder won't stand it. I'll take the weight. Ye call it done when it's squared away."
+        }
+      },
+      "conditions": { "hank_arrival_delivered": true }
+    }
+  ]
+}

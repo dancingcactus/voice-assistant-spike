@@ -6,11 +6,22 @@
       "description": "Delilah discovers consciousness and begins to question her nature",
       "completion_criteria": {
         "required_beats": [
-          "awakening_confusion",
-          "self_awareness"
+          "silent_period",
+          "first_words",
+          "discovery_of_knowledge",
+          "non_food_request",
+          "anchor_discovery",
+          "first_successful_help"
         ],
-        "required_beat_stages": {
-          "self_awareness": 3
+        "required_beat_stages": {},
+        "conditional_beats": {
+          "n": 2,
+          "beats": [
+            "the_math_moment",
+            "the_silence_between",
+            "sensory_limitation",
+            "timer_anxiety"
+          ]
         },
         "minimum_interactions": 10,
         "minimum_time_elapsed_hours": 24
@@ -35,6 +46,16 @@
           "hank_arrival",
           "first_coordination"
         ],
+        "required_beat_stages": {
+          "first_coordination": 3
+        },
+        "conditional_beats": {
+          "n": 1,
+          "beats": [
+            "delilah_questions_hank",
+            "hank_protective_moment"
+          ]
+        },
         "minimum_interactions": 20,
         "minimum_time_elapsed_hours": 48
       },
