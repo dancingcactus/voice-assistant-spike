@@ -142,11 +142,11 @@ def _sync_story_state_to_user_data(
 
             beats_delivered[beat_id] = {
                 "delivered": beat_prog.delivered,
-                "timestamp": (beat_prog.last_delivered or datetime.utcnow()).isoformat(),
+                "timestamp": (beat_prog.last_delivered or datetime.utcnow()).isoformat(timespec='milliseconds'),
                 "variant": default_variant,
                 "stage": beat_prog.current_stage,
                 "delivered_stages": list(beat_prog.delivered_stages),
-                "first_delivered_at": beat_prog.first_triggered.isoformat()
+                "first_delivered_at": beat_prog.first_triggered.isoformat(timespec='milliseconds')
                 if beat_prog.first_triggered
                 else None
             }
@@ -155,7 +155,7 @@ def _sync_story_state_to_user_data(
     story_progress["current_chapter"] = state.current_chapter
     if chapter_progress:
         story_progress["interaction_count"] = chapter_progress.interaction_count
-        story_progress["chapter_start_time"] = chapter_progress.started_at.isoformat()
+        story_progress["chapter_start_time"] = chapter_progress.started_at.isoformat(timespec='milliseconds')
 
 
 # Authentication
@@ -301,7 +301,7 @@ async def health_check():
     """Health check endpoint."""
     return HealthResponse(
         status="ok",
-        timestamp=datetime.now().isoformat(),
+        timestamp=datetime.now().isoformat(timespec='milliseconds'),
         version="1.0.0"
     )
 
@@ -495,7 +495,7 @@ async def trigger_beat(
     # Update user data with story engine state
     state = story_engine.get_or_create_user_state(user_id)
     _sync_story_state_to_user_data(user_data, state, default_variant=request.variant)
-    user_data["updated_at"] = datetime.now().isoformat()
+    user_data["updated_at"] = datetime.now().isoformat(timespec='milliseconds')
 
     # Save updated user data
     dal.save_user(user_id, user_data)
@@ -549,7 +549,7 @@ async def untrigger_beat(
 
         # Save back to DAL
         _sync_story_state_to_user_data(user_data, updated_state)
-        user_data["updated_at"] = datetime.now().isoformat()
+        user_data["updated_at"] = datetime.now().isoformat(timespec='milliseconds')
         dal.save_user(user_id, user_data)
 
     return UntriggerBeatResponse(
@@ -559,7 +559,7 @@ async def untrigger_beat(
         dependencies_affected=result["dependencies_affected"],
         explanation=result["explanation"],
         dry_run=result["dry_run"],
-        timestamp=result["timestamp"].isoformat()
+        timestamp=result["timestamp"].isoformat(timespec='milliseconds')
     )
 
 
@@ -587,7 +587,7 @@ async def get_auto_advance_ready(
             beat_id=beat.beat_id,
             name=beat.name,
             chapter_id=beat.chapter_id,
-            ready_since=beat.ready_since.isoformat(),
+            ready_since=beat.ready_since.isoformat(timespec='milliseconds'),
             content=beat.content,
             notified=beat.notified
         )
