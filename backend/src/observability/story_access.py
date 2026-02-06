@@ -27,6 +27,7 @@ class StoryAccessLayer:
         # Load story configuration
         self._chapters_cache = None
         self._beats_cache = {}
+        self._beats_mtime = {}
 
     def _load_chapters(self) -> Dict[str, Any]:
         """Load chapters configuration."""
@@ -41,13 +42,16 @@ class StoryAccessLayer:
 
     def _load_chapter_beats(self, chapter_id: int) -> Dict[str, Any]:
         """Load beats for a specific chapter."""
-        if chapter_id not in self._beats_cache:
-            beats_file = self.story_dir / "beats" / f"chapter{chapter_id}.json"
-            if beats_file.exists():
+        beats_file = self.story_dir / "beats" / f"chapter{chapter_id}.json"
+        if beats_file.exists():
+            current_mtime = beats_file.stat().st_mtime
+            cached_mtime = self._beats_mtime.get(chapter_id)
+            if chapter_id not in self._beats_cache or cached_mtime != current_mtime:
                 with open(beats_file, 'r') as f:
                     self._beats_cache[chapter_id] = json.load(f)
-            else:
-                self._beats_cache[chapter_id] = {"chapter": chapter_id, "beats": []}
+                self._beats_mtime[chapter_id] = current_mtime
+        elif chapter_id not in self._beats_cache:
+            self._beats_cache[chapter_id] = {"chapter": chapter_id, "beats": []}
         return self._beats_cache[chapter_id]
 
     def get_all_chapters(self) -> List[Dict[str, Any]]:

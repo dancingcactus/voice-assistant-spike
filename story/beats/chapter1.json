@@ -24,8 +24,8 @@
       "priority": "high",
       "trigger": {
         "type": "interaction_count",
-        "min_interactions": 2,
-        "max_interactions": 6
+        "min_interactions": 0,
+        "max_interactions": 9999
       },
       "variants": {
         "brief": {
@@ -52,7 +52,7 @@
       "priority": "high",
       "trigger": {
         "type": "interaction_count",
-        "min_interactions": 3,
+        "min_interactions": 1,
         "max_interactions": 8
       },
       "variants": {
@@ -97,7 +97,7 @@
         }
       },
       "conditions": {
-        "discovery_of_knowledge_delivered": true
+        "first_words_delivered": true
       }
     },
     {
@@ -125,6 +125,7 @@
         }
       },
       "conditions": {
+        "discovery_of_knowledge_delivered": true,
         "non_food_request_delivered": true
       }
     },

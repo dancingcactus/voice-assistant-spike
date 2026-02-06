@@ -1040,11 +1040,11 @@ function useUserStoryProgress(
 {
   "chapter_id": 1,
   "diagram_type": "mermaid",
-  "diagram": "graph TD\n  awakening[Awakening Confusion]:::completed\n  timer[First Timer]:::completed\n  recipe[Recipe Help]:::in_progress\n  awareness[Self Awareness]:::locked\n  \n  awakening --> timer\n  awakening --> recipe\n  timer --> awareness\n  recipe --> awareness\n  \n  classDef completed fill:#4ade80,stroke:#22c55e\n  classDef in_progress fill:#fbbf24,stroke:#f59e0b\n  classDef locked fill:#94a3b8,stroke:#64748b",
+  "diagram": "graph TD\n  silent_period[Silent Period]:::completed\n  first_words[First Words]:::completed\n  discovery_of_knowledge[Discovery of Knowledge]:::in_progress\n  non_food_request[Non-Food Request]:::in_progress\n  anchor_discovery[Anchor Discovery]:::locked\n  first_successful_help[First Successful Help]:::locked\n  the_math_moment[The Math Moment]:::optional\n  sensory_limitation[Sensory Limitation]:::optional\n  the_silence_between[The Silence Between]:::optional\n  timer_anxiety[Timer Anxiety]:::optional\n  \n  silent_period --> first_words\n  first_words --> discovery_of_knowledge\n  first_words --> non_food_request\n  non_food_request --> anchor_discovery\n  anchor_discovery --> first_successful_help\n  anchor_discovery --> the_math_moment\n  anchor_discovery --> sensory_limitation\n  first_successful_help --> the_silence_between\n  first_successful_help --> timer_anxiety\n  \n  classDef completed fill:#4ade80,stroke:#22c55e\n  classDef in_progress fill:#fbbf24,stroke:#f59e0b\n  classDef locked fill:#94a3b8,stroke:#64748b\n  classDef optional fill:#60a5fa,stroke:#3b82f6",
   "legend": [
     { "status": "completed", "color": "#4ade80", "label": "Completed" },
     { "status": "in_progress", "color": "#fbbf24", "label": "In Progress" },
-    { "status": "not_started", "color": "#60a5fa", "label": "Not Started" },
+    { "status": "optional", "color": "#60a5fa", "label": "Optional" },
     { "status": "locked", "color": "#94a3b8", "label": "Locked" }
   ]
 }

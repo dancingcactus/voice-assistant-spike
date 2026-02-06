@@ -38,6 +38,7 @@ class MemoryManager:
 
         # In-memory cache of user states
         self._user_cache: Dict[str, UserState] = {}
+        self._user_mtime: Dict[str, float] = {}
 
         # Dirty flag for periodic flush
         self._dirty_users: set = set()
@@ -106,9 +107,16 @@ class MemoryManager:
         Returns:
             UserState object
         """
-        # Check cache first
+        # Check cache first, but refresh if file changed on disk
         if user_id in self._user_cache:
-            return self._user_cache[user_id]
+            file_path = self._get_user_file_path(user_id)
+            if file_path.exists():
+                current_mtime = file_path.stat().st_mtime
+                cached_mtime = self._user_mtime.get(user_id)
+                if cached_mtime == current_mtime:
+                    return self._user_cache[user_id]
+            else:
+                return self._user_cache[user_id]
 
         # Try to load from disk with lock
         file_path = self._get_user_file_path(user_id)
@@ -121,6 +129,7 @@ class MemoryManager:
                     data = self._deserialize_datetimes(data)
                     user_state = UserState(**data)
                     self._user_cache[user_id] = user_state
+                    self._user_mtime[user_id] = file_path.stat().st_mtime
                     return user_state
             except Exception as e:
                 print(f"Error loading user state for {user_id}: {e}")
@@ -129,6 +138,8 @@ class MemoryManager:
         # Create new user state if file doesn't exist or load failed
         user_state = UserState(user_id=user_id)
         self._user_cache[user_id] = user_state
+        if file_path.exists():
+            self._user_mtime[user_id] = file_path.stat().st_mtime
         self._dirty_users.add(user_id)
         return user_state
 
@@ -170,6 +181,8 @@ class MemoryManager:
 
             # Atomic rename (replaces old file if exists)
             temp_path.replace(file_path)
+
+            self._user_mtime[user_id] = file_path.stat().st_mtime
 
             print(f"Saved user state for {user_id} (atomic)")
         except Exception as e:
@@ -390,5 +403,6 @@ class MemoryManager:
         """
         user_state = UserState(user_id=user_id)
         self._user_cache[user_id] = user_state
+        self._user_mtime.pop(user_id, None)
         self.save_user_state(user_id, force=True)
         print(f"Reset user state for {user_id}")
