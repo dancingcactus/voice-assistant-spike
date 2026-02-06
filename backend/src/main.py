@@ -67,20 +67,10 @@ app = FastAPI(
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",
-        "http://localhost:5174",  # Vite dev server (alternate port)
-        "http://localhost:5175",
-        "http://localhost:5176",
-        "http://localhost:5177",
-        "http://localhost:5178",
-        "http://localhost:5179",
-        "http://localhost:5180",
-        "http://localhost:5181",
-        "http://localhost:5182",
-        "http://localhost:5183",  # Vite dev server (additional ports)
-        "http://localhost:3000"   # Express dev server
-    ],
+    # Development convenience: allow all origins so local network hosts
+    # (Vite network URLs, mobile devices, etc.) can connect without
+    # adding each host to this list. Tighten this for staging/production.
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
