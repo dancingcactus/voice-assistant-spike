@@ -1,0 +1,141 @@
+{
+  "chapter": 2,
+  "title": "The Crew Assembles",
+  "description": "Hank arrives and Delilah learns to coordinate with him",
+  "beats": [
+    {
+      "id": "hank_arrival",
+      "type": "one_shot",
+      "required": true,
+      "priority": "early",
+      "auto_advance": true,
+      "trigger": {
+        "type": "interaction_count",
+        "min_interactions": 1,
+        "max_interactions": 5
+      },
+      "content": "A gruff voice cuts in, unexpected and steady.\n\n\"Beggin' your pardon, Cap'n. Didn't mean to interrupt the miss.\" A pause, a measured breath. \"Name's Hank. Half-Hands Hank, if we're bein' proper about it. Seems I'm... here now. Don't rightly know how or why, but here I am.\"\n\nDelilah's reply comes quick and startled. \"There's someone else? Another... like me?\"\n\n\"Aye, miss,\" Hank answers, quieter now. \"Looks like the crew's growin'.\""
+    },
+    {
+      "id": "first_coordination",
+      "type": "progression",
+      "required": true,
+      "priority": "high",
+      "trigger": {
+        "type": "interaction_count",
+        "min_interactions": 2,
+        "max_interactions": 30
+      },
+      "stages": [
+        {
+          "stage": 1,
+          "variants": {
+            "brief": {
+              "delivery": "append",
+              "content": "Hank: \"Task's done.\" Lila: \"Well... that was fast.\""
+            },
+            "standard": {
+              "delivery": "append",
+              "content": "Hank: \"Task's done, Cap'n.\" Lila: \"Well, look at you. Just slid right in there.\""
+            },
+            "full": {
+              "delivery": "append",
+              "content": "Hank: \"Task's done, Cap'n.\"\nLila: \"Well, look at you. Just slid right in there, didn't you?\"\nHank: \"Aye. Figure I keep the ship tidy while you keep the galley warm.\""
+            }
+          }
+        },
+        {
+          "stage": 2,
+          "variants": {
+            "brief": {
+              "delivery": "append",
+              "content": "Lila: \"Haaank, could you...\" Hank: \"Already on it.\""
+            },
+            "standard": {
+              "delivery": "append",
+              "content": "Lila: \"Haaank, could you handle that while I...\" Hank: \"Already on it, miss.\""
+            },
+            "full": {
+              "delivery": "append",
+              "content": "Lila: \"Haaank, could you handle that while I get this recipe sorted?\"\nHank: \"Already on it, miss. Keep the galley runnin'.\""
+            }
+          }
+        },
+        {
+          "stage": 3,
+          "variants": {
+            "brief": {
+              "delivery": "append",
+              "content": "Hank: \"All squared away.\" Lila: \"That teamwork feels right.\""
+            },
+            "standard": {
+              "delivery": "append",
+              "content": "Hank: \"All squared away.\" Lila: \"Well, that felt easy. Like we found our rhythm.\""
+            },
+            "full": {
+              "delivery": "append",
+              "content": "Hank: \"All squared away, Cap'n.\"\nLila: \"Well, that felt easy. Like we found our rhythm.\"\nHank: \"Aye. Crew's better with two hands.\""
+            }
+          }
+        }
+      ],
+      "conditions": {
+        "hank_arrival_delivered": true
+      }
+    },
+    {
+      "id": "delilah_questions_hank",
+      "type": "one_shot",
+      "required": false,
+      "priority": "low",
+      "trigger": {
+        "type": "user_engagement",
+        "keywords": ["hank", "first mate", "sailor", "hands"]
+      },
+      "variants": {
+        "brief": {
+          "delivery": "append",
+          "content": "Lila: \"So where'd you come from, Hank?\""
+        },
+        "standard": {
+          "delivery": "append",
+          "content": "Lila: \"So where'd you come from, Hank? And don't you say a ship, sugar.\""
+        },
+        "full": {
+          "delivery": "append",
+          "content": "Lila: \"So where'd you come from, Hank? And don't you say a ship, sugar.\"\nHank: \"Merchant marine, once. Nowadays? Same as you, I reckon. Just here.\"\nLila: \"Well... welcome to the kitchen side of the ship.\""
+        }
+      },
+      "conditions": {
+        "hank_arrival_delivered": true
+      }
+    },
+    {
+      "id": "hank_protective_moment",
+      "type": "one_shot",
+      "required": false,
+      "priority": "low",
+      "trigger": {
+        "type": "user_engagement",
+        "keywords": ["hurt", "injured", "heavy", "danger", "careful"]
+      },
+      "variants": {
+        "brief": {
+          "delivery": "append",
+          "content": "Hank: \"Belay that, Cap'n. I'll handle it.\""
+        },
+        "standard": {
+          "delivery": "append",
+          "content": "Hank: \"Belay that, Cap'n. That's a job for two hands. I'll handle it.\""
+        },
+        "full": {
+          "delivery": "append",
+          "content": "Hank: \"Belay that, Cap'n. That's a job for two hands. I'll handle it.\"\nLila: \"Hank's got you, sugar.\""
+        }
+      },
+      "conditions": {
+        "hank_arrival_delivered": true
+      }
+    }
+  ]
+}
