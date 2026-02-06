@@ -59,6 +59,9 @@ backend/audio/
 *.mp3
 *.wav
 
+# Tool logs produced during local runs
+.tool_logs/
+
 # Backup files
 *.bak
 
