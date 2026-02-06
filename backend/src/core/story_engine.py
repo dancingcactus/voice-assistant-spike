@@ -523,7 +523,7 @@ class StoryEngine:
         self._save_story_state(user_id, state)
 
         # Force reload state from memory manager on next access to ensure consistency
-        if user_id in self.user_states:
+        if self.memory_manager and user_id in self.user_states:
             logger.debug(f"Invalidating cached state for user {user_id}")
             del self.user_states[user_id]
 

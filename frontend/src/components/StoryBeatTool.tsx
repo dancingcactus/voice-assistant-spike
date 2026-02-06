@@ -66,6 +66,8 @@ export function StoryBeatTool({ userId }: StoryBeatToolProps) {
     queryKey: ['beats', selectedChapter, userId],
     queryFn: () => selectedChapter ? apiClient.listChapterBeats(selectedChapter, userId) : Promise.resolve([]),
     enabled: selectedChapter !== null,
+    refetchInterval: 3000,
+    refetchOnWindowFocus: true,
   });
 
   // Fetch beat detail
@@ -75,6 +77,9 @@ export function StoryBeatTool({ userId }: StoryBeatToolProps) {
       ? apiClient.getBeatDetail(selectedChapter, selectedBeat.id, userId)
       : Promise.resolve(null),
     enabled: selectedChapter !== null && selectedBeat !== null && showBeatDetail,
+    staleTime: 0,
+    refetchOnMount: 'always',
+    refetchOnWindowFocus: true,
   });
 
   // Fetch diagram with user-specific coloring
@@ -82,6 +87,8 @@ export function StoryBeatTool({ userId }: StoryBeatToolProps) {
     queryKey: ['diagram', selectedChapter, userId],
     queryFn: () => selectedChapter ? apiClient.getChapterDiagram(selectedChapter, userId) : Promise.resolve(null),
     enabled: selectedChapter !== null,
+    refetchInterval: 3000,
+    refetchOnWindowFocus: true,
   });
 
   // Fetch auto-advance ready beats with polling
@@ -118,6 +125,8 @@ export function StoryBeatTool({ userId }: StoryBeatToolProps) {
       queryClient.invalidateQueries({ queryKey: ['storyProgress', userId] });
       queryClient.invalidateQueries({ queryKey: ['progress', userId] });
       queryClient.invalidateQueries({ queryKey: ['chapters', userId] });
+      queryClient.invalidateQueries({ queryKey: ['diagram', selectedChapter, userId] });
+      queryClient.invalidateQueries({ queryKey: ['beatDetail', selectedChapter, selectedBeat?.id, userId] });
       setShowBeatDetail(false);
       setSelectedBeat(null);
     },

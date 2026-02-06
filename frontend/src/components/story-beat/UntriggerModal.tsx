@@ -95,12 +95,6 @@ export function UntriggerModal({
                   </ul>
                 </div>
               )}
-
-              {dryRunResult.untriggered.length === 0 && (
-                <div className="info">
-                  <p>No beats to untrigger. This beat may not be delivered yet.</p>
-                </div>
-              )}
             </>
           ) : null}
         </div>
@@ -116,7 +110,7 @@ export function UntriggerModal({
           <button
             className="btn btn-danger"
             onClick={handleUntrigger}
-            disabled={isLoading || isUntriggering || !dryRunResult || dryRunResult.untriggered.length === 0}
+            disabled={isLoading || isUntriggering || !dryRunResult}
           >
             {isUntriggering ? 'Untriggering...' : 'Untrigger'}
           </button>

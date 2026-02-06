@@ -12,6 +12,7 @@ from pydantic import BaseModel
 import os
 import logging
 from pathlib import Path
+from dateutil import parser as date_parser
 
 logger = logging.getLogger(__name__)
 
@@ -41,8 +42,9 @@ API_AUTH_TOKEN = os.getenv("API_AUTH_TOKEN", "dev_token_12345")
 CORS_ORIGINS = os.getenv("CORS_ORIGINS", "http://localhost:5173").split(",")
 
 # Find data directory
-data_dir = Path(__file__).parent.parent.parent / "data"
+# Use project root for consistent data access across all DALs
 project_root = Path(__file__).parent.parent.parent.parent
+data_dir = project_root / "data"
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -64,6 +66,96 @@ character_dal = CharacterAccessLayer(project_root=project_root)
 
 # Initialize Story Engine for auto-advance and conditional progression
 story_engine = StoryEngine(story_dir=str(project_root / "story"), memory_manager=None)
+
+
+def _parse_datetime(value: Optional[str]) -> Optional[datetime]:
+    if not value:
+        return None
+    try:
+        return date_parser.parse(value)
+    except (ValueError, TypeError):
+        return None
+
+
+def _hydrate_story_state_from_user_data(user_id: str, user_data: Dict[str, Any]):
+    state = story_engine.get_or_create_user_state(user_id)
+    story_progress = user_data.get("story_progress", {})
+    current_chapter = story_progress.get("current_chapter", 1)
+    state.current_chapter = current_chapter
+    state.total_interactions = story_progress.get("interaction_count", 0)
+
+    from models.story import ChapterProgress, BeatProgress
+
+    chapter_start_time = _parse_datetime(story_progress.get("chapter_start_time")) or datetime.utcnow()
+    interaction_count = story_progress.get("interaction_count", 0)
+
+    state.chapter_progress[current_chapter] = ChapterProgress(
+        chapter_id=current_chapter,
+        started_at=chapter_start_time,
+        interaction_count=interaction_count
+    )
+
+    beat_progress_map = state.chapter_progress[current_chapter].beat_progress
+    beat_progress_map.clear()
+
+    beats_delivered = story_progress.get("beats_delivered", {})
+    for beat_id, beat_data in beats_delivered.items():
+        stage = beat_data.get("stage") or beat_data.get("current_stage") or 1
+        delivered_stages = beat_data.get("delivered_stages")
+        if not delivered_stages and stage:
+            delivered_stages = list(range(1, stage + 1))
+
+        delivered = bool(beat_data.get("delivered"))
+        if not delivered and not delivered_stages:
+            continue
+
+        beat_progress_map[beat_id] = BeatProgress(
+            beat_id=beat_id,
+            delivered=delivered,
+            current_stage=stage or 1,
+            delivered_stages=delivered_stages or [],
+            first_triggered=_parse_datetime(
+                beat_data.get("first_delivered_at") or beat_data.get("timestamp")
+            ),
+            last_delivered=_parse_datetime(beat_data.get("timestamp"))
+        )
+
+    return state
+
+
+def _sync_story_state_to_user_data(
+    user_data: Dict[str, Any],
+    state,
+    default_variant: str = "standard"
+):
+    if "story_progress" not in user_data:
+        user_data["story_progress"] = {}
+
+    story_progress = user_data["story_progress"]
+    chapter_progress = state.chapter_progress.get(state.current_chapter)
+
+    beats_delivered = {}
+    if chapter_progress:
+        for beat_id, beat_prog in chapter_progress.beat_progress.items():
+            if not beat_prog.delivered and not beat_prog.delivered_stages:
+                continue
+
+            beats_delivered[beat_id] = {
+                "delivered": beat_prog.delivered,
+                "timestamp": (beat_prog.last_delivered or datetime.utcnow()).isoformat(),
+                "variant": default_variant,
+                "stage": beat_prog.current_stage,
+                "delivered_stages": list(beat_prog.delivered_stages),
+                "first_delivered_at": beat_prog.first_triggered.isoformat()
+                if beat_prog.first_triggered
+                else None
+            }
+
+    story_progress["beats_delivered"] = beats_delivered
+    story_progress["current_chapter"] = state.current_chapter
+    if chapter_progress:
+        story_progress["interaction_count"] = chapter_progress.interaction_count
+        story_progress["chapter_start_time"] = chapter_progress.started_at.isoformat()
 
 
 # Authentication
@@ -395,44 +487,14 @@ async def trigger_beat(
         raise HTTPException(status_code=404, detail=f"User {user_id} not found")
 
     # Sync user state from DAL to story engine
-    state = story_engine.get_or_create_user_state(user_id)
-    current_chapter = user_data.get("story_progress", {}).get("current_chapter", 1)
-    state.current_chapter = current_chapter
-
-    # Initialize chapter progress if needed
-    if current_chapter not in state.chapter_progress:
-        from models.story import ChapterProgress
-        state.chapter_progress[current_chapter] = ChapterProgress(
-            chapter_id=current_chapter,
-            started_at=datetime.now(),
-            interaction_count=user_data.get("story_progress", {}).get("interaction_count", 0)
-        )
+    _hydrate_story_state_from_user_data(user_id, user_data)
 
     # Use story engine for consistency
     story_engine.mark_beat_stage_delivered(user_id, beat_id, request.stage or 1)
 
-    # Get updated state from story engine
-    state = story_engine.get_or_create_user_state(user_id)
-
     # Update user data with story engine state
-    story_progress = user_data.get("story_progress", {})
-    beats_delivered = {}
-
-    current_chapter = state.current_chapter
-    if current_chapter in state.chapter_progress:
-        chapter_prog = state.chapter_progress[current_chapter]
-        for beat_id_key, beat_prog in chapter_prog.beat_progress.items():
-            if beat_prog.delivered:
-                beats_delivered[beat_id_key] = {
-                    "delivered": True,
-                    "timestamp": beat_prog.last_delivered.isoformat() if beat_prog.last_delivered else datetime.now().isoformat(),
-                    "variant": request.variant,
-                    "stage": beat_prog.current_stage
-                }
-
-    story_progress["beats_delivered"] = beats_delivered
-    story_progress["current_chapter"] = state.current_chapter
-    user_data["story_progress"] = story_progress
+    state = story_engine.get_or_create_user_state(user_id)
+    _sync_story_state_to_user_data(user_data, state, default_variant=request.variant)
     user_data["updated_at"] = datetime.now().isoformat()
 
     # Save updated user data
@@ -474,47 +536,8 @@ async def untrigger_beat(
     if not user_data:
         raise HTTPException(status_code=404, detail=f"User {user_id} not found")
 
-    # Get or create user state in story engine
-    state = story_engine.get_or_create_user_state(user_id)
-
-    # Update chapter from user data
-    current_chapter = user_data.get("story_progress", {}).get("current_chapter", 1)
-    state.current_chapter = current_chapter
-
-    # Initialize chapter progress if needed
-    if current_chapter not in state.chapter_progress:
-        from models.story import ChapterProgress
-        state.chapter_progress[current_chapter] = ChapterProgress(
-            chapter_id=current_chapter,
-            started_at=datetime.now(),
-            interaction_count=user_data.get("story_progress", {}).get("interaction_count", 0)
-        )
-
-    # Load beat progress from user data
-    beats_delivered = user_data.get("story_progress", {}).get("beats_delivered", {})
-    print(f"[UNTRIGGER] Syncing beats for user {user_id}, chapter {current_chapter}: {list(beats_delivered.keys())}")
-
-    if beats_delivered:
-        from models.story import BeatProgress
-        for beat_id_key, beat_data in beats_delivered.items():
-            print(f"[UNTRIGGER] Processing beat '{beat_id_key}': delivered={beat_data.get('delivered')}, stage={beat_data.get('stage')}")
-            if beat_data.get("delivered"):
-                current_stage = beat_data.get("stage", 1)
-                # For progression beats, build delivered_stages list from 1 to current_stage
-                # For one-shot beats, just use stage 1
-                delivered_stages = list(range(1, current_stage + 1)) if current_stage else [1]
-
-                # Add beat progress to the chapter
-                beat_progress = BeatProgress(
-                    beat_id=beat_id_key,
-                    delivered=beat_data.get("delivered", False),
-                    current_stage=current_stage,
-                    delivered_stages=delivered_stages,
-                )
-                state.chapter_progress[current_chapter].beat_progress[beat_id_key] = beat_progress
-                print(f"[UNTRIGGER] Synced beat '{beat_id_key}': delivered=True, stages={delivered_stages}")
-            else:
-                print(f"[UNTRIGGER] Skipping beat '{beat_id_key}' - not marked as delivered")
+    # Sync user state from DAL to story engine
+    _hydrate_story_state_from_user_data(user_id, user_data)
 
     # Call story engine untrigger method
     result = story_engine.untrigger_beat(user_id, beat_id, stage, dry_run)
@@ -524,23 +547,8 @@ async def untrigger_beat(
         # Get updated state
         updated_state = story_engine.get_or_create_user_state(user_id)
 
-        # Update beats_delivered in user data
-        new_beats_delivered = {}
-        if current_chapter in updated_state.chapter_progress:
-            chapter_prog = updated_state.chapter_progress[current_chapter]
-            for beat_id_key, beat_prog in chapter_prog.beat_progress.items():
-                if beat_prog.delivered:
-                    new_beats_delivered[beat_id_key] = {
-                        "delivered": True,
-                        "timestamp": beat_prog.last_delivered.isoformat() if beat_prog.last_delivered else datetime.now().isoformat(),
-                        "variant": "standard",
-                        "stage": beat_prog.current_stage
-                    }
-
         # Save back to DAL
-        story_progress = user_data.get("story_progress", {})
-        story_progress["beats_delivered"] = new_beats_delivered
-        user_data["story_progress"] = story_progress
+        _sync_story_state_to_user_data(user_data, updated_state)
         user_data["updated_at"] = datetime.now().isoformat()
         dal.save_user(user_id, user_data)
 
@@ -568,36 +576,7 @@ async def get_auto_advance_ready(
     # Sync user state from DAL to story engine (since story engine has no memory_manager)
     user_data = dal.get_user(user_id)
     if user_data:
-        # Get or create user state in story engine
-        state = story_engine.get_or_create_user_state(user_id)
-        # Update chapter from user data
-        current_chapter = user_data.get("story_progress", {}).get("current_chapter", 1)
-        state.current_chapter = current_chapter
-
-        # Initialize chapter progress if needed
-        if current_chapter not in state.chapter_progress:
-            from models.story import ChapterProgress, BeatProgress
-            state.chapter_progress[current_chapter] = ChapterProgress(
-                chapter_id=current_chapter,
-                started_at=user_data.get("story_progress", {}).get("chapter_start_time"),
-                interaction_count=user_data.get("story_progress", {}).get("interaction_count", 0)
-            )
-
-        # Load beat progress from user data
-        beats_delivered = user_data.get("story_progress", {}).get("beats_delivered", {})
-        if beats_delivered:
-            from models.story import BeatProgress
-            for beat_id, beat_data in beats_delivered.items():
-                if beat_data.get("delivered"):
-                    # Add beat progress to the chapter
-                    beat_progress = BeatProgress(
-                        beat_id=beat_id,
-                        delivered=True,
-                        current_stage=beat_data.get("current_stage", 1),
-                        delivered_stages=set(beat_data.get("delivered_stages", [])),
-                        first_delivered_at=beat_data.get("first_delivered_at")
-                    )
-                    state.chapter_progress[current_chapter].beat_progress[beat_id] = beat_progress
+        _hydrate_story_state_from_user_data(user_id, user_data)
 
     # Get ready beats from story engine
     ready_beats = story_engine.get_auto_advance_ready(user_id)
@@ -639,21 +618,8 @@ async def deliver_auto_advance_beat(
     # Sync the updated state back to DAL (since story_engine has no memory_manager)
     user_data = dal.get_user(user_id)
     if user_data:
-        # Update beats_delivered in user data
-        if "story_progress" not in user_data:
-            user_data["story_progress"] = {}
-        if "beats_delivered" not in user_data["story_progress"]:
-            user_data["story_progress"]["beats_delivered"] = {}
-
-        # Mark beat as delivered
-        user_data["story_progress"]["beats_delivered"][beat_id] = {
-            "delivered": True,
-            "current_stage": 1,
-            "delivered_stages": [1],
-            "first_delivered_at": datetime.utcnow().isoformat()
-        }
-
-        # Save back to DAL
+        state = story_engine.get_or_create_user_state(user_id)
+        _sync_story_state_to_user_data(user_data, state, default_variant="auto")
         dal.save_user(user_id, user_data)
 
     return {
