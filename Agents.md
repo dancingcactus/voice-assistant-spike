@@ -87,6 +87,28 @@ The ultimate measure of success: when family members quote characters unprompted
 - **Integration**: ESPHome devices, greenhouse automation, smart home control
 - **Screen**: Dashboard for visual state (timers, recipes, lists, calendar)
 
+### Running the System (Local)
+
+Start the backend (includes observability endpoints):
+
+```bash
+cd backend
+source venv/bin/activate
+python -m uvicorn src.main:app --reload --port 8000
+```
+
+Start the frontend (app + observability dashboard):
+
+```bash
+cd frontend
+npm run dev
+```
+
+Open:
+
+-- The URL printed by `npm run dev` (Vite) — typically `http://localhost:5173/`
+-- Observability: append `/observability` to that URL (e.g. `http://localhost:5173/observability`)
+
 ### Voice Interface Strategy
 
 **The Latency Challenge**: Multi-character interactions risk 4+ second delays
