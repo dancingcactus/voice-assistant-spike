@@ -204,26 +204,30 @@ class StoryAccessLayer:
         # Add beats
         for beat in beats:
             beat_id = beat["id"]
-            beat_name = beat_id.replace("_", " ").title()
+            beat_name = beat.get("title") or beat_id.replace("_", " ").title()
+            if beat.get("type") == "chapter_end":
+                beat_node = f"(({beat_name}))"
+            else:
+                beat_node = f"[{beat_name}]"
 
             # Determine node style based on user progress or required status
             if user_id and user_progress:
                 # Color by delivery status
                 beat_status = self.get_user_beat_status(user_id, beat_id)
                 if beat_status.get("delivered"):
-                    node_style = f"{beat_id}[{beat_name}]:::delivered"
+                    node_style = f"{beat_id}{beat_node}:::delivered"
                 elif beat_status.get("status") == "ready":
-                    node_style = f"{beat_id}[{beat_name}]:::ready"
+                    node_style = f"{beat_id}{beat_node}:::ready"
                 elif beat_status.get("status") == "locked":
-                    node_style = f"{beat_id}[{beat_name}]:::locked"
+                    node_style = f"{beat_id}{beat_node}:::locked"
                 else:
-                    node_style = f"{beat_id}[{beat_name}]:::notStarted"
+                    node_style = f"{beat_id}{beat_node}:::notStarted"
             else:
                 # Color by required status (default behavior)
                 if beat.get("required"):
-                    node_style = f"{beat_id}[{beat_name}]:::required"
+                    node_style = f"{beat_id}{beat_node}:::required"
                 else:
-                    node_style = f"{beat_id}[{beat_name}]:::optional"
+                    node_style = f"{beat_id}{beat_node}:::optional"
 
             lines.append(f"  {node_style}")
             added_beats.add(beat_id)

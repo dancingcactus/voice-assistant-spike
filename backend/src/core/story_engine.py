@@ -189,6 +189,10 @@ class StoryEngine:
                 if not beat_progress or not beat_progress.delivered:
                     active.append(beat)
 
+            # Chapter-end beats are not injected into responses
+            elif beat.type == "chapter_end":
+                continue
+
         return active
 
     def should_inject_beat(
@@ -349,6 +353,11 @@ class StoryEngine:
                     logger.debug(f"Beat '{beat.id}': No keywords matched (looking for {trigger.keywords})")
 
             return False
+
+        # Condition-only trigger (conditions already checked)
+        if trigger.type == "condition":
+            logger.debug(f"Beat '{beat.id}': Condition trigger passed")
+            return True
 
         logger.warning(f"Unknown trigger type: {trigger.type}")
         return False
@@ -617,6 +626,11 @@ class StoryEngine:
         if not current_chapter:
             return None
 
+        # Chapter-end beats can force progression when their conditions are met.
+        chapter_end_advance = self._check_chapter_end_beats(user_id, state, current_chapter)
+        if chapter_end_advance:
+            return chapter_end_advance
+
         criteria = current_chapter.completion_criteria
         chapter_progress = state.chapter_progress.get(state.current_chapter)
 
@@ -680,6 +694,93 @@ class StoryEngine:
             self._save_story_state(user_id, state)
 
             return next_chapter
+
+        return None
+
+    def _advance_to_next_chapter(
+        self,
+        user_id: str,
+        state: UserStoryState,
+        next_chapter: int,
+        reason: str
+    ) -> Optional[int]:
+        """Advance user to the next chapter and persist state."""
+        if not next_chapter:
+            return None
+
+        chapter_progress = state.chapter_progress.get(state.current_chapter)
+        if state.current_chapter not in state.completed_chapters:
+            state.completed_chapters.append(state.current_chapter)
+
+        if chapter_progress:
+            chapter_progress.completed_at = datetime.utcnow()
+
+        state.current_chapter = next_chapter
+        state.updated_at = datetime.utcnow()
+        self._save_story_state(user_id, state)
+
+        logger.info(
+            f"User {user_id} progressed to Chapter {next_chapter} "
+            f"(reason={reason})"
+        )
+        return next_chapter
+
+    def _check_chapter_end_beats(
+        self,
+        user_id: str,
+        state: UserStoryState,
+        chapter: Chapter
+    ) -> Optional[int]:
+        """Check chapter_end beats and advance if any are satisfied."""
+        chapter_beats = self.beats.get(state.current_chapter, [])
+
+        for beat in chapter_beats:
+            if beat.type != "chapter_end":
+                continue
+
+            beat_progress = state.get_beat_progress(beat.id)
+            if beat_progress and beat_progress.delivered:
+                return self._advance_to_next_chapter(
+                    user_id,
+                    state,
+                    chapter.unlocks.next_chapter,
+                    reason=f"chapter_end:{beat.id}"
+                )
+
+            if beat.conditions and not self._check_beat_conditions(beat, state):
+                continue
+
+            trigger_met = False
+            if beat.trigger.type == "condition":
+                trigger_met = True
+            elif beat.trigger.type == "interaction_count":
+                trigger_met = self._check_auto_advance_trigger(beat, state)
+            else:
+                logger.warning(
+                    "Chapter-end beat '%s' has unsupported trigger type '%s'",
+                    beat.id,
+                    beat.trigger.type
+                )
+
+            if not trigger_met:
+                continue
+
+            state.update_beat_progress(beat.id, 1)
+            state.mark_beat_delivered(beat.id)
+            self._save_story_state(user_id, state)
+
+            logger.info(
+                "✅ Chapter-end beat '%s' satisfied for user %s",
+                beat.id,
+                user_id
+            )
+
+            return self._advance_to_next_chapter(
+                user_id,
+                state,
+                chapter.unlocks.next_chapter,
+                reason=f"chapter_end:{beat.id}"
+            )
 
         return None
 

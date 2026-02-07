@@ -31,6 +31,8 @@ class BeatStage(BaseModel):
 
 class StoryBeat(BaseModel):
     """A story beat definition."""
+    title: Optional[str] = Field(None, description="Human-readable beat title")
+    description: Optional[str] = Field(None, description="Optional beat description")
     id: str = Field(..., description="Unique beat identifier")
     type: str = Field(..., description="Beat type: one_shot or progression")
     required: bool = Field(..., description="Whether beat is required for chapter completion")

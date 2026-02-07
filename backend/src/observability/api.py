@@ -492,6 +492,9 @@ async def trigger_beat(
     # Use story engine for consistency
     story_engine.mark_beat_stage_delivered(user_id, beat_id, request.stage or 1)
 
+    # Check for chapter progression (including chapter_end beats)
+    story_engine.check_chapter_progression(user_id)
+
     # Update user data with story engine state
     state = story_engine.get_or_create_user_state(user_id)
     _sync_story_state_to_user_data(user_data, state, default_variant=request.variant)

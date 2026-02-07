@@ -265,6 +265,19 @@
       "conditions": {
         "first_successful_help_delivered": true
       }
+    },
+    {
+      "id": "end_chapter_one",
+      "title": "End Chapter 1",
+      "type": "chapter_end",
+      "required": true,
+      "priority": "high",
+      "trigger": {
+        "type": "condition"
+      },
+      "conditions": {
+        "the_silence_between_delivered": true
+      }
     }
   ]
 }
