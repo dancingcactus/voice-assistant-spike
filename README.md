@@ -88,7 +88,7 @@ cd frontend
 npm run dev
 ```
 
-The frontend dev server runs at the URL shown by Vite (typically http://localhost:5173) and serves the observability UI at `/observability` on that host.
+The frontend dev server runs at the URL shown by Vite (typically <http://localhost:5173>) and serves the observability UI at `/observability` on that host.
 
 ## Running the Backend, Observability, and Frontend
 

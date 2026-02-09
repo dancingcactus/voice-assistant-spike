@@ -71,3 +71,4 @@ backend/audio/
 # Test artifacts
 *.png
 !docs/screenshots/*.png
+docs/ideas/scratch.md
