@@ -277,7 +277,7 @@ class VoiceTester:
     def _save_results(self):
         """Save evaluation results."""
         with open(self.results_file, "w") as f:
-            json.dump(self.results, indent=2, fp=f)
+            json.dump(self.results, f, indent=2)
 
     def list_phrases(self, mode: str):
         """List all test phrases for a mode."""

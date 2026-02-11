@@ -9,9 +9,9 @@
 
 This phase focuses on testing and refining the story system that drives narrative progression and character development in Aperture Assist.
 
-Phase 4 testing and story engine refinements are complete. See `docs/PHASE4_STATUS.md` for a brief completion summary and `diagnostics/phase4_audio/archive/` for archived evaluation artifacts.
+Phase 4 testing and story engine refinements are complete. See `docs/PHASE4_STATUS.md` for a brief completion summary, proposed Phase 5 next steps (pending approval), and `diagnostics/phase4_audio/archive/` for archived evaluation artifacts.
 
-The PRD and templates remain as references for future phases; no new Phase 5 work will be started until explicitly approved.
+The PRD and templates remain as references for future phases; any Phase 5 activities described in status or planning docs are proposed only and will not begin until explicitly approved.
 
 ## Template Files
 
