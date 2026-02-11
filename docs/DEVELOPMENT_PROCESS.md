@@ -44,7 +44,7 @@ Development is organized into three hierarchical layers, each with specific comp
 
 - v1.0: Core single-character system with Delilah
 - v1.5: Developer observability and testing infrastructure
-- v2.0: Multi-character panel with Hank and Cave
+- v2.0: Multi-character panel with Hank and Rex
 
 **Completion Criteria:**
 

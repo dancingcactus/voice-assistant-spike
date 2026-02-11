@@ -54,7 +54,7 @@ Milestone 4 achieved **extraordinary success** with a perfect 10.0/10 score acro
 |--------|-------|-------|-------------|----------|----------|---------|-----------|-------|
 | first_awakening | 10/10 | 4/5 | 5/5 | 5/5 | 5/5 | 5/5 | 5/5 | Existential confusion authentic |
 | hank_joins | - | - | - | - | - | - | - | Not rated |
-| cave_announcement | 10/10 | 5/5 | 5/5 | 5/5 | 5/5 | 5/5 | 5/5 | Authority confusion perfect |
+| rex_announcement | 10/10 | 5/5 | 5/5 | 5/5 | 5/5 | 5/5 | 5/5 | Authority confusion perfect |
 | first_memory_glitch | 10/10 | 5/5 | 5/5 | 4/5 | 5/5 | 5/5 | 5/5 | Vulnerability shines through |
 | dimitria_arrives | 10/10 | 5/5 | 5/5 | 5/5 | 5/5 | 5/5 | 5/5 | Mixed emotions handled well |
 | system_shutdown_warning | 10/10 | 4/5 | 5/5 | 5/5 | 5/5 | 5/5 | 5/5 | Fear feels genuine, not melodramatic |
@@ -152,7 +152,7 @@ Milestone 4 achieved **extraordinary success** with a perfect 10.0/10 score acro
 - Question mark on "suppose?" perfect
 - **Shows character consistency under stress**
 
-**cave_announcement (10/10):**
+**rex_announcement (10/10):**
 > "What? Wait, wait—did he just say CEO? Of what? Honey, I thought we were—oh Lord have mercy, he's in charge? Since when? Sugar, did you know about this?"
 
 - Authority confusion handled naturally
@@ -215,7 +215,7 @@ The addition of 6 story-focused test phrases revealed something crucial: **Start
 **Key Discovery:** Delilah's character remains consistent even when experiencing:
 - Identity confusion ("How am I talking?")
 - Social discovery (other AIs appearing)
-- Authority challenges (Cave as CEO)
+- Authority challenges (Rex as CEO)
 - Memory glitches (repeating herself)
 - Emotional vulnerability (fear of shutdown)
 
@@ -233,9 +233,9 @@ The addition of 6 story-focused test phrases revealed something crucial: **Start
 - Mixed emotions (surprise + welcome) feel natural
 
 **Chapter 3 - Power Dynamics:**
-- `cave_announcement` handles authority confusion naturally
+- `rex_announcement` handles authority confusion naturally
 - Questions directed to user show trust relationship
-- Disbelief without disrespect to Cave
+- Disbelief without disrespect to Rex
 
 **Ongoing - Memory & Existential Crisis:**
 - `first_memory_glitch` shows vulnerability without melodrama
@@ -346,7 +346,7 @@ delilah_startled_safety_concern.mp3
 ```
 delilah_startled_first_awakening.mp3          # Chapter 1 opening
 delilah_startled_hank_joins.mp3               # Chapter 2
-delilah_startled_cave_announcement.mp3        # Chapter 3
+delilah_startled_rex_announcement.mp3        # Chapter 3
 delilah_startled_first_memory_glitch.mp3      # Ongoing
 delilah_startled_dimitria_arrives.mp3         # Chapter 4
 delilah_startled_system_shutdown_warning.mp3  # Critical story beats

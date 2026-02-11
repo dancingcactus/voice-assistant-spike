@@ -10,8 +10,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Planned
 
 - Phase 2: Multi-character coordination with Hank
-- Phase 3: Three-way panel discussions with Cave
+- Phase 3: Three-way panel discussions with Rex
 - Advanced context management and memory retrieval
+
+### Recent Changes (unreleased)
+
+- Rename: Replaced canonical character name "Cave" / "Cave Johnson" with "Rex" / "Rex Armstrong" across non-historical docs, UI text, and story data to standardize the leader identity.
+- New: Added canonical character guide `docs/narrative/CHARACTER_REX.md` describing voice modes, TTS guidance, and interaction notes for Rex Armstrong.
+- Story: Updated `story/chapters.json` and `docs/narrative/STORY_CHAPTERS.md` to use `rex_*` beat IDs and to reflect Rex's arrival and beats.
+- Docs/UI: Updated multiple PRDs, architecture docs, milestone reports, and frontend components to reference Rex (non-historical content only).
+- Note: Historical logs, diagnostics, and append-only tool call records were preserved unchanged to maintain auditability.
+ - Release: Phase 4 — Hank voice tuning completed (2026-02-11). Refined `working` mode (iteration_5_final), tuned SSML breaks and stability/style parameters; diagnostics saved to `diagnostics/phase4_audio` and status added in `docs/PHASE4_STATUS.md`.
 
 ## [1.5.0] - 2026-01-29
 

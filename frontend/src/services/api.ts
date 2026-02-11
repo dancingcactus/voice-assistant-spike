@@ -106,6 +106,25 @@ export interface ChapterDiagram {
   format: string;
 }
 
+export interface AutoAdvanceNotification {
+  beat_id: string;
+  name: string;
+  chapter_id: number;
+  ready_since: string;
+  content: string;
+  notified: boolean;
+}
+
+export interface UntriggerBeatResponse {
+  beat_id: string;
+  stage?: number;
+  untriggered: string[];
+  dependencies_affected: string[];
+  explanation: string;
+  dry_run: boolean;
+  timestamp: string;
+}
+
 export interface Memory {
   memory_id: string;
   category: string;
@@ -416,8 +435,9 @@ class ApiClient {
     return this.request<ChapterProgressSummary>(`/story/users/${userId}/progress`);
   }
 
-  async getChapterDiagram(chapterId: number): Promise<ChapterDiagram> {
-    return this.request<ChapterDiagram>(`/story/chapters/${chapterId}/diagram`);
+  async getChapterDiagram(chapterId: number, userId?: string): Promise<ChapterDiagram> {
+    const params = userId ? `?user_id=${encodeURIComponent(userId)}` : '';
+    return this.request<ChapterDiagram>(`/story/chapters/${chapterId}/diagram${params}`);
   }
 
   async triggerBeat(userId: string, beatId: string, variant: string = 'standard', stage?: number): Promise<any> {
@@ -425,6 +445,30 @@ class ApiClient {
       method: 'POST',
       body: JSON.stringify({ variant, stage }),
     });
+  }
+
+  async untriggerBeat(userId: string, beatId: string, dryRun: boolean = false, stage?: number | null): Promise<UntriggerBeatResponse> {
+    const params = new URLSearchParams();
+    params.append('dry_run', String(dryRun));
+    // Only add stage if it's a valid number (not null, undefined, or NaN)
+    if (stage !== undefined && stage !== null && !isNaN(stage)) {
+      params.append('stage', String(stage));
+    }
+
+    return this.request<UntriggerBeatResponse>(`/story/users/${userId}/beats/${beatId}/untrigger?${params.toString()}`, {
+      method: 'POST',
+    });
+  }
+
+  async getAutoAdvanceReady(userId: string): Promise<AutoAdvanceNotification[]> {
+    return this.request<AutoAdvanceNotification[]>(`/story/auto-advance-ready/${userId}`);
+  }
+
+  async deliverAutoAdvanceBeat(userId: string, beatId: string): Promise<{ status: string; message: string; beat_id: string; content: string }> {
+    return this.request<{ status: string; message: string; beat_id: string; content: string }>(
+      `/story/auto-advance/${userId}/${beatId}`,
+      { method: 'POST' }
+    );
   }
 
   // Memory endpoints

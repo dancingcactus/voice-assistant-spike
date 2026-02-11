@@ -68,7 +68,7 @@ GET  /tool-calls/{call_id}            # Detailed view
 
 - Creates 50 realistic tool call logs
 - 5 different tools (set_timer, get_recipe, light_control, etc.)
-- 3 characters (Delilah, Hank, Cave)
+  - 3 characters (Delilah, Hank, Rex)
 - Realistic timing distributions
 - Success/failure patterns
 - Distributed across 7 days
@@ -130,7 +130,7 @@ GET  /tool-calls/{call_id}            # Detailed view
 ✅ Test 4: Get available tools (5 unique tools)
 ✅ Test 5: Get available characters (3 characters)
 ✅ Test 6: Filter by tool name (get_calendar_events)
-✅ Test 7: Filter by character (Cave)
+✅ Test 7: Filter by character (Rex)
 ✅ Test 8: Filter by status (success)
 ✅ Test 9: Statistics by tool (5 tools analyzed)
 ✅ Test 10: Statistics by character (3 characters analyzed)
@@ -149,7 +149,7 @@ GET  /tool-calls/{call_id}            # Detailed view
 
 - **Characters**: 3
   - Delilah: 18 calls, most used tool: unit_conversion
-  - Cave: 17 calls, most used tool: get_calendar_events
+  - Rex: 17 calls, most used tool: get_calendar_events
   - Hank: 15 calls, most used tool: light_control
 
 ---

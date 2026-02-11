@@ -22,11 +22,12 @@ class StoryAccessLayer:
         """
         self.project_root = Path(project_root)
         self.story_dir = self.project_root / "story"
-        self.users_dir = self.project_root / "backend" / "data" / "users"
+        self.users_dir = self.project_root / "data" / "users"
 
         # Load story configuration
         self._chapters_cache = None
         self._beats_cache = {}
+        self._beats_mtime = {}
 
     def _load_chapters(self) -> Dict[str, Any]:
         """Load chapters configuration."""
@@ -41,13 +42,16 @@ class StoryAccessLayer:
 
     def _load_chapter_beats(self, chapter_id: int) -> Dict[str, Any]:
         """Load beats for a specific chapter."""
-        if chapter_id not in self._beats_cache:
-            beats_file = self.story_dir / "beats" / f"chapter{chapter_id}.json"
-            if beats_file.exists():
+        beats_file = self.story_dir / "beats" / f"chapter{chapter_id}.json"
+        if beats_file.exists():
+            current_mtime = beats_file.stat().st_mtime
+            cached_mtime = self._beats_mtime.get(chapter_id)
+            if chapter_id not in self._beats_cache or cached_mtime != current_mtime:
                 with open(beats_file, 'r') as f:
                     self._beats_cache[chapter_id] = json.load(f)
-            else:
-                self._beats_cache[chapter_id] = {"chapter": chapter_id, "beats": []}
+                self._beats_mtime[chapter_id] = current_mtime
+        elif chapter_id not in self._beats_cache:
+            self._beats_cache[chapter_id] = {"chapter": chapter_id, "beats": []}
         return self._beats_cache[chapter_id]
 
     def get_all_chapters(self) -> List[Dict[str, Any]]:
@@ -166,9 +170,13 @@ class StoryAccessLayer:
 
         return enriched_beats
 
-    def generate_chapter_flow_diagram(self, chapter_id: int) -> str:
+    def generate_chapter_flow_diagram(self, chapter_id: int, user_id: Optional[str] = None) -> str:
         """
         Generate a Mermaid flowchart diagram for chapter beat dependencies.
+
+        Args:
+            chapter_id: Chapter ID to generate diagram for
+            user_id: Optional user ID to color-code beats by delivery status
 
         Returns:
             Mermaid diagram syntax as string
@@ -178,6 +186,11 @@ class StoryAccessLayer:
 
         if not beats or not chapter:
             return "graph TD\n  A[No beats found]"
+
+        # Get user progress if user_id provided
+        user_progress = None
+        if user_id:
+            user_progress = self.get_user_story_progress(user_id)
 
         # Start Mermaid diagram
         lines = ["graph TD"]
@@ -191,13 +204,30 @@ class StoryAccessLayer:
         # Add beats
         for beat in beats:
             beat_id = beat["id"]
-            beat_name = beat_id.replace("_", " ").title()
-
-            # Color by required status
-            if beat.get("required"):
-                node_style = f"{beat_id}[{beat_name}]:::required"
+            beat_name = beat.get("title") or beat_id.replace("_", " ").title()
+            if beat.get("type") == "chapter_end":
+                beat_node = f"(({beat_name}))"
             else:
-                node_style = f"{beat_id}[{beat_name}]:::optional"
+                beat_node = f"[{beat_name}]"
+
+            # Determine node style based on user progress or required status
+            if user_id and user_progress:
+                # Color by delivery status
+                beat_status = self.get_user_beat_status(user_id, beat_id)
+                if beat_status.get("delivered"):
+                    node_style = f"{beat_id}{beat_node}:::delivered"
+                elif beat_status.get("status") == "ready":
+                    node_style = f"{beat_id}{beat_node}:::ready"
+                elif beat_status.get("status") == "locked":
+                    node_style = f"{beat_id}{beat_node}:::locked"
+                else:
+                    node_style = f"{beat_id}{beat_node}:::notStarted"
+            else:
+                # Color by required status (default behavior)
+                if beat.get("required"):
+                    node_style = f"{beat_id}{beat_node}:::required"
+                else:
+                    node_style = f"{beat_id}{beat_node}:::optional"
 
             lines.append(f"  {node_style}")
             added_beats.add(beat_id)
@@ -214,9 +244,17 @@ class StoryAccessLayer:
                     if prerequisite_beat in added_beats:
                         lines.append(f"  {prerequisite_beat} --> {beat_id}")
 
-        # Add styling
-        lines.append("  classDef required fill:#4a90e2,stroke:#2e5c8a,color:#fff")
-        lines.append("  classDef optional fill:#6c757d,stroke:#495057,color:#fff")
+        # Add styling based on mode
+        if user_id and user_progress:
+            # User-specific colors (status-based)
+            lines.append("  classDef delivered fill:#10b981,stroke:#059669,color:#fff")
+            lines.append("  classDef ready fill:#f59e0b,stroke:#d97706,color:#fff")
+            lines.append("  classDef notStarted fill:#3b82f6,stroke:#2563eb,color:#fff")
+            lines.append("  classDef locked fill:#6b7280,stroke:#4b5563,color:#fff")
+        else:
+            # Default colors (required/optional)
+            lines.append("  classDef required fill:#4a90e2,stroke:#2e5c8a,color:#fff")
+            lines.append("  classDef optional fill:#6c757d,stroke:#495057,color:#fff")
 
         return "\n".join(lines)
 

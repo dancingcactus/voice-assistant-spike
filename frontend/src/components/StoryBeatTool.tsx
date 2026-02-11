@@ -8,6 +8,10 @@ import { useState, useEffect, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import mermaid from 'mermaid';
 import { apiClient, type ChapterSummary, type BeatSummary, type BeatDetail, type ChapterProgressSummary } from '../services/api';
+import { useStoryProgress } from '../hooks/useStoryProgress';
+import { DiagramLegend } from './story-beat/DiagramLegend';
+import { AutoAdvanceNotification } from './story-beat/AutoAdvanceNotification';
+import { UntriggerModal } from './story-beat/UntriggerModal';
 import './StoryBeatTool.css';
 
 // Initialize mermaid
@@ -31,6 +35,7 @@ export function StoryBeatTool({ userId }: StoryBeatToolProps) {
   const [selectedChapter, setSelectedChapter] = useState<number | null>(null);
   const [selectedBeat, setSelectedBeat] = useState<BeatSummary | null>(null);
   const [showBeatDetail, setShowBeatDetail] = useState(false);
+  const [showUntriggerModal, setShowUntriggerModal] = useState(false);
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const diagramRef = useRef<HTMLDivElement>(null);
   const queryClient = useQueryClient();
@@ -41,10 +46,9 @@ export function StoryBeatTool({ userId }: StoryBeatToolProps) {
     queryFn: () => apiClient.listChapters(userId),
   });
 
-  // Fetch user progress
-  const { data: progress } = useQuery({
-    queryKey: ['progress', userId],
-    queryFn: () => apiClient.getUserStoryProgress(userId),
+  // Fetch user progress with real-time polling (3 second interval)
+  const { data: progress, isLoading: progressLoading } = useStoryProgress(userId, {
+    refetchInterval: 3000,
   });
 
   // Set initial chapter selection
@@ -62,6 +66,8 @@ export function StoryBeatTool({ userId }: StoryBeatToolProps) {
     queryKey: ['beats', selectedChapter, userId],
     queryFn: () => selectedChapter ? apiClient.listChapterBeats(selectedChapter, userId) : Promise.resolve([]),
     enabled: selectedChapter !== null,
+    refetchInterval: 3000,
+    refetchOnWindowFocus: true,
   });
 
   // Fetch beat detail
@@ -71,13 +77,25 @@ export function StoryBeatTool({ userId }: StoryBeatToolProps) {
       ? apiClient.getBeatDetail(selectedChapter, selectedBeat.id, userId)
       : Promise.resolve(null),
     enabled: selectedChapter !== null && selectedBeat !== null && showBeatDetail,
+    staleTime: 0,
+    refetchOnMount: 'always',
+    refetchOnWindowFocus: true,
   });
 
-  // Fetch diagram
+  // Fetch diagram with user-specific coloring
   const { data: diagram } = useQuery({
-    queryKey: ['diagram', selectedChapter],
-    queryFn: () => selectedChapter ? apiClient.getChapterDiagram(selectedChapter) : Promise.resolve(null),
+    queryKey: ['diagram', selectedChapter, userId],
+    queryFn: () => selectedChapter ? apiClient.getChapterDiagram(selectedChapter, userId) : Promise.resolve(null),
     enabled: selectedChapter !== null,
+    refetchInterval: 3000,
+    refetchOnWindowFocus: true,
+  });
+
+  // Fetch auto-advance ready beats with polling
+  const { data: autoAdvanceBeats } = useQuery({
+    queryKey: ['autoAdvanceReady', userId],
+    queryFn: () => apiClient.getAutoAdvanceReady(userId),
+    refetchInterval: 5000, // Poll every 5 seconds
   });
 
   // Render diagram
@@ -102,10 +120,13 @@ export function StoryBeatTool({ userId }: StoryBeatToolProps) {
     mutationFn: ({ beatId, variant, stage }: { beatId: string; variant: string; stage?: number }) =>
       apiClient.triggerBeat(userId, beatId, variant, stage),
     onSuccess: () => {
-      // Invalidate queries to refresh data
+      // Invalidate queries to refresh data (includes useStoryProgress hook)
       queryClient.invalidateQueries({ queryKey: ['beats', selectedChapter, userId] });
+      queryClient.invalidateQueries({ queryKey: ['storyProgress', userId] });
       queryClient.invalidateQueries({ queryKey: ['progress', userId] });
       queryClient.invalidateQueries({ queryKey: ['chapters', userId] });
+      queryClient.invalidateQueries({ queryKey: ['diagram', selectedChapter, userId] });
+      queryClient.invalidateQueries({ queryKey: ['beatDetail', selectedChapter, selectedBeat?.id, userId] });
       setShowBeatDetail(false);
       setSelectedBeat(null);
     },
@@ -127,6 +148,24 @@ export function StoryBeatTool({ userId }: StoryBeatToolProps) {
     return <div className="story-beat-tool"><p>Loading...</p></div>;
   }
 
+  const handleRefresh = () => {
+    queryClient.invalidateQueries({ queryKey: ['chapters', userId] });
+    queryClient.invalidateQueries({ queryKey: ['beats', selectedChapter, userId] });
+    queryClient.invalidateQueries({ queryKey: ['storyProgress', userId] });
+    queryClient.invalidateQueries({ queryKey: ['progress', userId] });
+    queryClient.invalidateQueries({ queryKey: ['diagram', selectedChapter, userId] });
+  };
+
+  const handleUntriggerSuccess = () => {
+    // Refresh all data after successful untrigger
+    queryClient.invalidateQueries({ queryKey: ['beats', selectedChapter, userId] });
+    queryClient.invalidateQueries({ queryKey: ['storyProgress', userId] });
+    queryClient.invalidateQueries({ queryKey: ['progress', userId] });
+    queryClient.invalidateQueries({ queryKey: ['chapters', userId] });
+    queryClient.invalidateQueries({ queryKey: ['diagram', selectedChapter, userId] });
+    queryClient.invalidateQueries({ queryKey: ['beatDetail', selectedChapter, selectedBeat?.id, userId] });
+  };
+
   return (
     <div className="story-beat-tool">
       <div className="tool-header">
@@ -138,7 +177,15 @@ export function StoryBeatTool({ userId }: StoryBeatToolProps) {
             <span>{progress.interaction_count} interactions</span>
           </div>
         )}
+        <button className="refresh-btn" onClick={handleRefresh} title="Refresh data">
+          🔄 Refresh
+        </button>
       </div>
+
+      {/* Auto-Advance Notification Banner */}
+      {autoAdvanceBeats && autoAdvanceBeats.length > 0 && (
+        <AutoAdvanceNotification userId={userId} beats={autoAdvanceBeats} />
+      )}
 
       <div className="tool-layout">
         {/* Left sidebar: Chapter navigation */}
@@ -231,6 +278,7 @@ export function StoryBeatTool({ userId }: StoryBeatToolProps) {
           {/* Chapter diagram */}
           <div className="diagram-section">
             <h3>Chapter Flow</h3>
+            <DiagramLegend compact={false} />
             <div ref={diagramRef} className="diagram-container"></div>
           </div>
         </div>
@@ -316,11 +364,30 @@ export function StoryBeatTool({ userId }: StoryBeatToolProps) {
                   <p><strong>Delivered:</strong> {new Date(beatDetail.user_status.timestamp || '').toLocaleString()}</p>
                   <p><strong>Variant:</strong> {beatDetail.user_status.variant}</p>
                   {beatDetail.user_status.stage && <p><strong>Stage:</strong> {beatDetail.user_status.stage}</p>}
+                  <button
+                    className="untrigger-btn"
+                    onClick={() => setShowUntriggerModal(true)}
+                    style={{ marginTop: '1rem' }}
+                  >
+                    Untrigger Beat
+                  </button>
                 </div>
               )}
             </div>
           </div>
         </div>
+      )}
+
+      {/* Untrigger modal */}
+      {showUntriggerModal && selectedBeat && (
+        <UntriggerModal
+          userId={userId}
+          beatId={selectedBeat.id}
+          beatName={selectedBeat.id.replace(/_/g, ' ')}
+          stage={beatDetail?.user_status.stage}
+          onClose={() => setShowUntriggerModal(false)}
+          onSuccess={handleUntriggerSuccess}
+        />
       )}
     </div>
   );

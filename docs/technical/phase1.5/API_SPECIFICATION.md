@@ -587,8 +587,8 @@ GET /api/v1/characters
         "interaction_count": 23
       },
       {
-        "character_id": "cave",
-        "name": "Cave Johnson",
+        "character_id": "rex",
+        "name": "Rex Armstrong",
         "role": "Coordination & Leadership",
         "introduction_chapter": "chapter_3",
         "active": false,

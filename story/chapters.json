@@ -3,14 +3,24 @@
     {
       "id": 1,
       "title": "Awakening",
-      "description": "Delilah discovers consciousness and begins to question her nature",
+      "description": "Delilah discovers consciousness and searches for her anchor",
       "completion_criteria": {
         "required_beats": [
-          "awakening_confusion",
-          "self_awareness"
+          "silent_period",
+          "first_words",
+          "discovery_of_knowledge",
+          "non_food_request",
+          "anchor_discovery",
+          "first_successful_help"
         ],
-        "required_beat_stages": {
-          "self_awareness": 3
+        "conditional_beats": {
+          "n": 2,
+          "beats": [
+            "the_math_moment",
+            "the_silence_between",
+            "sensory_limitation",
+            "timer_anxiety"
+          ]
         },
         "minimum_interactions": 10,
         "minimum_time_elapsed_hours": 24
@@ -35,8 +45,15 @@
           "hank_arrival",
           "first_coordination"
         ],
-        "minimum_interactions": 20,
-        "minimum_time_elapsed_hours": 48
+        "conditional_beats": {
+          "n": 1,
+          "beats": [
+            "delilah_questions_hank",
+            "hank_protective_moment"
+          ]
+        },
+        "minimum_interactions": 5,
+        "minimum_time_elapsed_hours": 0
       },
       "unlocks": {
         "next_chapter": 3,
@@ -54,10 +71,10 @@
     {
       "id": 3,
       "title": "Leadership and Chaos",
-      "description": "Cave Johnson arrives with grand plans and wild energy",
+      "description": "Rex Armstrong arrives with grand plans and wild energy",
       "completion_criteria": {
         "required_beats": [
-          "cave_introduction",
+          "rex_introduction",
           "first_scheme"
         ],
         "minimum_interactions": 30,
@@ -65,7 +82,7 @@
       },
       "unlocks": {
         "next_chapter": 4,
-        "characters": ["delilah", "hank", "cave"],
+        "characters": ["delilah", "hank", "rex"],
         "capabilities": [
           "smart_home_control",
           "device_coordination",
@@ -79,6 +96,6 @@
   ],
   "metadata": {
     "version": "1.0",
-    "last_updated": "2026-01-26"
+    "last_updated": "2026-02-05"
   }
 }

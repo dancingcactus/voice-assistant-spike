@@ -12,9 +12,11 @@ Responsibilities:
 import json
 import os
 import asyncio
+import fcntl
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Dict, Optional, List
+from contextlib import contextmanager
 from models.user_state import UserState, ConversationMessage, DeviceState
 from models.message import Message
 
@@ -36,6 +38,7 @@ class MemoryManager:
 
         # In-memory cache of user states
         self._user_cache: Dict[str, UserState] = {}
+        self._user_mtime: Dict[str, float] = {}
 
         # Dirty flag for periodic flush
         self._dirty_users: set = set()
@@ -49,6 +52,42 @@ class MemoryManager:
         # Start background flush task
         self._flush_task = None
 
+    @contextmanager
+    def _file_lock(self, file_path: Path, mode: str = 'r'):
+        """
+        Context manager for file locking to prevent race conditions.
+
+        Args:
+            file_path: Path to file to lock
+            mode: File open mode ('r' for read, 'w' for write)
+
+        Yields:
+            File handle with exclusive lock
+        """
+        # Ensure parent directory exists
+        file_path.parent.mkdir(parents=True, exist_ok=True)
+
+        # Open file with appropriate mode
+        lock_mode = fcntl.LOCK_SH if 'r' in mode else fcntl.LOCK_EX
+
+        # Use 'a+' mode if file doesn't exist and we need to write
+        if not file_path.exists() and 'w' in mode:
+            file_mode = 'w+'
+        else:
+            file_mode = mode
+
+        file_handle = None
+        try:
+            file_handle = open(file_path, file_mode)
+            # Acquire lock (will block if another process has lock)
+            fcntl.flock(file_handle.fileno(), lock_mode)
+            yield file_handle
+        finally:
+            if file_handle:
+                # Release lock and close file
+                fcntl.flock(file_handle.fileno(), fcntl.LOCK_UN)
+                file_handle.close()
+
     def _init_directories(self):
         """Create data directories if they don't exist."""
         for directory in [self.users_dir, self.devices_dir, self.story_dir]:
@@ -60,7 +99,7 @@ class MemoryManager:
 
     def load_user_state(self, user_id: str) -> UserState:
         """
-        Load user state from cache or disk.
+        Load user state from cache or disk with file locking for atomicity.
 
         Args:
             user_id: Unique user identifier
@@ -68,21 +107,29 @@ class MemoryManager:
         Returns:
             UserState object
         """
-        # Check cache first
+        # Check cache first, but refresh if file changed on disk
         if user_id in self._user_cache:
-            return self._user_cache[user_id]
+            file_path = self._get_user_file_path(user_id)
+            if file_path.exists():
+                current_mtime = file_path.stat().st_mtime
+                cached_mtime = self._user_mtime.get(user_id)
+                if cached_mtime == current_mtime:
+                    return self._user_cache[user_id]
+            else:
+                return self._user_cache[user_id]
 
-        # Try to load from disk
+        # Try to load from disk with lock
         file_path = self._get_user_file_path(user_id)
 
         if file_path.exists():
             try:
-                with open(file_path, 'r') as f:
+                with self._file_lock(file_path, 'r') as f:
                     data = json.load(f)
                     # Convert datetime strings back to datetime objects
                     data = self._deserialize_datetimes(data)
                     user_state = UserState(**data)
                     self._user_cache[user_id] = user_state
+                    self._user_mtime[user_id] = file_path.stat().st_mtime
                     return user_state
             except Exception as e:
                 print(f"Error loading user state for {user_id}: {e}")
@@ -91,6 +138,8 @@ class MemoryManager:
         # Create new user state if file doesn't exist or load failed
         user_state = UserState(user_id=user_id)
         self._user_cache[user_id] = user_state
+        if file_path.exists():
+            self._user_mtime[user_id] = file_path.stat().st_mtime
         self._dirty_users.add(user_id)
         return user_state
 
@@ -115,7 +164,7 @@ class MemoryManager:
             self._dirty_users.add(user_id)
 
     def _write_user_state(self, user_id: str, user_state: UserState):
-        """Write user state to disk."""
+        """Write user state to disk with file locking for atomicity."""
         file_path = self._get_user_file_path(user_id)
 
         try:
@@ -123,10 +172,19 @@ class MemoryManager:
             data = user_state.model_dump()
             data = self._serialize_datetimes(data)
 
-            with open(file_path, 'w') as f:
+            # Use atomic write: write to temp file, then rename
+            # This ensures we never have a partially written file
+            temp_path = file_path.with_suffix('.tmp')
+
+            with self._file_lock(temp_path, 'w') as f:
                 json.dump(data, f, indent=2)
 
-            print(f"Saved user state for {user_id}")
+            # Atomic rename (replaces old file if exists)
+            temp_path.replace(file_path)
+
+            self._user_mtime[user_id] = file_path.stat().st_mtime
+
+            print(f"Saved user state for {user_id} (atomic)")
         except Exception as e:
             print(f"Error saving user state for {user_id}: {e}")
 
@@ -345,5 +403,6 @@ class MemoryManager:
         """
         user_state = UserState(user_id=user_id)
         self._user_cache[user_id] = user_state
+        self._user_mtime.pop(user_id, None)
         self.save_user_state(user_id, force=True)
         print(f"Reset user state for {user_id}")

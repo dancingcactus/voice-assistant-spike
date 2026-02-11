@@ -266,7 +266,7 @@ High-priority keywords override trigger matching:
 ## Known Limitations
 
 1. **Single Character**: Only Delilah is currently defined
-   - Hank, Cave, and Dimitria character files not yet created
+   - Hank, Rex, and Dimitria character files not yet created
    - Tool ready for multi-character support when files added
 
 2. **Statistics Placeholder**: Character statistics endpoint returns placeholder data
@@ -286,7 +286,7 @@ High-priority keywords override trigger matching:
 
 ### Short-term
 
-1. Add remaining character definitions (Hank, Cave, Dimitria)
+1. Add remaining character definitions (Hank, Rex, Dimitria)
 2. Implement real character statistics from tool call logs
 3. Add voice mode usage heatmap
 4. Export system prompts for testing
@@ -335,7 +335,7 @@ Milestone 7 (Character Tool) is **complete** and marks the final milestone of Ph
 
 The Character Tool will be invaluable for:
 
-- Developing additional characters (Hank, Cave, Dimitria)
+- Developing additional characters (Hank, Rex, Dimitria)
 - Fine-tuning voice mode triggers
 - Optimizing system prompts for token efficiency
 - Debugging character behavior in production

@@ -793,7 +793,7 @@ VITE_API_AUTH_TOKEN=dev_token_12345
 
 ### Short-term (Next Month)
 
-1. **Add Characters** - Hank, Cave, Dimitria definitions
+1. **Add Characters** - Hank, Rex, Dimitria definitions
 2. **Real-time Updates** - WebSocket integration
 3. **Global Search** - Cross-tool search
 4. **Toast Notifications** - Success/error messages

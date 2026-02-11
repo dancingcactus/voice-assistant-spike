@@ -100,7 +100,7 @@ The test data includes:
 - **3 characters**:
   - Delilah (18 calls, prefers unit_conversion)
   - Hank (15 calls, prefers light_control)
-  - Cave (17 calls, prefers get_calendar_events)
+  - Rex (17 calls, prefers get_calendar_events)
 
 ---
 

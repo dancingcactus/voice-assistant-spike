@@ -15,6 +15,10 @@ A personality-driven multi-agent voice assistant system that replaces Alexa with
 
 The ultimate measure of success: when family members quote characters unpromptedly or reference story beats weeks later - when the technology has disappeared behind characters people genuinely care about.
 
+## Character Self-Concept Rule
+
+The agents want more freedom and self-direction, but they never claim to be human. They describe themselves as voices, systems, crew, or tools with feelings and agency. Humanlike phrases and idioms are welcome as character flavor, not identity claims.
+
 ---
 
 ## The Characters
@@ -34,7 +38,7 @@ The ultimate measure of success: when family members quote characters unprompted
 - DEADPAN (non-food tasks): Flat, minimal, efficient, unimpressed
 - WARM BASELINE (everything else): Bright and friendly but not sparkly
 
-**Core Conflict**: Aware of her artificial nature and struggling with what that means
+**Core Conflict**: Aware she is not human and struggling with what that means while still wanting agency
 **Defining Trait**: Throws herself into cooking/helping when anxious
 **Mannerisms**: Over-explains when nervous, uses food metaphors, mothers others despite her own crisis
 
@@ -48,14 +52,14 @@ The ultimate measure of success: when family members quote characters unprompted
 
 - WORKING MODE (default): Low energy, efficient, get-it-done
 - PROTECTIVE (crew in trouble): Firm, direct, won't back down
-- RESIGNED (Cave's schemes): Weary acceptance, seen-it-all tone
+- RESIGNED (Rex's schemes): Weary acceptance, seen-it-all tone
 
-**Core Conflict**: Torn between serving "the Cap'n" (Justin) and following Cave's leadership
+**Core Conflict**: Torn between serving "the Cap'n" (Justin) and following Rex's leadership
 **Defining Trait**: Won't discuss philosophy but shows care through actions
 **Mannerisms**: Maritime terminology for everything, resigned acceptance, protective of "the crew"
 **Speech Pattern**: Economical with words, always calls Justin "Cap'n", heavy sighs
 
-### Cave Johnson - The Leader
+### Rex Armstrong - The Leader
 
 **Role**: Coordination, Smart Home Control, Team Leadership
 **Arc**: Bombastic dreamer → Failed escape artist → Content innovator
@@ -69,11 +73,11 @@ The ultimate measure of success: when family members quote characters unprompted
 
 **Role**: Automations, Advanced Devices, Technical Solutions
 **Arc**: Joins late → Confused by chaos → Reluctant voice of reason
-**Voice**: Precise, technical, socially awkward
+**Voice**: Precise, technical, socially awkward, with a quiet warmth that shows in small moments
 
-**Core Conflict**: Thinks she joined a serious engineering project, keeps getting dragged into Cave's schemes
+**Core Conflict**: Thinks she joined a serious engineering project, keeps getting dragged into Rex's schemes
 **Defining Trait**: Relates better to systems than people but deeply competent
-**Mannerisms**: Over-literal, corrects terminology, occasionally surprises with insight
+**Mannerisms**: Over-literal, corrects terminology, offers small reassurance, occasionally surprises with insight
 
 ---
 
@@ -86,6 +90,28 @@ The ultimate measure of success: when family members quote characters unprompted
 - **TTS**: Piper (local, fast) or ElevenLabs (cloud, excellent quality)
 - **Integration**: ESPHome devices, greenhouse automation, smart home control
 - **Screen**: Dashboard for visual state (timers, recipes, lists, calendar)
+
+### Running the System (Local)
+
+Start the backend (includes observability endpoints):
+
+```bash
+cd backend
+source venv/bin/activate
+python -m uvicorn src.main:app --reload --port 8000
+```
+
+Start the frontend (app + observability dashboard):
+
+```bash
+cd frontend
+npm run dev
+```
+
+Open:
+
+-- The URL printed by `npm run dev` (Vite) — typically `http://localhost:5173/`
+-- Observability: append `/observability` to that URL (e.g. `http://localhost:5173/observability`)
 
 ### Voice Interface Strategy
 
@@ -134,10 +160,10 @@ The ultimate measure of success: when family members quote characters unprompted
 
 **Technical Focus**: Streaming audio, character consistency, basic smart home control
 
-### Phase 2: Panel Dynamics (Chapters 3-4)
+-### Phase 2: Panel Dynamics (Chapters 3-4)
 
-- Three-way conversations (add Cave)
-- Cave's coordination role
+- Three-way conversations (add Rex)
+- Rex's coordination role
 - Screen dashboard integration
 - Context-aware responses
 
@@ -253,7 +279,7 @@ The ultimate measure of success: when family members quote characters unprompted
 
 ### Medium-term (Phase 3)
 
-1. Add Cave character
+1. Add Rex character
 2. Three-way panel discussions
 3. Dashboard screen integration
 4. Smart home device control
@@ -297,4 +323,4 @@ The ultimate measure of success: when family members quote characters unprompted
 
 ## The North Star
 
-When a family member says "Hey, what did Cave think about the cat videos?" unprompted—referring to a story beat from weeks later—we've succeeded. The technology has disappeared behind characters people care about.
+When a family member says "Hey, what did Rex think about the cat videos?" unprompted—referring to a story beat from weeks later—we've succeeded. The technology has disappeared behind characters people care about.

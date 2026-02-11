@@ -84,7 +84,7 @@ class ElevenLabsTTS(TTSProvider):
             "delilah": os.getenv("ELEVENLABS_VOICE_ID", ""),
             # Future characters will be added here
             # "hank": os.getenv("ELEVENLABS_HANK_VOICE_ID", ""),
-            # "cave": os.getenv("ELEVENLABS_CAVE_VOICE_ID", ""),
+            # "rex": os.getenv("ELEVENLABS_REX_VOICE_ID", ""),
         }
 
         # Voice settings per character

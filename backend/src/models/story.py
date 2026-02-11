@@ -31,6 +31,8 @@ class BeatStage(BaseModel):
 
 class StoryBeat(BaseModel):
     """A story beat definition."""
+    title: Optional[str] = Field(None, description="Human-readable beat title")
+    description: Optional[str] = Field(None, description="Optional beat description")
     id: str = Field(..., description="Unique beat identifier")
     type: str = Field(..., description="Beat type: one_shot or progression")
     required: bool = Field(..., description="Whether beat is required for chapter completion")
@@ -39,12 +41,21 @@ class StoryBeat(BaseModel):
     variants: Optional[Dict[str, BeatVariant]] = Field(None, description="Variants for one-shot beats")
     stages: Optional[List[BeatStage]] = Field(None, description="Stages for progression beats")
     conditions: Optional[Dict[str, Any]] = Field(None, description="Additional conditions")
+    auto_advance: bool = Field(False, description="Whether this beat is auto-advance (not triggered in conversation)")
+    content: Optional[str] = Field(None, description="Single rich content for auto-advance beats (no variants)")
+
+
+class ConditionalRequirement(BaseModel):
+    """Conditional progression requirement (N of M beats)."""
+    n: int = Field(..., description="Number of beats required")
+    beats: List[str] = Field(..., description="Beat IDs to choose from")
 
 
 class ChapterCompletionCriteria(BaseModel):
     """Criteria for completing a chapter."""
     required_beats: List[str] = Field(..., description="Beat IDs required for completion")
     required_beat_stages: Optional[Dict[str, int]] = Field(None, description="Specific stages for progression beats")
+    conditional_beats: Optional[ConditionalRequirement] = Field(None, description="N of M optional beats requirement")
     minimum_interactions: int = Field(..., description="Minimum number of interactions")
     minimum_time_elapsed_hours: float = Field(..., description="Minimum time elapsed in hours")
 
@@ -69,6 +80,16 @@ class Chapter(BaseModel):
     completion_criteria: ChapterCompletionCriteria = Field(..., description="Completion criteria")
     unlocks: ChapterUnlocks = Field(..., description="What this chapter unlocks")
     prerequisites: Optional[ChapterPrerequisites] = Field(None, description="Prerequisites")
+
+
+class AutoAdvanceNotification(BaseModel):
+    """Auto-advance beat ready for delivery."""
+    beat_id: str = Field(..., description="Beat identifier")
+    name: str = Field(..., description="Human-readable beat name")
+    chapter_id: int = Field(..., description="Chapter this beat belongs to")
+    ready_since: datetime = Field(..., description="When this beat became ready")
+    content: str = Field(..., description="Full content to deliver")
+    notified: bool = Field(False, description="Whether user has been notified")
 
 
 class BeatProgress(BaseModel):
@@ -96,6 +117,7 @@ class UserStoryState(BaseModel):
     current_chapter: int = Field(1, description="Current chapter number")
     completed_chapters: List[int] = Field(default_factory=list, description="Completed chapter IDs")
     chapter_progress: Dict[int, ChapterProgress] = Field(default_factory=dict, description="Progress per chapter")
+    auto_advance_queue: List[AutoAdvanceNotification] = Field(default_factory=list, description="Auto-advance beats ready for delivery")
     total_interactions: int = Field(0, description="Total interactions across all chapters")
     created_at: datetime = Field(default_factory=datetime.utcnow, description="When state was created")
     updated_at: datetime = Field(default_factory=datetime.utcnow, description="When state was last updated")

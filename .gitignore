@@ -29,6 +29,8 @@ wheels/
 venv/
 env/
 ENV/
+.venv/
+/backend/.venv/
 
 # Data directory (runtime state, user data)
 data/
@@ -57,6 +59,9 @@ backend/audio/
 *.mp3
 *.wav
 
+# Tool logs produced during local runs
+.tool_logs/
+
 # Backup files
 *.bak
 
@@ -66,3 +71,4 @@ backend/audio/
 # Test artifacts
 *.png
 !docs/screenshots/*.png
+docs/ideas/scratch.md

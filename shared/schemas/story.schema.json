@@ -76,6 +76,14 @@
       "type": "object",
       "required": ["id", "type", "required", "priority", "trigger"],
       "properties": {
+        "title": {
+          "type": "string",
+          "description": "Human-readable beat title"
+        },
+        "description": {
+          "type": "string",
+          "description": "Optional beat description"
+        },
         "id": {
           "type": "string",
           "pattern": "^[a-z_]+$",
@@ -83,8 +91,8 @@
         },
         "type": {
           "type": "string",
-          "enum": ["one_shot", "progression"],
-          "description": "Beat type: one_shot fires once, progression has multiple stages"
+          "enum": ["one_shot", "progression", "chapter_end"],
+          "description": "Beat type: one_shot fires once, progression has multiple stages, chapter_end gates chapter advancement"
         },
         "required": {
           "type": "boolean",

@@ -24,7 +24,14 @@ A simple web-based voice assistant prototype for testing the Delilah character p
 ### 1. Install Dependencies
 
 ```bash
-npm install
+# Frontend
+cd frontend && npm install
+
+# Backend (Python)
+cd backend
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
 ```
 
 ### 2. Configure Environment Variables
@@ -64,19 +71,58 @@ ELEVENLABS_VOICE_ID=XHqlxleHbYnK8xmft8Vq
 PORT=3000
 ```
 
-### 3. Start the Server
+### 3. Start the Servers
+
+Start the backend API (includes observability endpoints):
 
 ```bash
-npm start
+cd backend
+source .venv/bin/activate
+python -m uvicorn src.main:app --reload --port 8000
 ```
 
-For development with auto-reload:
+Start the frontend (app + observability dashboard):
 
 ```bash
+cd frontend
 npm run dev
 ```
 
-The server will start on <http://localhost:3000>
+The frontend dev server runs at the URL shown by Vite (typically <http://localhost:5173>) and serves the observability UI at `/observability` on that host.
+
+## Running the Backend, Observability, and Frontend
+
+### Backend API (includes observability endpoints)
+
+```bash
+cd backend
+source venv/bin/activate
+python -m uvicorn src.main:app --reload --port 8000
+```
+
+### Frontend (app + observability dashboard)
+
+```bash
+cd frontend
+npm run dev
+```
+
+Open:
+
+-- The URL printed by `npm run dev` (Vite) — typically `http://localhost:5173/`
+-- Observability: append `/observability` to that URL (e.g. `http://localhost:5173/observability`)
+
+You can also use the included convenience script to start/stop both servers:
+
+```bash
+# From the repository root
+chmod +x scripts/servers.sh
+./scripts/servers.sh start    # start backend + frontend (backgrounded)
+./scripts/servers.sh status   # show status of started processes
+./scripts/servers.sh stop     # stop the servers
+```
+
+Logs and pidfile are written to `.tool_logs/` (`.tool_logs/backend.log`, `.tool_logs/frontend.log`, `.tool_logs/server_pids`).
 
 ## Testing Your Setup
 
@@ -104,7 +150,7 @@ If any test fails, it will show you exactly what's wrong and how to fix it.
 
 ## Usage
 
-1. Open your browser and navigate to <http://localhost:3000>
+1. Open your browser and navigate to the URL shown by Vite (commonly `http://localhost:5173`)
 2. Press and hold the "Hold to Talk" button
 3. Speak your message (ask about cooking, recipes, or anything else!)
 4. Release the button when you're done speaking
