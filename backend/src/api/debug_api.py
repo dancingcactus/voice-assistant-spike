@@ -6,17 +6,20 @@ These endpoints are for development/testing only and should not be exposed in pr
 
 import time
 import logging
-from typing import Optional
+from typing import Optional, List
 from datetime import datetime
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel, Field
 
 from core.intent_detector import IntentDetector
 from core.character_planner import CharacterPlanner
+from core.coordination_tracker import CoordinationTracker
+from core.memory_manager import MemoryManager
 from integrations.llm_integration import LLMIntegration
 from models.intent import IntentResult
 from models.character_plan import CharacterPlan
+from models.coordination import CoordinationEvent, CoordinationMetrics
 
 logger = logging.getLogger(__name__)
 
@@ -25,6 +28,8 @@ router = APIRouter(prefix="/api/debug", tags=["debug"])
 # Global instances (initialized on first request)
 _intent_detector: Optional[IntentDetector] = None
 _character_planner: Optional[CharacterPlanner] = None
+_coordination_tracker: Optional[CoordinationTracker] = None
+_memory_manager: Optional[MemoryManager] = None
 
 
 def get_intent_detector() -> IntentDetector:
@@ -56,6 +61,33 @@ def get_character_planner() -> CharacterPlanner:
             logger.error(f"Failed to initialize CharacterPlanner: {e}")
             raise
     return _character_planner
+
+
+def get_memory_manager() -> MemoryManager:
+    """Get or create the global MemoryManager instance."""
+    global _memory_manager
+    if _memory_manager is None:
+        try:
+            _memory_manager = MemoryManager()
+            logger.info("MemoryManager initialized successfully")
+        except Exception as e:
+            logger.error(f"Failed to initialize MemoryManager: {e}")
+            raise
+    return _memory_manager
+
+
+def get_coordination_tracker() -> CoordinationTracker:
+    """Get or create the global CoordinationTracker instance."""
+    global _coordination_tracker
+    if _coordination_tracker is None:
+        try:
+            memory_manager = get_memory_manager()
+            _coordination_tracker = CoordinationTracker(memory_manager=memory_manager)
+            logger.info("CoordinationTracker initialized successfully")
+        except Exception as e:
+            logger.error(f"Failed to initialize CoordinationTracker: {e}")
+            raise
+    return _coordination_tracker
 
 
 # Request/Response models
@@ -244,4 +276,138 @@ async def create_plan(request: CreatePlanRequest) -> CreatePlanResponse:
         raise HTTPException(
             status_code=500,
             detail=f"Character planning failed: {str(e)}"
+        )
+
+
+# ==================== Coordination Tracking Endpoints ====================
+
+class CoordinationMetricsResponse(BaseModel):
+    """Response containing coordination metrics for a user."""
+    user_id: str
+    metrics: dict = Field(..., description="Coordination metrics")
+
+
+class CoordinationEventsResponse(BaseModel):
+    """Response containing recent coordination events."""
+    user_id: str
+    events: List[dict] = Field(..., description="List of coordination events")
+    total_count: int = Field(..., description="Total number of events returned")
+
+
+class CoordinationMilestonesResponse(BaseModel):
+    """Response containing coordination milestone status."""
+    user_id: str
+    milestones: dict = Field(..., description="Milestone completion status")
+
+
+@router.get("/coordination/metrics/{user_id}", response_model=CoordinationMetricsResponse)
+async def get_coordination_metrics(user_id: str) -> CoordinationMetricsResponse:
+    """
+    Get aggregated coordination metrics for a user.
+    
+    Returns statistics on handoffs, multi-task completions, character
+    interactions, and template usage patterns.
+    
+    Args:
+        user_id: User identifier
+        
+    Returns:
+        CoordinationMetricsResponse with calculated metrics
+    """
+    try:
+        tracker = get_coordination_tracker()
+        metrics = tracker.get_metrics(user_id)
+        
+        logger.info(f"Retrieved coordination metrics for user {user_id}")
+        
+        return CoordinationMetricsResponse(
+            user_id=user_id,
+            metrics=metrics.model_dump()
+        )
+        
+    except Exception as e:
+        logger.error(f"Failed to get coordination metrics for {user_id}: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to retrieve coordination metrics: {str(e)}"
+        )
+
+
+@router.get("/coordination/events/{user_id}", response_model=CoordinationEventsResponse)
+async def get_coordination_events(
+    user_id: str,
+    limit: int = Query(default=10, ge=1, le=100, description="Maximum events to return"),
+    event_type: Optional[str] = Query(default=None, description="Filter by event type")
+) -> CoordinationEventsResponse:
+    """
+    Get recent coordination events for a user.
+    
+    Returns a list of recent coordination events, optionally filtered by type.
+    Events are returned in reverse chronological order (most recent first).
+    
+    Args:
+        user_id: User identifier
+        limit: Maximum number of events to return (1-100)
+        event_type: Optional filter (handoff, multi_task, sign_up)
+        
+    Returns:
+        CoordinationEventsResponse with event list
+    """
+    try:
+        tracker = get_coordination_tracker()
+        events = tracker.get_recent_events(
+            user_id=user_id,
+            limit=limit,
+            event_type=event_type
+        )
+        
+        logger.info(
+            f"Retrieved {len(events)} coordination events for user {user_id} "
+            f"(limit={limit}, type={event_type})"
+        )
+        
+        return CoordinationEventsResponse(
+            user_id=user_id,
+            events=[e.model_dump() for e in events],
+            total_count=len(events)
+        )
+        
+    except Exception as e:
+        logger.error(f"Failed to get coordination events for {user_id}: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to retrieve coordination events: {str(e)}"
+        )
+
+
+@router.get("/coordination/milestones/{user_id}", response_model=CoordinationMilestonesResponse)
+async def get_coordination_milestones(user_id: str) -> CoordinationMilestonesResponse:
+    """
+    Get coordination milestone status for a user.
+    
+    Returns the completion status of various coordination milestones,
+    such as first handoff, five handoffs completed, etc.
+    
+    Args:
+        user_id: User identifier
+        
+    Returns:
+        CoordinationMilestonesResponse with milestone status
+    """
+    try:
+        tracker = get_coordination_tracker()
+        milestones = tracker.get_milestones(user_id)
+        
+        logger.info(f"Retrieved coordination milestones for user {user_id}")
+        
+        return CoordinationMilestonesResponse(
+            user_id=user_id,
+            milestones=milestones
+        )
+        
+    except Exception as e:
+        logger.error(f"Failed to get coordination milestones for {user_id}: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to retrieve coordination milestones: {str(e)}"
         )

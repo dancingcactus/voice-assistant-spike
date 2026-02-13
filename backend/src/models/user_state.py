@@ -4,9 +4,12 @@ Tracks user preferences, story progress, and conversation history.
 """
 
 from datetime import datetime
-from typing import Dict, List, Optional, Any
-from pydantic import BaseModel, Field
+from typing import Dict, List, Optional, Any, TYPE_CHECKING
+from pydantic import BaseModel, Field, field_validator
 import uuid
+
+if TYPE_CHECKING:
+    from models.coordination import CoordinationHistory
 
 
 class Memory(BaseModel):
@@ -88,8 +91,21 @@ class UserState(BaseModel):
     device_preferences: DevicePreferences = Field(default_factory=DevicePreferences)
     story_progress: StoryProgress = Field(default_factory=StoryProgress)
     memories: UserMemories = Field(default_factory=UserMemories)
+    coordination_history: Optional[Any] = Field(default=None, description="CoordinationHistory instance")
     created_at: datetime = Field(default_factory=datetime.now)
     updated_at: datetime = Field(default_factory=datetime.now)
+    
+    @field_validator('coordination_history', mode='before')
+    @classmethod
+    def validate_coordination_history(cls, v):
+        """Convert dict to CoordinationHistory object if needed."""
+        if v is None:
+            return None
+        if isinstance(v, dict):
+            # Import here to avoid circular imports
+            from models.coordination import CoordinationHistory
+            return CoordinationHistory(**v)
+        return v
 
     def update_timestamp(self):
         """Update the updated_at timestamp."""

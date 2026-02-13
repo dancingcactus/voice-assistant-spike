@@ -29,21 +29,24 @@ class DialogueSynthesizer:
     - Tracks template usage to avoid repetition
     - Combines multi-character responses seamlessly
     - Injects character references when appropriate
+    - Logs coordination events for observability
     """
     
-    def __init__(self, config_dir: Optional[Path] = None):
+    def __init__(self, config_dir: Optional[Path] = None, coordination_tracker=None):
         """
         Initialize the DialogueSynthesizer.
         
         Args:
             config_dir: Directory containing handoff templates and relationships.
                        Defaults to backend/src/config
+            coordination_tracker: Optional CoordinationTracker for logging events
         """
         if config_dir is None:
             config_dir = Path(__file__).parent.parent / "config"
         
         self.config_dir = config_dir
         self.story_dir = Path(__file__).parent.parent.parent.parent / "story"
+        self.coordination_tracker = coordination_tracker
         
         # Load handoff templates
         self.handoff_templates = self._load_handoff_templates()
@@ -108,6 +111,8 @@ class DialogueSynthesizer:
         from_character: str,
         to_character: str,
         context: Optional[Dict[str, Any]] = None,
+        user_id: Optional[str] = None,
+        intent: Optional[str] = None,
     ) -> str:
         """
         Generate a natural handoff phrase from one character to another.
@@ -116,6 +121,8 @@ class DialogueSynthesizer:
             from_character: Character handing off (e.g., "delilah")
             to_character: Character receiving handoff (e.g., "hank")
             context: Optional conversation context for context-aware handoffs
+            user_id: Optional user ID for coordination tracking
+            intent: Optional intent type that triggered handoff
         
         Returns:
             Natural handoff phrase appropriate for the characters
@@ -126,10 +133,39 @@ class DialogueSynthesizer:
         templates = self.handoff_templates.get(template_key, [])
         if not templates:
             # Fallback handoff
-            return f"...and {to_character.capitalize()}, can you help with that?"
+            fallback = f"...and {to_character.capitalize()}, can you help with that?"
+            
+            # Log handoff event
+            if self.coordination_tracker and user_id:
+                self.coordination_tracker.log_handoff(
+                    user_id=user_id,
+                    from_character=from_character,
+                    to_character=to_character,
+                    intent=intent or "unknown",
+                    template_used="fallback",
+                    success=True,
+                    metadata={"type": "fallback"}
+                )
+            
+            return fallback
         
         # Select template that hasn't been used recently
-        handoff = self._select_handoff_template(template_key, templates)
+        template_idx, handoff = self._select_handoff_template(template_key, templates)
+        
+        # Log handoff event
+        if self.coordination_tracker and user_id:
+            self.coordination_tracker.log_handoff(
+                user_id=user_id,
+                from_character=from_character,
+                to_character=to_character,
+                intent=intent or "unknown",
+                template_used=f"{template_key}_{template_idx}",
+                success=True,
+                metadata={
+                    "template_idx": template_idx,
+                    "template_text": handoff
+                }
+            )
         
         return handoff
     
@@ -137,7 +173,7 @@ class DialogueSynthesizer:
         self,
         template_key: str,
         templates: List[str],
-    ) -> str:
+    ) -> tuple[int, str]:
         """
         Select a handoff template, avoiding recent usage.
         
@@ -149,7 +185,7 @@ class DialogueSynthesizer:
             templates: List of available templates
         
         Returns:
-            Selected handoff template
+            Tuple of (template_index, template_string)
         """
         # Get recent usage for this template type
         recent_usage = self.template_usage.get(template_key, [])
@@ -160,11 +196,11 @@ class DialogueSynthesizer:
             for i, template in enumerate(templates):
                 if i not in recent_usage[-2:]:  # Avoid last 2 uses
                     self.template_usage[template_key] = recent_usage[-5:] + [i]
-                    return template
+                    return (i, template)
             # If all recently used, pick randomly
             selected_idx = random.randint(0, len(templates) - 1)
             self.template_usage[template_key] = recent_usage[-5:] + [selected_idx]
-            return templates[selected_idx]
+            return (selected_idx, templates[selected_idx])
         
         # For larger template sets, use weighted selection
         # Templates used recently get lower weights
@@ -183,12 +219,14 @@ class DialogueSynthesizer:
         # Track usage
         self.template_usage[template_key] = recent_usage[-5:] + [selected_idx]
         
-        return templates[selected_idx]
+        return (selected_idx, templates[selected_idx])
     
     def combine_responses(
         self,
         responses: List[Dict[str, Any]],
         character_plan: CharacterPlan,
+        user_id: Optional[str] = None,
+        query: Optional[str] = None,
     ) -> SynthesizedDialogue:
         """
         Combine multiple character responses into a cohesive dialogue.
@@ -199,6 +237,8 @@ class DialogueSynthesizer:
                       - text: str
                       - voice_mode: str
             character_plan: Plan specifying task ordering and handoffs
+            user_id: Optional user ID for coordination tracking
+            query: Optional original user query for tracking
         
         Returns:
             SynthesizedDialogue with combined responses and handoff info
@@ -207,10 +247,15 @@ class DialogueSynthesizer:
         full_text_parts: List[str] = []
         includes_handoffs = False
         
+        # Track characters involved for multi-task logging
+        characters_involved = set()
+        
         for i, response in enumerate(responses):
             character = response.get("character", "unknown")
             text = response.get("text", "")
             voice_mode = response.get("voice_mode", "default")
+            
+            characters_involved.add(character)
             
             # Determine if this response includes a handoff
             has_handoff = i < len(responses) - 1  # All except last
@@ -222,8 +267,18 @@ class DialogueSynthesizer:
                 handoff_to = next_task.character
                 includes_handoffs = True
                 
-                # Generate handoff phrase
-                handoff_phrase = self.synthesize_handoff(character, handoff_to)
+                # Get intent for handoff tracking
+                intent = None
+                if i < len(character_plan.tasks):
+                    intent = character_plan.tasks[i].intent
+                
+                # Generate handoff phrase (will be logged automatically)
+                handoff_phrase = self.synthesize_handoff(
+                    character,
+                    handoff_to,
+                    user_id=user_id,
+                    intent=intent
+                )
                 
                 # Append handoff to response text
                 text = f"{text} {handoff_phrase}"
@@ -238,6 +293,19 @@ class DialogueSynthesizer:
             )
             fragments.append(fragment)
             full_text_parts.append(text)
+        
+        # Log multi-task completion if multiple characters involved
+        if len(characters_involved) > 1 and self.coordination_tracker and user_id:
+            self.coordination_tracker.log_multi_task(
+                user_id=user_id,
+                query=query or "",
+                characters_involved=list(characters_involved),
+                success=True,
+                metadata={
+                    "num_characters": len(characters_involved),
+                    "num_handoffs": sum(1 for f in fragments if f.includes_handoff)
+                }
+            )
         
         # Create synthesized dialogue
         dialogue = SynthesizedDialogue(
