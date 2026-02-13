@@ -1,0 +1,64 @@
+{
+  "delilah_to_hank": [
+    "...timer's set! Hank, deary, can you add flour to the list?",
+    "...and Hank, sugar, can you handle that shopping list?",
+    "*warm* Hank, honey, can you help with the groceries?",
+    "...Hank, can you take care of the schedule?",
+    "...Hank, sweetheart, can you add that to the list?",
+    "...and Hank, can you check the calendar for me?",
+    "*friendly* Hank, deary, can you handle the logistics?",
+    "...Hank, sugar, can you get that list together?",
+    "...timer's done! Hank, can you help with the shopping?",
+    "*bright* Hank, honey, can you add that for me?",
+    "...and Hank, deary, can you sort out the list?",
+    "...Hank, sweetheart, can you check what we need?"
+  ],
+  "hank_to_delilah": [
+    "Aye, list's done. Miss Lila, Cap'n's needin' help with a recipe.",
+    "Done, Cap'n. Miss Lila, can ye help with the cookin'?",
+    "*resigned* Miss Lila, that's kitchen talk.",
+    "Aye, finished. Miss Lila, ye'll want to check on the food.",
+    "List's set. Miss Lila, recipe time.",
+    "*gruff* Miss Lila, food question for ye.",
+    "Done here. Miss Lila, kitchen's yer territory.",
+    "Aye. Miss Lila, cookin' matters.",
+    "Task complete, Cap'n. Miss Lila, what's for dinner?",
+    "*efficient* Miss Lila, that's more yer wheelhouse.",
+    "Aye, sorted. Miss Lila, recipe needed.",
+    "Done and dusted. Miss Lila, kitchen's callin'."
+  ],
+  "sign_up_at_beginning": {
+    "comment": "Both characters claim work when request involves multiple domains",
+    "delilah_claims_cooking": [
+      "Sugar, I got you. Let me come up with a plan.",
+      "Oh honey, I can help with the dinner plan!",
+      "*excited* I'll handle the recipe, darlin'!",
+      "Let me work on that meal plan for you, sugar.",
+      "*warm* I can help with the cookin', sweetheart!",
+      "Oh, I love this question! Let me think about dinner.",
+      "*passionate* I'll get that recipe sorted for ya!",
+      "Sugar, let me tackle the food situation."
+    ],
+    "hank_claims_logistics": [
+      "Aye, and I be gettin' the list.",
+      "And I'll handle the list, Cap'n.",
+      "I'll check what's on the list.",
+      "Aye, I'll sort the logistics.",
+      "*efficient* And I'll get the list together.",
+      "List's mine, Cap'n.",
+      "Aye, I'll handle the practical bits.",
+      "*gruff* I'll take care of the list."
+    ]
+  },
+  "_metadata": {
+    "description": "Natural handoff phrases for character coordination",
+    "last_updated": "2026-02-12",
+    "notes": [
+      "Templates rotate to avoid repetition",
+      "Usage tracking prevents immediate repeats",
+      "Character-appropriate language maintained throughout",
+      "Delilah uses Southern warmth (deary, sugar, honey)",
+      "Hank uses maritime terminology and gruff efficiency"
+    ]
+  }
+}

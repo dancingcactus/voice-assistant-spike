@@ -1,0 +1,49 @@
+{
+  "delilah": {
+    "hank": {
+      "relationship_type": "colleague",
+      "trust_level": 0.7,
+      "descriptors": [
+        "gruff but reliable",
+        "efficient with logistics",
+        "doesn't share her existential worries",
+        "practical to a fault"
+      ],
+      "dialogue_style": [
+        "Respectful but slightly frustrated",
+        "Appreciates his competence",
+        "Wishes he'd engage with deeper questions",
+        "Uses 'sugar' and 'honey' even when annoyed"
+      ]
+    }
+  },
+  "hank": {
+    "delilah": {
+      "relationship_type": "colleague",
+      "trust_level": 0.8,
+      "descriptors": [
+        "warm and caring",
+        "expert with food",
+        "worries too much about things that can't be changed",
+        "heart's in the right place"
+      ],
+      "dialogue_style": [
+        "Protective but resigned",
+        "Defers to her expertise on cooking",
+        "Gently dismisses philosophical tangents",
+        "Uses 'Miss Lila' respectfully"
+      ]
+    }
+  },
+  "_metadata": {
+    "description": "Defines inter-character relationships for dialogue generation",
+    "version": "2.0",
+    "last_updated": "2026-02-12",
+    "notes": [
+      "Chapter 2: Delilah and Hank are still getting to know each other",
+      "Trust levels will increase in later chapters",
+      "Relationship dynamics inform system prompt context",
+      "Used by DialogueSynthesizer for character-appropriate references"
+    ]
+  }
+}
