@@ -30,11 +30,12 @@
       "\\brecipe\\b",
       "how do i (make|cook|bake|prepare)",
       "what should i (make|cook|bake) for",
-      "\\bingredients?\\b",
       "\\bmeal\\s+plan\\b",
       "\\bcook(ing)?\\s+time\\b",
       "\\b\\d+\\s+(minute|min|hour|hr)s?\\b",
-      "\\b(roast|boil|fry|saut[ée]|grill|bake|steam)\\b"
+      "\\b(roast|boil|fry|saut[ée]|grill|bake|steam)\\b",
+      "\\bingredients?\\s+for\\b",
+      "\\bsubstitute\\s+for\\b"
     ]
   },
   "household": {
@@ -56,7 +57,9 @@
     ],
     "patterns": [
       "\\b(shopping|grocery)\\s+list\\b",
-      "\\badd\\s+.+\\s+to\\s+(the\\s+)?list\\b",
+      "\\badd\\s+.+\\s+to\\s+(the\\s+)?(shopping\\s+)?list\\b",
+      "\\badd\\s+(the\\s+)?ingredients?\\s+to\\s+(the\\s+)?(shopping\\s+)?list\\b",
+      "\\bput\\s+.+\\s+on\\s+(the\\s+)?(shopping\\s+)?list\\b",
       "\\bcalendar\\b",
       "\\bappointment\\b",
       "\\bremind(er)?\\s+(me\\s+)?to\\b",

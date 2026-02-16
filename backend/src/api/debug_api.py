@@ -53,10 +53,20 @@ def get_character_planner() -> CharacterPlanner:
     global _character_planner
     if _character_planner is None:
         try:
-            # For now, CharacterPlanner defaults to Chapter 1 without story engine
-            # In production, this would be connected to the actual StoryEngine
-            _character_planner = CharacterPlanner(story_chapter_provider=None)
-            logger.info("CharacterPlanner initialized successfully")
+            # Create story chapter provider that looks up user's actual chapter
+            memory_manager = get_memory_manager()
+            
+            def get_user_chapter(user_id: str) -> int:
+                """Get the current chapter for a user from their story progress."""
+                try:
+                    user_state = memory_manager.load_user_state(user_id)
+                    return user_state.story_progress.current_chapter
+                except Exception as e:
+                    logger.warning(f"Failed to get chapter for user {user_id}: {e}")
+                    return 1  # Default to Chapter 1
+            
+            _character_planner = CharacterPlanner(story_chapter_provider=get_user_chapter)
+            logger.info("CharacterPlanner initialized successfully with story chapter provider")
         except Exception as e:
             logger.error(f"Failed to initialize CharacterPlanner: {e}")
             raise

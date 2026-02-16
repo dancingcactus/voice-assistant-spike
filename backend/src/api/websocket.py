@@ -156,10 +156,17 @@ async def websocket_endpoint(websocket: WebSocket):
 
                     # Build assistant response
                     metadata = result.get("metadata", {})
+                    
+                    # Determine character: use Phase 4.5 character if available, otherwise from metadata
+                    character_id = metadata.get("character", "delilah")
+                    if "characters" in metadata and metadata["characters"]:
+                        # Phase 4.5 multi-character: use first character
+                        character_id = metadata["characters"][0]
+                    
                     response = AssistantResponse(
                         text=result["text"],
                         audio_url=metadata.get("audio_url"),
-                        character="delilah",
+                        character=character_id,
                         metadata=metadata
                     )
 

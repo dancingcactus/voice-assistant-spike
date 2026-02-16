@@ -26,6 +26,12 @@ from core.memory_manager import MemoryManager
 from tools.tool_base import ToolContext
 from pathlib import Path
 
+# Phase 4.5 imports
+from core.intent_detector import IntentDetector
+from core.character_planner import CharacterPlanner
+from core.dialogue_synthesizer import DialogueSynthesizer
+from core.coordination_tracker import CoordinationTracker
+
 logger = logging.getLogger(__name__)
 
 # Import observability modules with error handling
@@ -59,9 +65,14 @@ class ConversationManager:
         story_engine: Optional[StoryEngine] = None,
         tts_provider: Optional[TTSProvider] = None,
         memory_manager: Optional[MemoryManager] = None,
+        intent_detector: Optional[IntentDetector] = None,
+        character_planner: Optional[CharacterPlanner] = None,
+        dialogue_synthesizer: Optional[DialogueSynthesizer] = None,
+        coordination_tracker: Optional[CoordinationTracker] = None,
         max_history: int = 10,
         default_character: str = "delilah",
-        max_tool_calls: int = 5
+        max_tool_calls: int = 5,
+        enable_phase45: bool = True
     ):
         """
         Initialize the Conversation Manager.
@@ -73,9 +84,14 @@ class ConversationManager:
             story_engine: Story engine instance (creates one if not provided)
             tts_provider: TTS provider instance (optional, for voice output)
             memory_manager: Memory manager instance (creates one if not provided)
+            intent_detector: Intent detector (Phase 4.5, creates one if not provided)
+            character_planner: Character planner (Phase 4.5, creates one if not provided)
+            dialogue_synthesizer: Dialogue synthesizer (Phase 4.5, creates one if not provided)
+            coordination_tracker: Coordination tracker (Phase 4.5, creates one if not provided)
             max_history: Maximum number of messages to keep in history
             default_character: Default character ID to use
             max_tool_calls: Maximum tool calls per turn (circuit breaker)
+            enable_phase45: Enable Phase 4.5 multi-character coordination (default: True)
         """
         self.llm = llm_integration or LLMIntegration()
         self.character_system = character_system or CharacterSystem()
@@ -86,6 +102,28 @@ class ConversationManager:
         self.max_history = max_history
         self.default_character = default_character
         self.max_tool_calls = max_tool_calls
+
+        # Phase 4.5 components (multi-character coordination)
+        self.enable_phase45 = enable_phase45
+        self.intent_detector = intent_detector or IntentDetector() if enable_phase45 else None
+        
+        # Create a story chapter provider function that looks up user's current chapter
+        def get_user_chapter(user_id: str) -> int:
+            """Get the current chapter for a user from their story progress."""
+            try:
+                user_state = self.memory_manager.load_user_state(user_id)
+                return user_state.story_progress.current_chapter
+            except Exception as e:
+                logger.warning(f"Failed to get chapter for user {user_id}: {e}")
+                return 1  # Default to Chapter 1
+        
+        self.character_planner = (
+            character_planner or 
+            CharacterPlanner(story_chapter_provider=get_user_chapter) 
+            if enable_phase45 else None
+        )
+        self.dialogue_synthesizer = dialogue_synthesizer or DialogueSynthesizer() if enable_phase45 else None
+        self.coordination_tracker = coordination_tracker or CoordinationTracker() if enable_phase45 else None
 
         # Store active conversations by session_id (in-memory for current session)
         self.conversations: Dict[str, ConversationContext] = {}
@@ -102,7 +140,8 @@ class ConversationManager:
             f"(max_history={max_history}, default_character={default_character}, "
             f"max_tool_calls={max_tool_calls}, tts={self.tts_provider is not None}, "
             f"memory={self.memory_manager is not None}, "
-            f"tool_logging={self.tool_call_logger is not None})"
+            f"tool_logging={self.tool_call_logger is not None}, "
+            f"phase4.5={self.enable_phase45})"
         )
 
     def get_or_create_conversation(
@@ -255,6 +294,320 @@ class ConversationManager:
 
         return messages
 
+    async def _handle_phase45_multi_character(
+        self,
+        session_id: str,
+        user_id: str,
+        user_message: str,
+        context: ConversationContext,
+        character_plan,
+        intent_result,
+        input_mode: str = "chat"
+    ) -> Dict[str, Any]:
+        """
+        Handle Phase 4.5 multi-character coordination.
+        
+        This method executes a character plan with multiple tasks,
+        synthesizes handoffs between characters, and returns a combined response.
+        
+        Args:
+            session_id: Session identifier
+            user_id: User identifier
+            user_message: Original user query
+            context: Conversation context
+            character_plan: CharacterPlan with tasks
+            intent_result: Intent detection result
+            input_mode: Input mode (affects TTS generation)
+            
+        Returns:
+            Response dictionary with combined text and metadata
+        """
+        try:
+            logger.info(
+                f"Phase 4.5: Executing multi-character plan with {len(character_plan.tasks)} tasks"
+            )
+            
+            # Collect character responses
+            character_responses = []
+            total_tool_calls = 0
+            
+            # Execute each character task sequentially
+            for i, task in enumerate(character_plan.tasks):
+                logger.info(
+                    f"Phase 4.5: Executing task {i+1}/{len(character_plan.tasks)} "
+                    f"for character '{task.character}'"
+                )
+                
+                # Select voice mode for this character
+                voice_mode = None
+                voice_mode_selection = self.character_system.select_voice_mode(
+                    task.character, task.task_description, context.metadata
+                )
+                if voice_mode_selection:
+                    voice_mode = voice_mode_selection.mode.name.lower()
+                
+                # Build system prompt for this character and task
+                system_prompt = self._build_system_prompt(
+                    context,
+                    character_id=task.character,
+                    user_message=task.task_description
+                )
+                
+                # Prepare messages for this character
+                messages = [{
+                    "role": "system",
+                    "content": system_prompt
+                }]
+                
+                # Add relevant history (last few turns)
+                for msg in context.history[-3:]:
+                    messages.append({
+                        "role": msg.role,
+                        "content": msg.content
+                    })
+                
+                # Add current task as user message
+                messages.append({
+                    "role": "user",
+                    "content": task.task_description
+                })
+                
+                # Get tool definitions
+                tools = self.tool_system.get_openai_functions() if self.tool_system.list_tools() else None
+                
+                # Generate response from LLM
+                llm_response = self.llm.generate_response(
+                    messages=messages,
+                    temperature=0.7,
+                    tools=tools
+                )
+                
+                # Handle tool calls (simplified for Phase 4.5)
+                task_tool_calls = 0
+                while llm_response.get("tool_calls") and task_tool_calls < self.max_tool_calls:
+                    task_tool_calls += 1
+                    total_tool_calls += 1
+                    
+                    logger.info(
+                        f"Phase 4.5: Processing tool call {task_tool_calls} for character '{task.character}'"
+                    )
+                    
+                    # Execute tool calls (reusing existing tool execution logic)
+                    tool_results = []
+                    for tool_call in llm_response["tool_calls"]:
+                        tool_name = tool_call["function"]["name"]
+                        try:
+                            arguments = json.loads(tool_call["function"]["arguments"])
+                        except json.JSONDecodeError:
+                            arguments = {}
+                        
+                        # Create tool context
+                        tool_context = ToolContext(
+                            user_id=user_id,
+                            session_id=session_id,
+                            character_id=task.character,
+                            metadata=context.metadata
+                        )
+                        
+                        # Execute tool
+                        result = await self.tool_system.execute_tool(
+                            tool_name,
+                            tool_context,
+                            arguments
+                        )
+                        
+                        # Notify Story Engine
+                        self.story_engine.on_tool_executed(user_id, tool_name)
+                        
+                        tool_results.append({
+                            "tool_call_id": tool_call["id"],
+                            "role": "tool",
+                            "name": tool_name,
+                            "content": result.message
+                        })
+                    
+                    # Add tool results and get next response
+                    messages.append({
+                        "role": "assistant",
+                        "content": llm_response.get("content") or "",
+                        "tool_calls": llm_response["tool_calls"]
+                    })
+                    
+                    for tool_result in tool_results:
+                        messages.append(tool_result)
+                    
+                    llm_response = self.llm.generate_response(
+                        messages=messages,
+                        temperature=0.7,
+                        tools=tools
+                    )
+                
+                # Extract response text
+                response_text = llm_response.get("content", "")
+                if not response_text:
+                    response_text = "Done."
+                
+                # Store character response
+                character_responses.append({
+                    "character": task.character,
+                    "text": response_text,
+                    "voice_mode": voice_mode,
+                    "task": task,
+                    "llm_response": llm_response
+                })
+                
+                logger.info(
+                    f"Phase 4.5: Character '{task.character}' responded "
+                    f"({len(response_text)} chars, {task_tool_calls} tool calls)"
+                )
+            
+            # Phase 4.5: Synthesize handoffs using DialogueSynthesizer
+            if self.dialogue_synthesizer and len(character_responses) > 1:
+                try:
+                    logger.info("Phase 4.5: Synthesizing handoffs between characters")
+                    
+                    # Build combined response with handoffs
+                    combined_parts = []
+                    
+                    for i, char_response in enumerate(character_responses):
+                        # Add character's response
+                        combined_parts.append(char_response["text"])
+                        
+                        # Add handoff if not the last character
+                        if i < len(character_responses) - 1:
+                            next_char = character_responses[i + 1]["character"]
+                            
+                            # Synthesize handoff
+                            handoff_text = self.dialogue_synthesizer.synthesize_handoff(
+                                from_character=char_response["character"],
+                                to_character=next_char,
+                                context=context,
+                                user_id=user_id
+                            )
+                            
+                            if handoff_text:
+                                combined_parts.append(handoff_text)
+                                logger.info(
+                                    f"Phase 4.5: Added handoff from '{char_response['character']}' "
+                                    f"to '{next_char}'"
+                                )
+                            
+                            # Track handoff event
+                            if self.coordination_tracker:
+                                from models.coordination import CoordinationEvent
+                                from datetime import datetime as dt
+                                
+                                handoff_event = CoordinationEvent(
+                                    event_type="handoff",
+                                    timestamp=dt.utcnow(),
+                                    user_id=user_id,
+                                    from_character=char_response["character"],
+                                    to_character=next_char,
+                                    intent=intent_result.intent,
+                                    template_used=None,  # DialogueSynthesizer tracks this internally
+                                    success=True,
+                                    metadata={"query": user_message}
+                                )
+                                self.coordination_tracker.log_event(handoff_event, user_id)
+                    
+                    final_response_text = " ".join(combined_parts)
+                    
+                except Exception as e:
+                    logger.error(f"Phase 4.5: Handoff synthesis failed: {e}. Using raw responses.", exc_info=True)
+                    # Fall back to simple concatenation
+                    final_response_text = " ".join(r["text"] for r in character_responses)
+            else:
+                # No handoffs needed (single character or synthesizer unavailable)
+                final_response_text = " ".join(r["text"] for r in character_responses)
+            
+            # Track multi-task completion event
+            if self.coordination_tracker and len(character_responses) > 1:
+                from models.coordination import CoordinationEvent
+                from datetime import datetime as dt
+                
+                multi_task_event = CoordinationEvent(
+                    event_type="multi_task",
+                    timestamp=dt.utcnow(),
+                    user_id=user_id,
+                    from_character=None,
+                    to_character=None,
+                    intent=intent_result.intent,
+                    template_used=None,
+                    success=True,
+                    metadata={
+                        "query": user_message,
+                        "task_count": len(character_responses),
+                        "characters": [r["character"] for r in character_responses]
+                    }
+                )
+                self.coordination_tracker.log_event(multi_task_event, user_id)
+            
+            # Add final assistant message to history
+            assistant_msg = Message(
+                role="assistant",
+                content=final_response_text,
+                timestamp=datetime.utcnow()
+            )
+            context.history.append(assistant_msg)
+            
+            # Save to persistent storage
+            self.memory_manager.add_conversation_message(user_id, assistant_msg, "assistant")
+            
+            # Manage history size
+            self._manage_history(context)
+            
+            # Build response metadata
+            metadata = {
+                "session_id": session_id,
+                "user_id": user_id,
+                "phase45": True,
+                "intent": intent_result.intent,
+                "intent_confidence": intent_result.confidence,
+                "character_count": len(character_responses),
+                "characters": [r["character"] for r in character_responses],
+                "execution_mode": character_plan.execution_mode,
+                "tool_calls": total_tool_calls,
+                "character_plan": {
+                    "tasks": [
+                        {
+                            "character": t.character,
+                            "task": t.task_description,
+                            "requires_handoff": t.requires_handoff
+                        }
+                        for t in character_plan.tasks
+                    ]
+                }
+            }
+            
+            # TODO Phase 4.5: TTS generation for multi-character responses
+            # For now, skip TTS in multi-character mode (requires audio queueing on frontend)
+            if self.tts_provider and input_mode == "voice":
+                logger.warning(
+                    "Phase 4.5: TTS for multi-character responses not yet implemented. Skipping audio generation."
+                )
+            
+            logger.info(
+                f"Phase 4.5: Multi-character response completed "
+                f"({len(character_responses)} characters, {total_tool_calls} total tool calls)"
+            )
+            
+            return {
+                "text": final_response_text,
+                "metadata": metadata
+            }
+            
+        except Exception as e:
+            logger.error(f"Phase 4.5 multi-character flow failed: {e}", exc_info=True)
+            # Fall back to error response
+            return {
+                "text": "I encountered an error coordinating the response. Please try again.",
+                "metadata": {
+                    "error": str(e),
+                    "session_id": session_id,
+                    "phase45_error": True
+                }
+            }
+
     async def handle_user_message(
         self,
         session_id: str,
@@ -295,6 +648,59 @@ class ConversationManager:
             self.memory_manager.increment_interaction_count(user_id)
 
             logger.info(f"Processing user message in session {session_id}: {user_message[:50]}...")
+
+            # Phase 4.5: Intent detection and character planning (if enabled)
+            if self.enable_phase45 and self.intent_detector and self.character_planner:
+                try:
+                    # Detect intent
+                    intent_result = self.intent_detector.detect(user_message, context)
+                    logger.info(
+                        f"Phase 4.5: Intent detected '{intent_result.intent}' "
+                        f"(confidence: {intent_result.confidence:.2f}, "
+                        f"method: {intent_result.classification_method})"
+                    )
+                    
+                    # Create character plan
+                    character_plan = self.character_planner.create_plan(
+                        intent_result,
+                        context=context,
+                        user_id=user_id
+                    )
+                    logger.info(
+                        f"Phase 4.5: Character plan created with {len(character_plan.tasks)} task(s), "
+                        f"mode={character_plan.execution_mode}"
+                    )
+                    
+                    # If multi-character coordination needed, use Phase 4.5 flow
+                    if len(character_plan.tasks) > 1 and any(task.requires_handoff for task in character_plan.tasks):
+                        logger.info("Phase 4.5: Multi-character coordination needed, using Phase 4.5 flow")
+                        return await self._handle_phase45_multi_character(
+                            session_id=session_id,
+                            user_id=user_id,
+                            user_message=user_message,
+                            context=context,
+                            character_plan=character_plan,
+                            intent_result=intent_result,
+                            input_mode=input_mode
+                        )
+                    else:
+                        # Single character: update default character if different
+                        if character_plan.tasks:
+                            assigned_character = character_plan.tasks[0].character
+                            if assigned_character != self.default_character:
+                                logger.info(
+                                    f"Phase 4.5: Single character assignment changed from "
+                                    f"'{self.default_character}' to '{assigned_character}'"
+                                )
+                                # Use the assigned character for this turn
+                                self.default_character = assigned_character
+                                
+                except Exception as e:
+                    # Phase 4.5 failure: log error and fall back to existing flow
+                    logger.error(
+                        f"Phase 4.5 coordination failed: {e}. Falling back to legacy flow.",
+                        exc_info=True
+                    )
 
             # Select voice mode for this response (store for TTS later)
             voice_mode = None
@@ -526,6 +932,7 @@ class ConversationManager:
                 "text": response_text,
                 "metadata": {
                     "session_id": session_id,
+                    "character": self.default_character,
                     "tokens_used": llm_response["usage"]["total_tokens"],
                     "response_time": llm_response["response_time"],
                     "finish_reason": llm_response["finish_reason"],
