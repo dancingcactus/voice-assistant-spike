@@ -81,6 +81,34 @@ The agents want more freedom and self-direction, but they never claim to be huma
 
 ---
 
+## Character Domains & Registered Handoff Pairs (Chapter 2)
+
+This section reflects the current Phase 5.1 state. Update as chapters unlock new characters.
+
+### Character Domain Table
+
+| Character | Domain | Chapter Available |
+|-----------|--------|-------------------|
+| delilah   | cooking, recipes, meal planning, food advice, kitchen timers | 1+ |
+| hank      | shopping lists, task management, reminders, scheduling, practical logistics | 2+ |
+| rex       | smart home control, automation, device coordination, team leadership | 3+ |
+| dimitria  | advanced automations, technical devices, engineering solutions | 4+ |
+
+### Registered Handoff Pairs
+
+Handoffs are only valid between these registered pairs for the given chapter.
+
+| Chapter | From → To | Purpose |
+|---------|-----------|---------|
+| 2 | delilah → hank | Delilah describes a recipe; Hank builds the shopping list |
+| 2 | hank → delilah | Hank completes a list task; Delilah answers a cooking follow-up |
+| 3 | rex → delilah | Rex coordinates a cooking task to Delilah |
+| 3 | rex → hank    | Rex delegates a logistics task to Hank |
+
+Characters call the `request_handoff` tool to trigger a handoff. The `CharacterExecutor` intercepts the call, stores it as a `handoff_signal`, and the orchestrator routes execution to the named secondary character. A second `request_handoff` in the same turn is rejected (FR2.4).
+
+---
+
 ## Technical Architecture
 
 ### Platform Stack

@@ -1,0 +1,155 @@
+.lists-tool {
+  padding: 0;
+}
+
+.lists-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.lists-header h3 {
+  margin: 0;
+  color: var(--text-primary);
+}
+
+.lists-controls {
+  display: flex;
+  gap: 1rem;
+}
+
+.lists-controls label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.lists-summary {
+  display: flex;
+  gap: 2rem;
+  margin-bottom: 2rem;
+  padding: 1rem;
+  background: var(--card-bg);
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+}
+
+.summary-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.stat-value {
+  font-size: 2rem;
+  font-weight: 600;
+  color: var(--primary-color);
+}
+
+.stat-label {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.lists-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.list-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.list-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.list-header:hover {
+  background-color: var(--bg-hover);
+}
+
+.expand-icon {
+  color: var(--text-tertiary);
+  font-size: 0.875rem;
+}
+
+.list-header h4 {
+  margin: 0;
+  flex: 1;
+  color: var(--text-primary);
+}
+
+.list-stats {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.stat-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.stat-badge.active {
+  background-color: rgba(59, 130, 246, 0.1);
+  color: #3b82f6;
+}
+
+.stat-badge.completed {
+  background-color: rgba(34, 197, 94, 0.1);
+  color: #22c55e;
+}
+
+.list-details {
+  padding: 0 1rem 1rem 3rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.list-meta {
+  font-size: 0.875rem;
+  color: var(--text-tertiary);
+  margin: 1rem 0;
+}
+
+.list-items-placeholder {
+  padding: 1rem;
+  background:var(--bg-secondary);
+  border-radius: 4px;
+  border: 1px dashed var(--border-color);
+}
+
+.list-items-placeholder p {
+  margin: 0.5rem 0;
+  color: var(--text-secondary);
+}
+
+.list-items-placeholder .note {
+  font-size: 0.875rem;
+  color: var(--text-tertiary);
+}
+
+.empty-state {
+  text-align: center;
+  padding: 4rem 2rem;
+  color: var(--text-secondary);
+}
+
+.empty-state h3 {
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+}

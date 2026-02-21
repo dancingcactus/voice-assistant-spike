@@ -367,3 +367,107 @@ class CharacterSystem:
     def list_characters(self) -> Dict[str, str]:
         """Get a dict of character IDs to names."""
         return {char_id: char.name for char_id, char in self.characters.items()}
+
+    def inject_character_awareness(
+        self,
+        prompt: str,
+        character_id: str,
+        other_characters: List[str],
+    ) -> str:
+        """
+        Inject awareness of other characters into a system prompt.
+        
+        Adds relationship context so characters can naturally reference
+        each other and coordinate during multi-character interactions.
+        
+        Args:
+            prompt: The base system prompt
+            character_id: ID of the character receiving the prompt
+            other_characters: List of other character IDs that are active
+        
+        Returns:
+            Enhanced prompt with character relationship context
+        """
+        if not other_characters:
+            return prompt
+        
+        # Load relationship data
+        relationships_file = self.characters_dir / "relationships.json"
+        if not relationships_file.exists():
+            return prompt
+        
+        try:
+            with open(relationships_file, "r") as f:
+                relationships_data = json.load(f)
+        except Exception as e:
+            logger.error(f"Failed to load relationships: {e}")
+            return prompt
+        
+        # Get relationships for this character
+        char_relationships = relationships_data.get(character_id, {})
+        
+        relationship_context = ["\n\n## Other Characters Present"]
+        
+        for other_char_id in other_characters:
+            if other_char_id == character_id:
+                continue
+            
+            other_char = self.get_character(other_char_id)
+            if not other_char:
+                continue
+            
+            rel_data = char_relationships.get(other_char_id, {})
+            
+            relationship_context.append(f"\n### {other_char.name}")
+            relationship_context.append(f"Role: {other_char.role}")
+            
+            if rel_data:
+                rel_type = rel_data.get("relationship_type", "colleague")
+                relationship_context.append(f"Relationship: {rel_type}")
+                
+                descriptors = rel_data.get("descriptors", [])
+                if descriptors:
+                    relationship_context.append("How you see them:")
+                    for desc in descriptors[:3]:  # Limit to 3
+                        relationship_context.append(f"- {desc}")
+                
+                dialogue_style = rel_data.get("dialogue_style", [])
+                if dialogue_style:
+                    relationship_context.append("When interacting:")
+                    for style in dialogue_style[:3]:  # Limit to 3
+                        relationship_context.append(f"- {style}")
+        
+        # Append relationship context to prompt
+        if len(relationship_context) > 1:  # More than just the header
+            return prompt + "\n".join(relationship_context)
+        
+        return prompt
+    
+    def get_character_relationship(
+        self,
+        character_id: str,
+        other_character_id: str,
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Get relationship information between two characters.
+        
+        Args:
+            character_id: Primary character ID
+            other_character_id: Other character ID
+        
+        Returns:
+            Relationship data dict or None if no relationship exists
+        """
+        relationships_file = self.characters_dir / "relationships.json"
+        if not relationships_file.exists():
+            return None
+        
+        try:
+            with open(relationships_file, "r") as f:
+                relationships_data = json.load(f)
+        except Exception as e:
+            logger.error(f"Failed to load relationships: {e}")
+            return None
+        
+        char_relationships = relationships_data.get(character_id, {})
+        return char_relationships.get(other_character_id, None)

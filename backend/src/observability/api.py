@@ -22,6 +22,7 @@ from .memory_access import MemoryAccessor
 from .user_testing_access import UserTestingAccessor
 from .tool_call_access import ToolCallDataAccess
 from .character_access import CharacterAccessLayer
+from .list_access import ListAccessor
 
 # Import StoryEngine for auto-advance functionality
 import sys
@@ -63,6 +64,7 @@ memory_dal = MemoryAccessor(data_dir=str(data_dir))
 user_testing_dal = UserTestingAccessor(data_dir=str(data_dir))
 tool_call_dal = ToolCallDataAccess(data_dir=str(data_dir))
 character_dal = CharacterAccessLayer(project_root=project_root)
+list_dal = ListAccessor(data_dir=str(data_dir))
 
 # Initialize Story Engine for auto-advance and conditional progression
 story_engine = StoryEngine(story_dir=str(project_root / "story"), memory_manager=None)
@@ -801,6 +803,212 @@ async def get_context_preview(
 
     preview = memory_dal.get_context_preview(user_id, min_importance)
     return ContextPreviewResponse(**preview)
+
+
+# List Management Endpoints
+
+class ListItemResponse(BaseModel):
+    item_id: str
+    name: str
+    description: Optional[str] = None
+    quantity: Optional[str] = None
+    completed: bool
+    created_at: str
+    completed_at: Optional[str] = None
+
+
+class ListResponse(BaseModel):
+    list_id: str
+    list_name: str
+    items: List[ListItemResponse]
+    created_at: str
+    updated_at: str
+
+
+class ListsSummaryResponse(BaseModel):
+    user_id: str
+    total_lists: int
+    lists: List[dict]
+
+
+@app.get("/lists/users/{user_id}", response_model=ListsSummaryResponse)
+async def get_user_lists_summary(
+    user_id: str,
+    authorization: Optional[str] = Header(None)
+):
+    """Get summary of all lists for a user."""
+    verify_token(authorization)
+    
+    summary = list_dal.get_list_summary(user_id)
+    return ListsSummaryResponse(**summary)
+
+
+@app.get("/lists/users/{user_id}/{list_name}", response_model=ListResponse)
+async def get_user_list(
+    user_id: str,
+    list_name: str,
+    include_completed: bool = False,
+    authorization: Optional[str] = Header(None)
+):
+    """Get a specific list with its items."""
+    verify_token(authorization)
+    
+    list_obj = list_dal.get_list(user_id, list_name)
+    if not list_obj:
+        raise HTTPException(status_code=404, detail=f"List '{list_name}' not found")
+    
+    # Filter items
+    items = list_obj.items
+    if not include_completed:
+        items = [item for item in items if not item.completed]
+    
+    # Convert to response format
+    items_response = [
+        ListItemResponse(
+            item_id=item.item_id,
+            name=item.name,
+            description=item.description,
+            quantity=item.quantity,
+            completed=item.completed,
+            created_at=item.created_at.isoformat(),
+            completed_at=item.completed_at.isoformat() if item.completed_at else None
+        )
+        for item in items
+    ]
+    
+    return ListResponse(
+        list_id=list_obj.list_id,
+        list_name=list_obj.name,
+        items=items_response,
+        created_at=list_obj.created_at.isoformat(),
+        updated_at=list_obj.updated_at.isoformat()
+    )
+
+
+# Timer Status Endpoints
+
+class TimerInfoResponse(BaseModel):
+    duration_seconds: int
+    label: Optional[str] = None
+    time_remaining: int
+    is_expired: bool
+
+
+class TimersStatusResponse(BaseModel):
+    session_id: str
+    active_timers: int
+    timers: List[TimerInfoResponse]
+
+
+@app.get("/timers/status", response_model=List[TimersStatusResponse])
+async def get_timers_status(
+    authorization: Optional[str] = Header(None)
+):
+    """Get status of all timers across all sessions."""
+    verify_token(authorization)
+    
+    # Access timer tool from websocket module
+    # This is a bit of a hack but avoids circular dependencies
+    from api.websocket import tool_system
+    timer_tool = tool_system.get_tool("manage_timer")
+    
+    if not timer_tool:
+        return []
+    
+    # Get timers from all sessions
+    all_timers_status = []
+    for session_id, timers in timer_tool.timers.items():
+        # Filter expired timers
+        active_timers = [t for t in timers if not t.is_expired()]
+        
+        timer_responses = [
+            TimerInfoResponse(
+                duration_seconds=t.duration_seconds,
+                label=t.label,
+                time_remaining=t.time_remaining(),
+                is_expired=t.is_expired()
+            )
+            for t in active_timers
+        ]
+        
+        all_timers_status.append(
+            TimersStatusResponse(
+                session_id=session_id,
+                active_timers=len(active_timers),
+                timers=timer_responses
+            )
+        )
+    
+    return all_timers_status
+
+
+# Device Status Endpoints
+
+class DeviceInfoResponse(BaseModel):
+    device_id: str
+    name: str
+    device_type: str
+    state: str
+    attributes: Dict[str, Any]
+    friendly_name: Optional[str] = None
+    area: Optional[str] = None
+
+
+class DevicesStatusResponse(BaseModel):
+    total_devices: int
+    available_devices: int
+    unavailable_devices: int
+    devices: List[DeviceInfoResponse]
+
+
+@app.get("/devices/status", response_model=DevicesStatusResponse)
+async def get_devices_status(
+    authorization: Optional[str] = Header(None)
+):
+    """Get status of all devices."""
+    verify_token(authorization)
+    
+    # Access device tool from websocket module
+    from api.websocket import tool_system
+    device_tool = tool_system.get_tool("manage_device")
+    
+    if not device_tool or not device_tool.device_controller:
+        return DevicesStatusResponse(
+            total_devices=0,
+            available_devices=0,
+            unavailable_devices=0,
+            devices=[]
+        )
+    
+    # Get all devices
+    all_devices = device_tool.device_controller.get_all_devices()
+    
+    device_responses = []
+    available_count = 0
+    
+    for device in all_devices:
+        is_available = device.get("state", "unavailable") != "unavailable"
+        if is_available:
+            available_count += 1
+        
+        device_responses.append(
+            DeviceInfoResponse(
+                device_id=device.get("entity_id", ""),
+                name=device.get("friendly_name", device.get("entity_id", "")),
+                device_type=device.get("device_class", "unknown"),
+                state=device.get("state", "unknown"),
+                attributes=device.get("attributes", {}),
+                friendly_name=device.get("friendly_name"),
+                area=device.get("area")
+            )
+        )
+    
+    return DevicesStatusResponse(
+        total_devices=len(device_responses),
+        available_devices=available_count,
+        unavailable_devices=len(device_responses) - available_count,
+        devices=device_responses
+    )
 
 
 # User Testing Endpoints
