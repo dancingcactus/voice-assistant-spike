@@ -9,8 +9,8 @@ Character availability is chapter-dependent:
 - Future: Dimitria joins in later chapters
 """
 
-from typing import Dict, Optional, List
-from dataclasses import dataclass
+from typing import Dict, List, Optional, Tuple
+from dataclasses import dataclass, field
 
 
 @dataclass
@@ -23,11 +23,34 @@ class CharacterAssignment:
         fallback: Backup character if primary is unavailable or confidence is low
         confidence_threshold: Minimum confidence required to use primary character
         note: Optional explanation of the assignment logic
+        domain_description: Short description of the character's domain, used in
+            the ConversationRouter prompt so the LLM understands each character's scope.
     """
     primary: Optional[str]
     fallback: Optional[str]
     confidence_threshold: float
     note: Optional[str] = None
+    domain_description: str = ""  # Used in router prompt
+
+
+# Domain descriptions per character (chapter-independent).
+# Injected into the ConversationRouter LLM prompt.
+CHARACTER_DOMAIN_DESCRIPTIONS: Dict[str, str] = {
+    "delilah": "cooking, recipes, meal planning, food advice, kitchen timers",
+    "hank": "shopping lists, task management, reminders, scheduling, practical logistics",
+    "rex": "smart home control, automation, device coordination, team leadership",
+    "dimitria": "advanced automations, technical devices, engineering solutions",
+}
+
+
+# Registered handoff pairs per chapter.
+# Keys are chapter IDs; values are lists of (from_character, to_character) tuples.
+# The ConversationRouter and CharacterExecutor only advertise / accept handoffs
+# for pairs that are registered for the current chapter.
+REGISTERED_HANDOFF_PAIRS: Dict[int, List[Tuple[str, str]]] = {
+    2: [("delilah", "hank"), ("hank", "delilah")],
+    3: [("delilah", "hank"), ("hank", "delilah"), ("rex", "delilah"), ("rex", "hank")],
+}
 
 
 # Character assignments for Chapter 1 (Delilah only)

@@ -301,17 +301,31 @@ Your job is to break down multi-task queries into separate sub-tasks.
 For each sub-task, determine:
 - text: the task description
 - intent: category (cooking, household, smart_home, or general)
+  - cooking: recipes, meal planning, dinner ideas, food suggestions, timers, ingredients
+  - household: shopping lists, to-do lists, calendar, reminders, appointments
+  - smart_home: lights, thermostat, locks, devices, greenhouse
+  - general: everything else
 - confidence: how confident you are (0.0 to 1.0)
-- is_dependent: true if this task cannot execute meaningfully until the preceding task produces
-  output that the user has confirmed (e.g., "create a shopping list for that dinner" depends on
-  the user first choosing a dinner; "add those items to my list" depends on a suggestion being
-  made). Set to false if the task can run immediately with no prerequisite.
+- is_dependent: Set to true ONLY when the user has NOT yet approved or confirmed the second task
+  and genuinely needs to see the first task's output before deciding whether to proceed.
+  Set to false in ALL of these cases:
+    * The user explicitly requests both tasks in one message ("X then Y", "X and also Y")
+    * The second task references output from the first but can proceed using conversation context
+      (e.g., "plan a dinner then make a shopping list" — Hank can read the dinner plan from context)
+    * The user gives a clear end-to-end workflow ("plan dinner for this weekend then make a list
+      for the supplies" — both tasks are pre-approved)
+  Only set to true when the user is still deciding (e.g., "what should I make for dinner?
+  ...if I like it, add the ingredients" — the user hasn't yet committed to the second task).
+
+IMPORTANT: When a user says "do X then do Y" or "do X and make me Y", BOTH tasks are
+pre-approved. Mark them BOTH as is_dependent: false so they execute in the same turn.
 
 Respond with ONLY a JSON array of tasks:
 [
   {"text": "set a timer for 30 minutes", "intent": "cooking", "confidence": 0.9, "is_dependent": false},
   {"text": "add milk to shopping list", "intent": "household", "confidence": 0.95, "is_dependent": false},
-  {"text": "create shopping list for that dinner", "intent": "household", "confidence": 0.9, "is_dependent": true}
+  {"text": "plan a fancy dinner for this weekend", "intent": "cooking", "confidence": 0.9, "is_dependent": false},
+  {"text": "make a shopping list for the dinner supplies", "intent": "household", "confidence": 0.9, "is_dependent": false}
 ]"""
 
         messages = [

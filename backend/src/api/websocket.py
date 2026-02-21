@@ -95,7 +95,7 @@ conversation_manager = ConversationManager(
     tool_system=tool_system,
     story_engine=story_engine,
     tts_provider=tts_provider,
-    memory_manager=memory_manager
+    memory_manager=memory_manager,
 )
 
 

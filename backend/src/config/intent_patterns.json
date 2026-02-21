@@ -22,7 +22,14 @@
       "minutes",
       "hours",
       "temperature",
-      "degrees"
+      "degrees",
+      "menu",
+      "entrée",
+      "course",
+      "fancy dinner",
+      "meal plan",
+      "dinner plan",
+      "dinner idea"
     ],
     "patterns": [
       "\\btimer\\b",
@@ -35,7 +42,12 @@
       "\\b\\d+\\s+(minute|min|hour|hr)s?\\b",
       "\\b(roast|boil|fry|saut[ée]|grill|bake|steam)\\b",
       "\\bingredients?\\s+for\\b",
-      "\\bsubstitute\\s+for\\b"
+      "\\bsubstitute\\s+for\\b",
+      "\\bplan\\s+(a\\s+)?(fancy\\s+|special\\s+|nice\\s+)?(dinner|meal|menu|supper)\\b",
+      "\\b(dinner|meal|menu)\\s+(idea|suggestion|plan|option)s?\\b",
+      "\\bfancy\\s+(dinner|meal|menu)\\b",
+      "\\bwhat\\s+(should|can|could)\\s+(i|we)\\s+(make|cook|have)\\s+for\\s+(dinner|supper|lunch|breakfast)\\b",
+      "\\b(help\\s+me\\s+)?(plan|choose|pick|decide)\\s+(a\\s+)?(dinner|meal|menu)\\b"
     ]
   },
   "household": {
@@ -131,14 +143,16 @@
     ]
   },
   "multi_task_indicators": {
-    "comment": "Patterns that suggest a query contains multiple tasks",
+    "comment": "Patterns that suggest a query contains multiple tasks requiring different characters",
     "patterns": [
-      "\\band\\s+(then|also)?\\b",
-      "\\balso\\b",
-      "\\bplus\\b",
-      "\\bthen\\b",
+      "\\band\\s+then\\b",
+      "\\band\\s+also\\b",
+      "\\band\\s+(make|create|add|put|give)\\s+(me\\s+)?(a\\s+)?",
+      "\\bthen\\s+(make|create|add|put|give|also)\\b",
       "\\bafter\\s+that\\b",
-      ",\\s*and\\b"
+      "\\bfollowed\\s+by\\b",
+      ",\\s*then\\b",
+      ",\\s*and\\s+(make|create|add|also)\\b"
     ]
   },
   "classification_notes": {

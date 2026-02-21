@@ -9,9 +9,6 @@ Responsibilities:
 """
 
 import logging
-import json
-import uuid
-import time
 from typing import List, Dict, Any, Optional
 from datetime import datetime
 
@@ -23,15 +20,15 @@ from core.character_system import CharacterSystem
 from core.tool_system import ToolSystem
 from core.story_engine import StoryEngine
 from core.memory_manager import MemoryManager
-from tools.tool_base import ToolContext
 from pathlib import Path
 
-# Phase 4.5 imports
-from core.intent_detector import IntentDetector
-from core.character_planner import CharacterPlanner
-from core.dialogue_synthesizer import DialogueSynthesizer
-from core.coordination_tracker import CoordinationTracker
-from core.utils import is_affirmation
+# Phase 5.1 imports
+from core.conversation_state import ConversationStateManager
+from core.turn_classifier import TurnClassifier
+from core.conversation_router import ConversationRouter
+from core.character_executor import CharacterExecutor
+from models.routing import CoordinationMode, TurnType
+from config.character_assignments import get_available_characters
 
 logger = logging.getLogger(__name__)
 
@@ -66,14 +63,14 @@ class ConversationManager:
         story_engine: Optional[StoryEngine] = None,
         tts_provider: Optional[TTSProvider] = None,
         memory_manager: Optional[MemoryManager] = None,
-        intent_detector: Optional[IntentDetector] = None,
-        character_planner: Optional[CharacterPlanner] = None,
-        dialogue_synthesizer: Optional[DialogueSynthesizer] = None,
-        coordination_tracker: Optional[CoordinationTracker] = None,
+        # Phase 5.1 injectable dependencies
+        state_manager: Optional[ConversationStateManager] = None,
+        turn_classifier: Optional[TurnClassifier] = None,
+        conversation_router: Optional[ConversationRouter] = None,
+        character_executor: Optional[CharacterExecutor] = None,
         max_history: int = 10,
         default_character: str = "delilah",
         max_tool_calls: int = 5,
-        enable_phase45: bool = True
     ):
         """
         Initialize the Conversation Manager.
@@ -85,14 +82,13 @@ class ConversationManager:
             story_engine: Story engine instance (creates one if not provided)
             tts_provider: TTS provider instance (optional, for voice output)
             memory_manager: Memory manager instance (creates one if not provided)
-            intent_detector: Intent detector (Phase 4.5, creates one if not provided)
-            character_planner: Character planner (Phase 4.5, creates one if not provided)
-            dialogue_synthesizer: Dialogue synthesizer (Phase 4.5, creates one if not provided)
-            coordination_tracker: Coordination tracker (Phase 4.5, creates one if not provided)
+            state_manager: Coordination state manager (auto-created if None)
+            turn_classifier: Turn classifier (auto-created if None)
+            conversation_router: Conversation router (auto-created if None)
+            character_executor: Character executor (auto-created if None)
             max_history: Maximum number of messages to keep in history
             default_character: Default character ID to use
             max_tool_calls: Maximum tool calls per turn (circuit breaker)
-            enable_phase45: Enable Phase 4.5 multi-character coordination (default: True)
         """
         self.llm = llm_integration or LLMIntegration()
         self.character_system = character_system or CharacterSystem()
@@ -104,27 +100,17 @@ class ConversationManager:
         self.default_character = default_character
         self.max_tool_calls = max_tool_calls
 
-        # Phase 4.5 components (multi-character coordination)
-        self.enable_phase45 = enable_phase45
-        self.intent_detector = intent_detector or IntentDetector() if enable_phase45 else None
-        
-        # Create a story chapter provider function that looks up user's current chapter
-        def get_user_chapter(user_id: str) -> int:
-            """Get the current chapter for a user from their story progress."""
-            try:
-                user_state = self.memory_manager.load_user_state(user_id)
-                return user_state.story_progress.current_chapter
-            except Exception as e:
-                logger.warning(f"Failed to get chapter for user {user_id}: {e}")
-                return 1  # Default to Chapter 1
-        
-        self.character_planner = (
-            character_planner or 
-            CharacterPlanner(story_chapter_provider=get_user_chapter) 
-            if enable_phase45 else None
+        # Phase 5.1 components
+        self.state_manager = state_manager or ConversationStateManager()
+        self.turn_classifier = turn_classifier or TurnClassifier(llm=self.llm)
+        self.conversation_router = conversation_router or ConversationRouter(llm=self.llm)
+        self.character_executor = character_executor or CharacterExecutor(
+            llm_integration=self.llm,
+            character_system=self.character_system,
+            tool_system=self.tool_system,
+            story_engine=self.story_engine,
+            max_tool_calls=self.max_tool_calls,
         )
-        self.dialogue_synthesizer = dialogue_synthesizer or DialogueSynthesizer() if enable_phase45 else None
-        self.coordination_tracker = coordination_tracker or CoordinationTracker() if enable_phase45 else None
 
         # Store active conversations by session_id (in-memory for current session)
         self.conversations: Dict[str, ConversationContext] = {}
@@ -141,8 +127,7 @@ class ConversationManager:
             f"(max_history={max_history}, default_character={default_character}, "
             f"max_tool_calls={max_tool_calls}, tts={self.tts_provider is not None}, "
             f"memory={self.memory_manager is not None}, "
-            f"tool_logging={self.tool_call_logger is not None}, "
-            f"phase4.5={self.enable_phase45})"
+            f"tool_logging={self.tool_call_logger is not None})"
         )
 
     def get_or_create_conversation(
@@ -184,120 +169,6 @@ class ConversationManager:
 
         return self.conversations[session_id]
 
-    def _build_system_prompt(
-        self,
-        context: ConversationContext,
-        character_id: Optional[str] = None,
-        user_message: Optional[str] = None
-    ) -> str:
-        """
-        Build the system prompt for the LLM using Character System.
-
-        Args:
-            context: Conversation context
-            character_id: Character to use (defaults to default_character)
-            user_message: Latest user message for voice mode selection
-
-        Returns:
-            System prompt string
-        """
-        char_id = character_id or self.default_character
-
-        # Load user memories
-        from observability.memory_access import MemoryAccessor
-        memory_accessor = MemoryAccessor(str(Path(__file__).parent.parent.parent / "data"))
-        memories = memory_accessor.get_all_memories(context.user_id)
-
-        # Group memories by category
-        memory_context = {
-            "dietary_restrictions": [],
-            "preferences": [],
-            "facts": [],
-            "relationships": [],
-            "events": []
-        }
-
-        for memory in memories:
-            if memory.category == "dietary_restriction":
-                memory_context["dietary_restrictions"].append(memory)
-            elif memory.category == "preference":
-                memory_context["preferences"].append(memory)
-            elif memory.category == "fact":
-                memory_context["facts"].append(memory)
-            elif memory.category == "relationship":
-                memory_context["relationships"].append(memory)
-            elif memory.category == "event":
-                memory_context["events"].append(memory)
-
-        # If we have a user message, select the appropriate voice mode
-        if user_message:
-            voice_mode_selection = self.character_system.select_voice_mode(
-                char_id, user_message, context.metadata
-            )
-
-            if voice_mode_selection:
-                logger.debug(
-                    f"Selected voice mode: {voice_mode_selection.mode.name} "
-                    f"(confidence: {voice_mode_selection.confidence:.2f}) - "
-                    f"{voice_mode_selection.reasoning}"
-                )
-                prompt = self.character_system.build_system_prompt(
-                    char_id, voice_mode_selection.mode, memory_context=memory_context
-                )
-                return self._inject_deferred_task_hint(prompt, char_id, context)
-
-        # Fallback to character prompt without specific voice mode
-        prompt = self.character_system.build_system_prompt(char_id, memory_context=memory_context)
-        return self._inject_deferred_task_hint(prompt, char_id, context)
-
-    def _inject_deferred_task_hint(
-        self,
-        prompt: str,
-        char_id: str,
-        context: ConversationContext
-    ) -> str:
-        """
-        Append a deferred-task follow-up hint to Delilah's system prompt when there
-        are pending deferred tasks that are still within their expiry window.
-
-        This shapes Delilah's response so she naturally invites Hank to handle the
-        logistics once the user approves her suggestion — without calling tool
-        functions herself.
-
-        Args:
-            prompt: The already-built system prompt string.
-            char_id: The character being prompted.
-            context: Current conversation context.
-
-        Returns:
-            The prompt, optionally extended with the deferred-task note.
-        """
-        if char_id != "delilah":
-            return prompt
-
-        deferred = context.metadata.get("deferred_tasks")
-        if not deferred:
-            return prompt
-
-        # Check expiry
-        expires_str = context.metadata.get("deferred_tasks_expires_at")
-        if expires_str:
-            try:
-                if datetime.fromisoformat(expires_str) < datetime.utcnow():
-                    return prompt  # Expired — don't inject
-            except (ValueError, TypeError):
-                return prompt
-
-        deferred_hint = (
-            "\n\n## Pending Follow-up Action\n"
-            "Once the user confirms or approves your suggestion, naturally and briefly invite "
-            "Hank to handle the follow-up logistics. Keep it short and in character — for example:\n"
-            "\"Hankie, darlin', would you be a dear and add those to the list?\"\n"
-            "Do NOT use a list tool yourself for this purpose; Hank will handle the logistics."
-        )
-        logger.debug("Phase 5: Injecting deferred task hint into Delilah's system prompt")
-        return prompt + deferred_hint
-
     def _manage_history(self, context: ConversationContext):
         """
         Manage conversation history to prevent it from growing too large.
@@ -312,571 +183,375 @@ class ConversationManager:
             context.history = context.history[-self.max_history:]
             logger.debug(f"Trimmed conversation history to {self.max_history} messages")
 
-    def _prepare_messages(
+    # ------------------------------------------------------------------
+    # Orchestration path
+    # ------------------------------------------------------------------
+
+    # Named limits used across the Phase 5.1 path
+    _MAX_HANDOFF_ITEMS = 20          # Cap on structured items passed to secondary (token budget)
+    _MAX_CONTEXT_EXCERPT = 500       # Character limit for context excerpts passed to secondary
+
+    def _get_chapter_for_user(self, user_id: str) -> int:
+        """Return the current story chapter for a user."""
+        try:
+            user_state = self.memory_manager.load_user_state(user_id)
+            return user_state.story_progress.current_chapter
+        except Exception:
+            return 1
+
+    def _build_secondary_task(
         self,
-        context: ConversationContext,
-        user_message: Optional[str] = None
-    ) -> List[Dict[str, str]]:
+        followup: Dict[str, Any],
+        primary_text: str,
+    ) -> str:
         """
-        Prepare messages for the LLM API call.
+        Build the task description string passed to the secondary CharacterExecutor.
 
-        Args:
-            context: Conversation context
-            user_message: Latest user message for voice mode selection
-
-        Returns:
-            List of message dicts in OpenAI format
+        If the followup dict contains an ``items`` list (populated from
+        ``request_handoff`` arguments), those are injected.  Otherwise the
+        ``task_summary`` is used verbatim with a snippet of the primary character's
+        response appended so the secondary has enough context.
         """
-        messages = []
+        task_summary = followup.get("task_summary") or followup.get("pending_task") or ""
+        items: List[str] = followup.get("items") or []
 
-        # Add system prompt (with voice mode selection based on user message)
-        system_prompt = self._build_system_prompt(context, user_message=user_message)
-        messages.append({
-            "role": "system",
-            "content": system_prompt
-        })
+        if items:
+            items_str = ", ".join(f'"{i}"' for i in items[:self._MAX_HANDOFF_ITEMS])  # cap for prompt length
+            return f"{task_summary}\n\nItems from previous response: {items_str}"
 
-        # Add conversation history
-        for msg in context.history:
-            messages.append({
-                "role": msg.role,
-                "content": msg.content
-            })
+        # No structured items — give the secondary a short excerpt of primary text
+        excerpt = primary_text[:self._MAX_CONTEXT_EXCERPT].strip()
+        if excerpt:
+            return f"{task_summary}\n\nContext from previous character:\n{excerpt}"
+        return task_summary
 
-        return messages
-
-    async def _handle_phase45_multi_character(
+    def _assemble_multi_response(
         self,
         session_id: str,
         user_id: str,
-        user_message: str,
-        context: ConversationContext,
-        character_plan,
-        intent_result,
-        input_mode: str = "chat"
+        fragments: List[Dict[str, Any]],
     ) -> Dict[str, Any]:
-        """
-        Handle Phase 4.5 multi-character coordination.
-        
-        This method executes a character plan with multiple tasks,
-        synthesizes handoffs between characters, and returns a combined response.
-        
-        Args:
-            session_id: Session identifier
-            user_id: User identifier
-            user_message: Original user query
-            context: Conversation context
-            character_plan: CharacterPlan with tasks
-            intent_result: Intent detection result
-            input_mode: Input mode (affects TTS generation)
-            
-        Returns:
-            Response dictionary with combined text and metadata
-        """
-        try:
-            logger.info(
-                f"Phase 4.5: Executing multi-character plan with {len(character_plan.tasks)} tasks"
-            )
-            
-            # Collect character responses
-            character_responses = []
-            total_tool_calls = 0
-            
-            # Execute each character task sequentially
-            for i, task in enumerate(character_plan.tasks):
-                logger.info(
-                    f"Phase 4.5: Executing task {i+1}/{len(character_plan.tasks)} "
-                    f"for character '{task.character}'"
-                )
-                
-                # Select voice mode for this character
-                voice_mode = None
-                voice_mode_selection = self.character_system.select_voice_mode(
-                    task.character, task.task_description, context.metadata
-                )
-                if voice_mode_selection:
-                    voice_mode = voice_mode_selection.mode.name.lower()
-                
-                # Build system prompt for this character and task
-                system_prompt = self._build_system_prompt(
-                    context,
-                    character_id=task.character,
-                    user_message=task.task_description
-                )
-                
-                # Prepare messages for this character
-                messages = [{
-                    "role": "system",
-                    "content": system_prompt
-                }]
-                
-                # Add relevant history (last few turns)
-                for msg in context.history[-3:]:
-                    messages.append({
-                        "role": msg.role,
-                        "content": msg.content
-                    })
-                
-                # Add current task as user message
-                messages.append({
-                    "role": "user",
-                    "content": task.task_description
-                })
-                
-                # Get tool definitions
-                tools = self.tool_system.get_openai_functions() if self.tool_system.list_tools() else None
-                
-                # Generate response from LLM
-                llm_response = self.llm.generate_response(
-                    messages=messages,
-                    temperature=0.7,
-                    tools=tools
-                )
-                
-                # Handle tool calls (simplified for Phase 4.5)
-                task_tool_calls = 0
-                while llm_response.get("tool_calls") and task_tool_calls < self.max_tool_calls:
-                    task_tool_calls += 1
-                    total_tool_calls += 1
-                    
-                    logger.info(
-                        f"Phase 4.5: Processing tool call {task_tool_calls} for character '{task.character}'"
-                    )
-                    
-                    # Execute tool calls (reusing existing tool execution logic)
-                    tool_results = []
-                    for tool_call in llm_response["tool_calls"]:
-                        tool_name = tool_call["function"]["name"]
-                        try:
-                            arguments = json.loads(tool_call["function"]["arguments"])
-                        except json.JSONDecodeError:
-                            arguments = {}
-                        
-                        # Create tool context
-                        tool_context = ToolContext(
-                            user_id=user_id,
-                            session_id=session_id,
-                            character_id=task.character,
-                            metadata=context.metadata
-                        )
-                        
-                        # Execute tool
-                        result = await self.tool_system.execute_tool(
-                            tool_name,
-                            tool_context,
-                            arguments
-                        )
-                        
-                        # Notify Story Engine
-                        self.story_engine.on_tool_executed(user_id, tool_name)
-                        
-                        tool_results.append({
-                            "tool_call_id": tool_call["id"],
-                            "role": "tool",
-                            "name": tool_name,
-                            "content": result.message
-                        })
-                    
-                    # Add tool results and get next response
-                    messages.append({
-                        "role": "assistant",
-                        "content": llm_response.get("content") or "",
-                        "tool_calls": llm_response["tool_calls"]
-                    })
-                    
-                    for tool_result in tool_results:
-                        messages.append(tool_result)
-                    
-                    llm_response = self.llm.generate_response(
-                        messages=messages,
-                        temperature=0.7,
-                        tools=tools
-                    )
-                
-                # Extract response text
-                response_text = llm_response.get("content", "")
-                if not response_text:
-                    response_text = "Done."
-                
-                # Store character response
-                character_responses.append({
-                    "character": task.character,
-                    "text": response_text,
-                    "voice_mode": voice_mode,
-                    "task": task,
-                    "llm_response": llm_response
-                })
-                
-                logger.info(
-                    f"Phase 4.5: Character '{task.character}' responded "
-                    f"({len(response_text)} chars, {task_tool_calls} tool calls)"
-                )
-            
-            # Phase 4.5: Synthesize handoffs using DialogueSynthesizer
-            if self.dialogue_synthesizer and len(character_responses) > 1:
-                try:
-                    logger.info("Phase 4.5: Synthesizing handoffs between characters")
-                    
-                    # Build combined response with handoffs
-                    combined_parts = []
-                    
-                    for i, char_response in enumerate(character_responses):
-                        # Add character's response
-                        combined_parts.append(char_response["text"])
-                        
-                        # Add handoff if not the last character
-                        if i < len(character_responses) - 1:
-                            next_char = character_responses[i + 1]["character"]
-                            
-                            # Synthesize handoff
-                            handoff_text = self.dialogue_synthesizer.synthesize_handoff(
-                                from_character=char_response["character"],
-                                to_character=next_char,
-                                context=context,
-                                user_id=user_id
-                            )
-                            
-                            if handoff_text:
-                                combined_parts.append(handoff_text)
-                                logger.info(
-                                    f"Phase 4.5: Added handoff from '{char_response['character']}' "
-                                    f"to '{next_char}'"
-                                )
-                            
-                            # Track handoff event
-                            if self.coordination_tracker:
-                                from models.coordination import CoordinationEvent
-                                from datetime import datetime as dt
-                                
-                                handoff_event = CoordinationEvent(
-                                    event_type="handoff",
-                                    timestamp=dt.utcnow(),
-                                    user_id=user_id,
-                                    from_character=char_response["character"],
-                                    to_character=next_char,
-                                    intent=intent_result.intent,
-                                    template_used=None,  # DialogueSynthesizer tracks this internally
-                                    success=True,
-                                    metadata={"query": user_message}
-                                )
-                                self.coordination_tracker.log_event(handoff_event, user_id)
-                    
-                    final_response_text = " ".join(combined_parts)
-                    
-                except Exception as e:
-                    logger.error(f"Phase 4.5: Handoff synthesis failed: {e}. Using raw responses.", exc_info=True)
-                    # Fall back to simple concatenation
-                    final_response_text = " ".join(r["text"] for r in character_responses)
-            else:
-                # No handoffs needed (single character or synthesizer unavailable)
-                final_response_text = " ".join(r["text"] for r in character_responses)
-            
-            # Track multi-task completion event
-            if self.coordination_tracker and len(character_responses) > 1:
-                from models.coordination import CoordinationEvent
-                from datetime import datetime as dt
-                
-                multi_task_event = CoordinationEvent(
-                    event_type="multi_task",
-                    timestamp=dt.utcnow(),
-                    user_id=user_id,
-                    from_character=None,
-                    to_character=None,
-                    intent=intent_result.intent,
-                    template_used=None,
-                    success=True,
-                    metadata={
-                        "query": user_message,
-                        "task_count": len(character_responses),
-                        "characters": [r["character"] for r in character_responses]
-                    }
-                )
-                self.coordination_tracker.log_event(multi_task_event, user_id)
-            
-            # Add final assistant message to history
-            assistant_msg = Message(
-                role="assistant",
-                content=final_response_text,
-                timestamp=datetime.utcnow()
-            )
-            context.history.append(assistant_msg)
-            
-            # Save to persistent storage
-            self.memory_manager.add_conversation_message(user_id, assistant_msg, "assistant")
-            
-            # Manage history size
-            self._manage_history(context)
-            
-            # Build response metadata
-            metadata = {
+        """Assemble a multi-character response dict from a list of fragment dicts."""
+        full_text = " ".join(f["text"] for f in fragments if f.get("text"))
+        characters = [f["character"] for f in fragments]
+        return {
+            "text": full_text,
+            "metadata": {
                 "session_id": session_id,
                 "user_id": user_id,
-                "phase45": True,
-                "intent": intent_result.intent,
-                "intent_confidence": intent_result.confidence,
-                "character_count": len(character_responses),
-                "characters": [r["character"] for r in character_responses],
-                "execution_mode": character_plan.execution_mode,
-                "tool_calls": total_tool_calls,
-                "character_plan": {
-                    "tasks": [
-                        {
-                            "character": t.character,
-                            "task": t.task_description,
-                            "requires_handoff": t.requires_handoff
-                        }
-                        for t in character_plan.tasks
-                    ]
-                }
-            }
-            
-            # TODO Phase 4.5: TTS generation for multi-character responses
-            # For now, skip TTS in multi-character mode (requires audio queueing on frontend)
-            if self.tts_provider and input_mode == "voice":
-                logger.warning(
-                    "Phase 4.5: TTS for multi-character responses not yet implemented. Skipping audio generation."
-                )
-            
-            logger.info(
-                f"Phase 4.5: Multi-character response completed "
-                f"({len(character_responses)} characters, {total_tool_calls} total tool calls)"
-            )
-            
-            return {
-                "text": final_response_text,
-                "metadata": metadata
-            }
-            
-        except Exception as e:
-            logger.error(f"Phase 4.5 multi-character flow failed: {e}", exc_info=True)
-            # Fall back to error response
-            return {
-                "text": "I encountered an error coordinating the response. Please try again.",
-                "metadata": {
-                    "error": str(e),
-                    "session_id": session_id,
-                    "phase45_error": True
-                }
-            }
+                "phase51": True,
+                "characters": characters,
+                "fragments": fragments,
+                "character_count": len(fragments),
+            },
+        }
 
-    async def _execute_deferred_tasks(
+    async def _handle_phase51(
         self,
         session_id: str,
         user_id: str,
         user_message: str,
-        context: ConversationContext,
-        input_mode: str = "chat"
+        context,  # ConversationContext
+        input_mode: str = "chat",
     ) -> Dict[str, Any]:
         """
-        Execute deferred subtasks that were waiting for user confirmation.
+        Phase 5.1 orchestration path for ``handle_user_message``.
 
-        Called when the user affirms a preceding suggestion (e.g., "that looks good")
-        and there are pending deferred tasks stored in session metadata.  Produces a
-        two-fragment response: Delilah's handoff phrase (her voice) followed by Hank's
-        acknowledgement and list-management action (his voice).
+        Implements the TurnClassifier → ConversationRouter → CharacterExecutor
+        pipeline described in ARCHITECTURE.md.
 
-        The ``fragments`` key in the returned metadata provides per-character segment
-        information for the TTS layer to render each fragment in the correct voice.
-
-        Args:
-            session_id: Session identifier
-            user_id: User identifier
-            user_message: The user's affirmation message
-            context: Conversation context (contains deferred_tasks in metadata)
-            input_mode: Input mode (affects TTS generation)
-
-        Returns:
-            Response dict with ``text`` and ``metadata`` (including ``fragments``).
+        Falls back to a single-character Delilah response on any unhandled
+        exception so the conversation is never silently dropped.
         """
         try:
-            deferred = context.metadata.get("deferred_tasks", [])
-            if not deferred:
-                # Safety check — should not reach here if caller guards correctly
-                logger.warning("Phase 5: _execute_deferred_tasks called with no deferred tasks")
-                return {
-                    "text": "Sure thing!",
-                    "metadata": {"session_id": session_id, "deferred_executed": False}
-                }
+            chapter_id = self._get_chapter_for_user(user_id)
+            available_chars = get_available_characters(chapter_id)
+            history_snapshot = [
+                {"role": m.role, "content": m.content} for m in context.history
+            ]
 
-            logger.info(
-                f"Phase 5: Executing {len(deferred)} deferred task(s) after user affirmation"
-            )
+            # ── Step 1: Get current coordination state ──────────────────────
+            coord_state = self.state_manager.get_state(context)
 
-            # --- Step 1: Delilah's handoff phrase (in her voice) ---
-            handoff_phrase = ""
-            if self.dialogue_synthesizer:
-                handoff_phrase = self.dialogue_synthesizer.synthesize_handoff(
-                    from_character="delilah",
-                    to_character="hank",
-                    context=context,
-                    user_id=user_id,
-                    intent="household"
-                )
-            if not handoff_phrase:
-                handoff_phrase = "Hankie, darlin', would you be a dear and take care of that?"
-
-            # --- Step 2: Generate Hank's response for each deferred task ---
-            # For now we combine all deferred tasks into one Hank turn
-            combined_task_desc = "; ".join(t.get("task_description", "") for t in deferred)
-            hank_intent = deferred[0].get("intent", "household") if deferred else "household"
-
-            # Select Hank's voice mode
-            hank_voice_mode = "working"
-            voice_mode_selection = self.character_system.select_voice_mode(
-                "hank", combined_task_desc, context.metadata
-            )
-            if voice_mode_selection:
-                hank_voice_mode = voice_mode_selection.mode.name.lower()
-
-            # Build Hank's system prompt
-            hank_system_prompt = self._build_system_prompt(
-                context,
-                character_id="hank",
-                user_message=combined_task_desc
-            )
-
-            # Prepare messages for Hank (recent history + the deferred task as user turn)
-            hank_messages = [{"role": "system", "content": hank_system_prompt}]
-            for msg in context.history[-4:]:
-                hank_messages.append({"role": msg.role, "content": msg.content})
-            hank_messages.append({"role": "user", "content": combined_task_desc})
-
-            # Get tools
-            tools = self.tool_system.get_openai_functions() if self.tool_system.list_tools() else None
-
-            # Generate Hank's LLM response with tool call loop
-            llm_response = self.llm.generate_response(
-                messages=hank_messages,
-                temperature=0.7,
-                tools=tools
-            )
-
-            tool_call_count = 0
-            while llm_response.get("tool_calls") and tool_call_count < self.max_tool_calls:
-                tool_call_count += 1
+            # ── Step 2: Silently expire stale pending state ──────────────────
+            if (
+                coord_state.mode != CoordinationMode.IDLE
+                and self.state_manager.is_expired(coord_state)
+            ):
                 logger.info(
-                    f"Phase 5: Hank processing tool call {tool_call_count}/{self.max_tool_calls}"
+                    "Phase 5.1: Coordination state expired — clearing (session=%s)", session_id
+                )
+                self.state_manager.clear(context)
+                coord_state = self.state_manager.get_state(context)
+
+            # ── Step 3: Classify turn when something is pending ──────────────
+            turn_type = TurnType.NEW_REQUEST
+            if coord_state.mode != CoordinationMode.IDLE:
+                classification = self.turn_classifier.classify(
+                    user_message,
+                    history_snapshot[-4:],
+                    coord_state,
+                )
+                turn_type = classification.turn_type
+                logger.info(
+                    "Phase 5.1: TurnClassifier → %s (confidence=%.2f, session=%s)",
+                    turn_type,
+                    classification.confidence,
+                    session_id,
                 )
 
-                tool_results = []
-                for tool_call in llm_response["tool_calls"]:
-                    tool_name = tool_call["function"]["name"]
-                    try:
-                        arguments = json.loads(tool_call["function"]["arguments"])
-                    except json.JSONDecodeError:
-                        arguments = {}
-
-                    tool_context = ToolContext(
-                        user_id=user_id,
-                        session_id=session_id,
-                        character_id="hank",
-                        metadata=context.metadata
-                    )
-                    result = await self.tool_system.execute_tool(
-                        tool_name, tool_context, arguments
-                    )
-                    self.story_engine.on_tool_executed(user_id, tool_name)
-
-                    tool_results.append({
-                        "tool_call_id": tool_call["id"],
-                        "role": "tool",
-                        "name": tool_name,
-                        "content": result.message
-                    })
-
-                hank_messages.append({
-                    "role": "assistant",
-                    "content": llm_response.get("content") or "",
-                    "tool_calls": llm_response["tool_calls"]
-                })
-                for tr in tool_results:
-                    hank_messages.append(tr)
-
-                llm_response = self.llm.generate_response(
-                    messages=hank_messages,
-                    temperature=0.7,
-                    tools=tools
+            # ── Step 4: Execute pending character on AFFIRMATION ─────────────
+            if (
+                turn_type == TurnType.AFFIRMATION
+                and coord_state.mode == CoordinationMode.PROPOSING
+                and coord_state.pending_character
+            ):
+                logger.info(
+                    "Phase 5.1: AFFIRMATION — executing pending character '%s' (session=%s)",
+                    coord_state.pending_character,
+                    session_id,
+                )
+                self.state_manager.set_awaiting_action(
+                    context,
+                    pending_character=coord_state.pending_character,
+                    pending_task=coord_state.pending_task or "",
+                )
+                pending_followup = {
+                    "character": coord_state.pending_character,
+                    "task_summary": coord_state.pending_task or "",
+                    "items": [],
+                }
+                return await self._execute_secondary_and_assemble(
+                    session_id=session_id,
+                    user_id=user_id,
+                    user_message=user_message,
+                    context=context,
+                    primary_text=coord_state.proposed_summary or "",
+                    followup=pending_followup,
+                    input_mode=input_mode,
+                    history_snapshot=history_snapshot,
                 )
 
-            hank_text = llm_response.get("content", "") or "Aye, got it done, Cap'n."
+            # ── Step 5: Clear state on topic change or rejection ─────────────
+            if turn_type in (TurnType.REJECTION, TurnType.NEW_REQUEST):
+                if coord_state.mode != CoordinationMode.IDLE:
+                    logger.info(
+                        "Phase 5.1: %s — clearing pending state (session=%s)",
+                        turn_type,
+                        session_id,
+                    )
+                    self.state_manager.clear(context)
 
-            # --- Step 3: Assemble per-character fragments for TTS ---
+            # ── Step 6: Route to primary character ───────────────────────────
+            routing = self.conversation_router.route(
+                user_message=user_message,
+                recent_history=history_snapshot[-6:],
+                available_characters=available_chars,
+                chapter_id=chapter_id,
+            )
+            logger.info(
+                "Phase 5.1: Router → primary='%s', followup=%s, rationale=%r (session=%s)",
+                routing.primary_character,
+                routing.pending_followup.character if routing.pending_followup else None,
+                routing.rationale,
+                session_id,
+            )
+
+            # ── Step 7: Execute primary character ────────────────────────────
+            primary_response = await self.character_executor.execute(
+                character=routing.primary_character,
+                task_description=user_message,
+                context=context,
+                session_id=session_id,
+                user_id=user_id,
+            )
+
+            # ── Step 8: Determine if secondary execution is needed ────────────
+            handoff_signal = primary_response.handoff_signal  # from request_handoff tool
+            router_followup = routing.pending_followup
+
+            # Only execute the secondary immediately when the character explicitly
+            # called request_handoff.  A router pending_followup is stored as
+            # PROPOSING state so the user can confirm on the next turn.
+            if handoff_signal and handoff_signal.get("to_character") in available_chars:
+                followup: Optional[Dict[str, Any]] = {
+                    "character": handoff_signal.get("to_character", ""),
+                    "task_summary": handoff_signal.get("task_summary", ""),
+                    "items": handoff_signal.get("items") or [],
+                    "source": "handoff_tool",
+                }
+                # Execute secondary immediately — both characters respond this turn
+                return await self._execute_secondary_and_assemble(
+                    session_id=session_id,
+                    user_id=user_id,
+                    user_message=user_message,
+                    context=context,
+                    primary_text=primary_response.text,
+                    followup=followup,
+                    input_mode=input_mode,
+                    history_snapshot=history_snapshot,
+                    primary_fragment={
+                        "character": primary_response.character,
+                        "text": primary_response.text,
+                        "voice_mode": primary_response.voice_mode,
+                    },
+                )
+
+            # ── Step 9: Store pending followup from router for next turn ──────
+            if router_followup and router_followup.character in available_chars:
+                self.state_manager.set_proposing(
+                    context,
+                    pending_character=router_followup.character,
+                    pending_task=router_followup.task_summary,
+                    proposed_summary=primary_response.text[:self._MAX_CONTEXT_EXCERPT],
+                )
+                logger.info(
+                    "Phase 5.1: Stored pending followup → '%s' (session=%s)",
+                    router_followup.character,
+                    session_id,
+                )
+
+            # ── Step 10: Single-character response ───────────────────────────
+            response_text = primary_response.text
             fragments = [
                 {
-                    "character": "delilah",
-                    "text": handoff_phrase,
-                    "voice_mode": "warm_baseline"
-                },
-                {
-                    "character": "hank",
-                    "text": hank_text,
-                    "voice_mode": hank_voice_mode
+                    "character": primary_response.character,
+                    "text": response_text,
+                    "voice_mode": primary_response.voice_mode,
                 }
             ]
-            full_text = f"{handoff_phrase} {hank_text}"
 
-            # --- Step 4: Persist to history ---
+            # Persist to history
             assistant_msg = Message(
                 role="assistant",
-                content=full_text,
-                timestamp=datetime.utcnow()
+                content=response_text,
+                timestamp=datetime.utcnow(),
             )
             context.history.append(assistant_msg)
             self.memory_manager.add_conversation_message(user_id, assistant_msg, "assistant")
             self._manage_history(context)
 
-            # --- Step 5: Clear deferred task metadata ---
-            context.metadata.pop("deferred_tasks", None)
-            context.metadata.pop("deferred_tasks_expires_at", None)
-            context.metadata.pop("deferred_tasks_trigger_intent", None)
-
-            logger.info(
-                f"Phase 5: Deferred task execution complete "
-                f"({tool_call_count} tool call(s), {len(fragments)} fragments)"
-            )
-
-            # Track coordination event
-            if self.coordination_tracker:
-                from models.coordination import CoordinationEvent
-                from datetime import datetime as dt
-                self.coordination_tracker.log_event(
-                    CoordinationEvent(
-                        event_type="deferred_handoff",
-                        timestamp=dt.utcnow(),
-                        user_id=user_id,
-                        from_character="delilah",
-                        to_character="hank",
-                        intent=hank_intent,
-                        template_used=None,
-                        success=True,
-                        metadata={"trigger": user_message, "task_count": len(deferred)}
-                    ),
-                    user_id
-                )
-
-            return {
-                "text": full_text,
+            response = {
+                "text": response_text,
                 "metadata": {
                     "session_id": session_id,
                     "user_id": user_id,
-                    "deferred_executed": True,
+                    "phase51": True,
+                    "character": primary_response.character,
+                    "characters": [primary_response.character],
                     "fragments": fragments,
-                    "characters": ["delilah", "hank"],
-                    "tool_calls": tool_call_count,
-                    "phase5": True
-                }
+                    "tool_calls_made": primary_response.tool_calls_made,
+                    "voice_mode": primary_response.voice_mode,
+                },
             }
 
-        except Exception as e:
-            logger.error(f"Phase 5 deferred task execution failed: {e}", exc_info=True)
+            # TTS (voice input only)
+            if self.tts_provider and input_mode == "voice":
+                try:
+                    audio_path = self.tts_provider.generate_speech(
+                        text=response_text,
+                        character_id=primary_response.character,
+                        voice_mode=primary_response.voice_mode,
+                    )
+                    if audio_path:
+                        response["metadata"]["audio_url"] = f"/{audio_path}"
+                except Exception as tts_err:
+                    logger.error("Phase 5.1: TTS failed: %s", tts_err)
+
+            return response
+
+        except Exception as exc:
+            logger.error(
+                "Phase 5.1 orchestration failed: %s — falling back to single-character delilah",
+                exc,
+                exc_info=True,
+            )
             return {
-                "text": "I ran into a little trouble with that. Mind trying again, sugar?",
+                "text": "I'm sorry, I encountered an error. Please try again.",
                 "metadata": {
-                    "error": str(e),
+                    "error": str(exc),
                     "session_id": session_id,
-                    "phase5_error": True
-                }
+                    "phase51_error": True,
+                },
             }
+
+    async def _execute_secondary_and_assemble(
+        self,
+        session_id: str,
+        user_id: str,
+        user_message: str,
+        context,  # ConversationContext
+        primary_text: str,
+        followup: Dict[str, Any],
+        input_mode: str,
+        history_snapshot: List[Dict],
+        primary_fragment: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
+        """
+        Execute the secondary character and assemble the full two-character response.
+
+        ``primary_fragment`` is optional — if not provided (e.g., pending-affirmation
+        path), the response only contains the secondary character's fragment.
+        """
+        secondary_task = self._build_secondary_task(followup, primary_text)
+        secondary_char = followup["character"]
+
+        try:
+            secondary_response = await self.character_executor.execute(
+                character=secondary_char,
+                task_description=secondary_task,
+                context=context,
+                session_id=session_id,
+                user_id=user_id,
+            )
+        except Exception as sec_exc:
+            logger.error(
+                "Phase 5.1: Secondary character '%s' execution failed: %s",
+                secondary_char,
+                sec_exc,
+                exc_info=True,
+            )
+            # Return primary-only response rather than failing completely
+            secondary_response = None
+
+        # Clear coordination state — execution is done
+        self.state_manager.clear(context)
+
+        fragments = []
+        if primary_fragment:
+            fragments.append(primary_fragment)
+        if secondary_response:
+            fragments.append(
+                {
+                    "character": secondary_response.character,
+                    "text": secondary_response.text,
+                    "voice_mode": secondary_response.voice_mode,
+                }
+            )
+
+        full_text = " ".join(f["text"] for f in fragments if f.get("text"))
+
+        # Persist combined text to history
+        assistant_msg = Message(
+            role="assistant",
+            content=full_text,
+            timestamp=datetime.utcnow(),
+        )
+        context.history.append(assistant_msg)
+        self.memory_manager.add_conversation_message(user_id, assistant_msg, "assistant")
+        self._manage_history(context)
+
+        return {
+            "text": full_text,
+            "metadata": {
+                "session_id": session_id,
+                "user_id": user_id,
+                "phase51": True,
+                "characters": [f["character"] for f in fragments],
+                "fragments": fragments,
+                "character_count": len(fragments),
+            },
+        }
 
     async def handle_user_message(
         self,
@@ -919,384 +594,13 @@ class ConversationManager:
 
             logger.info(f"Processing user message in session {session_id}: {user_message[:50]}...")
 
-            # ----------------------------------------------------------------
-            # Phase 5: Deferred task expiry & affirmation trigger
-            # ----------------------------------------------------------------
-
-            # Silently evict any expired deferred tasks before doing anything else
-            expires_str = context.metadata.get("deferred_tasks_expires_at")
-            if expires_str:
-                try:
-                    expires_at = datetime.fromisoformat(expires_str)
-                    if datetime.utcnow() > expires_at:
-                        logger.info(
-                            "Phase 5: Deferred tasks expired — clearing silently"
-                        )
-                        context.metadata.pop("deferred_tasks", None)
-                        context.metadata.pop("deferred_tasks_expires_at", None)
-                        context.metadata.pop("deferred_tasks_trigger_intent", None)
-                except (ValueError, TypeError) as e:
-                    logger.warning(f"Phase 5: Could not parse deferred_tasks_expires_at: {e}")
-                    context.metadata.pop("deferred_tasks", None)
-                    context.metadata.pop("deferred_tasks_expires_at", None)
-                    context.metadata.pop("deferred_tasks_trigger_intent", None)
-
-            # If the user is affirming a previous suggestion, execute deferred tasks
-            if context.metadata.get("deferred_tasks") and is_affirmation(user_message):
-                logger.info(
-                    "Phase 5: Affirmation detected with pending deferred tasks — executing"
-                )
-                return await self._execute_deferred_tasks(
-                    session_id=session_id,
-                    user_id=user_id,
-                    user_message=user_message,
-                    context=context,
-                    input_mode=input_mode
-                )
-
-            # Phase 4.5: Intent detection and character planning (if enabled)
-            if self.enable_phase45 and self.intent_detector and self.character_planner:
-                try:
-                    # Detect intent
-                    intent_result = self.intent_detector.detect(user_message, context)
-                    logger.info(
-                        f"Phase 4.5: Intent detected '{intent_result.intent}' "
-                        f"(confidence: {intent_result.confidence:.2f}, "
-                        f"method: {intent_result.classification_method})"
-                    )
-                    
-                    # Create character plan
-                    character_plan = self.character_planner.create_plan(
-                        intent_result,
-                        context=context,
-                        user_id=user_id
-                    )
-                    logger.info(
-                        f"Phase 4.5: Character plan created with {len(character_plan.tasks)} task(s), "
-                        f"mode={character_plan.execution_mode}"
-                    )
-
-                    # Phase 5: Store any dependent (deferred) tasks in session metadata
-                    if character_plan.deferred_tasks:
-                        logger.info(
-                            f"Phase 5: Storing {len(character_plan.deferred_tasks)} deferred task(s) "
-                            f"with 20-minute expiry"
-                        )
-                        context.metadata["deferred_tasks"] = [
-                            dt.to_dict() for dt in character_plan.deferred_tasks
-                        ]
-                        context.metadata["deferred_tasks_expires_at"] = (
-                            datetime.utcnow() + timedelta(minutes=20)
-                        ).isoformat()
-                        context.metadata["deferred_tasks_trigger_intent"] = (
-                            character_plan.tasks[-1].intent if character_plan.tasks else "general"
-                        )
-                    
-                    # If multi-character coordination needed, use Phase 4.5 flow
-                    if len(character_plan.tasks) > 1 and any(task.requires_handoff for task in character_plan.tasks):
-                        logger.info("Phase 4.5: Multi-character coordination needed, using Phase 4.5 flow")
-                        return await self._handle_phase45_multi_character(
-                            session_id=session_id,
-                            user_id=user_id,
-                            user_message=user_message,
-                            context=context,
-                            character_plan=character_plan,
-                            intent_result=intent_result,
-                            input_mode=input_mode
-                        )
-                    else:
-                        # Single character: update default character if different
-                        if character_plan.tasks:
-                            assigned_character = character_plan.tasks[0].character
-                            if assigned_character != self.default_character:
-                                logger.info(
-                                    f"Phase 4.5: Single character assignment changed from "
-                                    f"'{self.default_character}' to '{assigned_character}'"
-                                )
-                                # Use the assigned character for this turn
-                                self.default_character = assigned_character
-                                
-                except Exception as e:
-                    # Phase 4.5 failure: log error and fall back to existing flow
-                    logger.error(
-                        f"Phase 4.5 coordination failed: {e}. Falling back to legacy flow.",
-                        exc_info=True
-                    )
-
-            # Select voice mode for this response (store for TTS later)
-            voice_mode = None
-            voice_mode_selection = self.character_system.select_voice_mode(
-                self.default_character, user_message, context.metadata
+            return await self._handle_phase51(
+                session_id=session_id,
+                user_id=user_id,
+                user_message=user_message,
+                context=context,
+                input_mode=input_mode,
             )
-            if voice_mode_selection:
-                voice_mode = voice_mode_selection.mode.name.lower()
-                logger.debug(f"Selected voice mode: {voice_mode}")
-
-            # Prepare messages for LLM (pass user_message for voice mode selection)
-            messages = self._prepare_messages(context, user_message=user_message)
-
-            # Get tool definitions
-            tools = self.tool_system.get_openai_functions() if self.tool_system.list_tools() else None
-
-            # Generate response from LLM (with tool calling if tools available)
-            llm_response = self.llm.generate_response(
-                messages=messages,
-                temperature=0.7,
-                tools=tools
-            )
-
-            # Handle tool calls if present
-            tool_call_count = 0
-            while llm_response.get("tool_calls") and tool_call_count < self.max_tool_calls:
-                tool_call_count += 1
-                logger.info(f"Processing tool call {tool_call_count}/{self.max_tool_calls}")
-
-                # Execute each tool call
-                tool_results = []
-                for tool_call in llm_response["tool_calls"]:
-                    tool_name = tool_call["function"]["name"]
-                    try:
-                        arguments = json.loads(tool_call["function"]["arguments"])
-                    except json.JSONDecodeError:
-                        arguments = {}
-
-                    # Create tool context
-                    tool_context = ToolContext(
-                        user_id=user_id,
-                        session_id=session_id,
-                        character_id=self.default_character,
-                        metadata=context.metadata
-                    )
-
-                    # Start timing
-                    start_time = time.time()
-                    call_id = f"call_{uuid.uuid4().hex[:12]}"
-                    timestamp = datetime.now()
-
-                    # Execute tool
-                    try:
-                        result = await self.tool_system.execute_tool(
-                            tool_name,
-                            tool_context,
-                            arguments
-                        )
-
-                        # Calculate duration
-                        duration_ms = int((time.time() - start_time) * 1000)
-
-                        # Determine status
-                        from tools.tool_base import ToolResultStatus
-                        status = ToolCallStatus.SUCCESS if result.status == ToolResultStatus.SUCCESS else ToolCallStatus.ERROR
-
-                        # Log the tool call if logger is available
-                        if self.tool_call_logger and OBSERVABILITY_AVAILABLE:
-                            try:
-                                log_entry = ToolCallLog(
-                                    call_id=call_id,
-                                    timestamp=timestamp,
-                                    duration_ms=duration_ms,
-                                    tool_name=tool_name,
-                                    character=self.default_character,
-                                    user_id=user_id,
-                                    request=arguments,
-                                    response=result.data or {"message": result.message},
-                                    status=status,
-                                    error_message=result.error if result.error else None,
-                                    session_id=session_id,
-                                )
-                                self.tool_call_logger.append_tool_call(log_entry)
-                                logger.info(f"✅ Logged tool call: {call_id} - {tool_name}")
-                            except Exception as log_error:
-                                logger.error(f"Failed to log tool call: {log_error}", exc_info=True)
-
-                    except Exception as e:
-                        # Calculate duration even on error
-                        duration_ms = int((time.time() - start_time) * 1000)
-
-                        # Log the failed tool call if logger is available
-                        if self.tool_call_logger and OBSERVABILITY_AVAILABLE:
-                            try:
-                                log_entry = ToolCallLog(
-                                    call_id=call_id,
-                                    timestamp=timestamp,
-                                    duration_ms=duration_ms,
-                                    tool_name=tool_name,
-                                    character=self.default_character,
-                                    user_id=user_id,
-                                    request=arguments,
-                                    response={"error": str(e)},
-                                    status=ToolCallStatus.ERROR,
-                                    error_message=str(e),
-                                    session_id=session_id,
-                                )
-                                self.tool_call_logger.append_tool_call(log_entry)
-                                logger.info(f"✅ Logged failed tool call: {call_id} - {tool_name}")
-                            except Exception as log_error:
-                                logger.error(f"Failed to log tool call error: {log_error}", exc_info=True)
-
-                        # Re-raise the exception
-                        raise
-
-                    # Notify Story Engine about tool execution
-                    self.story_engine.on_tool_executed(user_id, tool_name)
-
-                    # Store last tool used for story beat context
-                    context.metadata["last_tool_used"] = tool_name
-
-                    tool_results.append({
-                        "tool_call_id": tool_call["id"],
-                        "role": "tool",
-                        "name": tool_name,
-                        "content": result.message
-                    })
-
-                # Rebuild messages with assistant's tool call message + tool results
-                messages = self._prepare_messages(context, user_message=None)
-
-                # Add assistant message with tool_calls
-                messages.append({
-                    "role": "assistant",
-                    "content": llm_response.get("content") or "",
-                    "tool_calls": llm_response["tool_calls"]
-                })
-
-                # Add tool results
-                for tool_result in tool_results:
-                    messages.append(tool_result)
-
-                # Get next LLM response with tool results
-                llm_response = self.llm.generate_response(
-                    messages=messages,
-                    temperature=0.7,
-                    tools=tools
-                )
-
-            # Circuit breaker: if max tool calls reached
-            if tool_call_count >= self.max_tool_calls:
-                logger.warning(f"Hit tool call limit ({self.max_tool_calls}) for session {session_id}")
-
-            # Extract final response text
-            response_text = llm_response.get("content", "")
-
-            if not response_text:
-                # Handle case where there's no content
-                response_text = "I've completed the task."
-                logger.warning(f"No content in final LLM response for session {session_id}")
-
-            # Phase 5: Check for story beat injection
-            story_beat_injected = False
-            story_beat_info = None
-
-            # Emit event to Story Engine
-            self.story_engine.on_user_message(user_id)
-
-            # Check if we should inject a story beat
-            beat_context = {
-                "user_message": user_message,
-                "task_completed": tool_call_count > 0,
-                "tool_used": context.metadata.get("last_tool_used"),
-                "response_length": len(response_text)
-            }
-
-            beat_result = self.story_engine.should_inject_beat(user_id, beat_context)
-
-            if beat_result:
-                beat, stage, variant_type = beat_result
-                beat_content_result = self.story_engine.get_beat_content(beat, stage, variant_type)
-
-                if beat_content_result:
-                    beat_content, delivery_type = beat_content_result
-
-                    # Inject beat based on delivery type
-                    if delivery_type == "append":
-                        response_text = f"{response_text}\n\n{beat_content}"
-                    elif delivery_type == "replace":
-                        response_text = beat_content
-
-                    # Mark beat as delivered
-                    self.story_engine.mark_beat_stage_delivered(user_id, beat.id, stage)
-
-                    story_beat_injected = True
-                    story_beat_info = {
-                        "beat_id": beat.id,
-                        "stage": stage,
-                        "variant": variant_type,
-                        "delivery": delivery_type
-                    }
-
-                    logger.info(
-                        f"Injected story beat '{beat.id}' (stage {stage}, {variant_type}) "
-                        f"into response for session {session_id}"
-                    )
-
-            # Check for chapter progression
-            next_chapter = self.story_engine.check_chapter_progression(user_id)
-            if next_chapter:
-                logger.info(f"User {user_id} progressed to Chapter {next_chapter}")
-
-            # Add final assistant message to history (with story beat if injected)
-            assistant_msg = Message(
-                role="assistant",
-                content=response_text,
-                timestamp=datetime.utcnow()
-            )
-            context.history.append(assistant_msg)
-
-            # Save assistant message to persistent storage
-            self.memory_manager.add_conversation_message(user_id, assistant_msg, "assistant")
-
-            # Manage history size (in-memory context only)
-            self._manage_history(context)
-
-            # Build response
-            response = {
-                "text": response_text,
-                "metadata": {
-                    "session_id": session_id,
-                    "character": self.default_character,
-                    "tokens_used": llm_response["usage"]["total_tokens"],
-                    "response_time": llm_response["response_time"],
-                    "finish_reason": llm_response["finish_reason"],
-                    "tool_calls_made": tool_call_count,
-                    "story_beat_injected": story_beat_injected
-                }
-            }
-
-            if story_beat_info:
-                response["metadata"]["story_beat"] = story_beat_info
-
-            logger.info(
-                f"Generated response for session {session_id} "
-                f"(tokens: {llm_response['usage']['total_tokens']}, "
-                f"time: {llm_response['response_time']:.2f}s, "
-                f"tool_calls: {tool_call_count}, "
-                f"story_beat: {story_beat_injected})"
-            )
-
-            # Phase 6: Generate TTS audio (only for voice input mode)
-            if self.tts_provider and input_mode == "voice":
-                try:
-                    audio_path = self.tts_provider.generate_speech(
-                        text=response_text,
-                        character_id=self.default_character,
-                        voice_mode=voice_mode
-                    )
-
-                    if audio_path:
-                        response["metadata"]["audio_url"] = f"/{audio_path}"
-                        logger.info(f"Generated TTS audio: {audio_path}")
-                    else:
-                        logger.warning("TTS generation returned no audio path")
-
-                except Exception as e:
-                    logger.error(f"Error generating TTS: {str(e)}", exc_info=True)
-                    # Don't fail the request if TTS fails - just log and continue
-
-            # Store voice mode in metadata for potential manual TTS generation later
-            if voice_mode:
-                response["metadata"]["voice_mode"] = voice_mode
-
-            return response
 
         except Exception as e:
             logger.error(f"Error handling user message: {str(e)}", exc_info=True)
