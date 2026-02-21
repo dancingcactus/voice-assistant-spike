@@ -553,6 +553,111 @@ class ConversationManager:
             },
         }
 
+    # Keywords that suggest Hank should weigh in on task/list management
+    _COORDINATION_KEYWORDS = [
+        "shopping list", "grocery list", "to-do list", "todo list",
+        "task list", "checklist", "remind me", "don't forget",
+        "add to list", "make a list", "write down", "note that",
+        "pick up", "need to buy", "need to get", "grab some", "grab a"
+    ]
+
+    # Sentinel the LLM returns when it has nothing to add
+    _COORDINATION_SILENT = "SILENT"
+    async def _handle_character_coordination(
+        self,
+        context: ConversationContext,
+        user_message: str,
+        primary_response: str,
+        user_id: str,
+        session_id: str,
+        current_chapter: int
+    ) -> Optional[str]:
+        """
+        Generate a secondary character response when the task warrants coordination.
+
+        Called after the primary character (Delilah) responds to check whether a
+        second crew member should weigh in — for example, Hank stepping in to
+        acknowledge a shopping list or task management request.
+
+        Only activates in chapter 2 or later, when Hank has joined the crew.
+
+        Args:
+            context: Current conversation context
+            user_message: The user's original message
+            primary_response: The primary character's response text
+            user_id: User identifier
+            session_id: Session identifier
+            current_chapter: The user's current story chapter
+
+        Returns:
+            Secondary character's response text, or None if coordination is not needed
+        """
+        # Coordination only available in chapter 2+ (Hank must be unlocked)
+        if current_chapter < 2:
+            return None
+
+        secondary_character_id = "hank"
+        if secondary_character_id not in self.character_system.characters:
+            return None
+
+        # Check whether the user message signals a coordination need.
+        # We only scan the user message — NOT Delilah's response — to avoid
+        # triggering Hank every time Delilah herself mentions "shopping list".
+        user_lower = user_message.lower()
+        if not any(kw in user_lower for kw in self._COORDINATION_KEYWORDS):
+            return None
+
+        logger.info(
+            f"Coordination triggered for session {session_id}: "
+            f"secondary character '{secondary_character_id}'"
+        )
+
+        # Build a focused prompt for the secondary character
+        crew_context = self.character_system.build_crew_context(secondary_character_id)
+        secondary_system_prompt = self.character_system.build_system_prompt(
+            secondary_character_id,
+            crew_context=crew_context
+        )
+
+        # Include the full exchange so Hank has the context he needs.
+        # The prompt is deliberately restrictive: Hank should only speak if
+        # he has a specific task-management or list-tracking contribution.
+        # If he has nothing concrete to add, he should say nothing at all.
+        secondary_messages = [
+            {"role": "system", "content": secondary_system_prompt},
+            {"role": "user", "content": user_message},
+            {"role": "assistant", "content": primary_response},
+            {
+                "role": "user",
+                "content": (
+                    "Hank, if the user is specifically asking you to track a list, "
+                    "manage tasks, or set a reminder, give one brief acknowledgment in "
+                    "your voice (one or two sentences at most). "
+                    "If Delilah has already fully covered it or there is nothing "
+                    f"concrete for you to add, stay silent and reply with only the word: {self._COORDINATION_SILENT}"
+                )
+            }
+        ]
+
+        try:
+            secondary_response = self.llm.generate_response(
+                messages=secondary_messages,
+                temperature=0.7
+            )
+            content = secondary_response.get("content", "").strip()
+            # Hank signals he has nothing to add with the sentinel word
+            if content and content.upper() != self._COORDINATION_SILENT:
+                logger.info(
+                    f"Secondary character '{secondary_character_id}' responded "
+                    f"({secondary_response['usage']['total_tokens']} tokens)"
+                )
+                return content
+            logger.debug(f"Secondary character '{secondary_character_id}' chose to stay silent")
+        except Exception as e:
+            logger.warning(f"Secondary character coordination failed: {e}")
+
+        return None
+
     async def handle_user_message(
         self,
         session_id: str,
@@ -594,12 +699,281 @@ class ConversationManager:
 
             logger.info(f"Processing user message in session {session_id}: {user_message[:50]}...")
 
-            return await self._handle_phase51(
-                session_id=session_id,
-                user_id=user_id,
-                user_message=user_message,
+            # Select voice mode for this response (store for TTS later)
+            voice_mode = None
+            voice_mode_selection = self.character_system.select_voice_mode(
+                self.default_character, user_message, context.metadata
+            )
+            if voice_mode_selection:
+                voice_mode = voice_mode_selection.mode.name.lower()
+                logger.debug(f"Selected voice mode: {voice_mode}")
+
+            # Prepare messages for LLM (pass user_message for voice mode selection)
+            messages = self._prepare_messages(context, user_message=user_message)
+
+            # Get tool definitions
+            tools = self.tool_system.get_openai_functions() if self.tool_system.list_tools() else None
+
+            # Generate response from LLM (with tool calling if tools available)
+            llm_response = self.llm.generate_response(
+                messages=messages,
+                temperature=0.7,
+                tools=tools
+            )
+
+            # Handle tool calls if present
+            tool_call_count = 0
+            while llm_response.get("tool_calls") and tool_call_count < self.max_tool_calls:
+                tool_call_count += 1
+                logger.info(f"Processing tool call {tool_call_count}/{self.max_tool_calls}")
+
+                # Execute each tool call
+                tool_results = []
+                for tool_call in llm_response["tool_calls"]:
+                    tool_name = tool_call["function"]["name"]
+                    try:
+                        arguments = json.loads(tool_call["function"]["arguments"])
+                    except json.JSONDecodeError:
+                        arguments = {}
+
+                    # Create tool context
+                    tool_context = ToolContext(
+                        user_id=user_id,
+                        session_id=session_id,
+                        character_id=self.default_character,
+                        metadata=context.metadata
+                    )
+
+                    # Start timing
+                    start_time = time.time()
+                    call_id = f"call_{uuid.uuid4().hex[:12]}"
+                    timestamp = datetime.now()
+
+                    # Execute tool
+                    try:
+                        result = await self.tool_system.execute_tool(
+                            tool_name,
+                            tool_context,
+                            arguments
+                        )
+
+                        # Calculate duration
+                        duration_ms = int((time.time() - start_time) * 1000)
+
+                        # Determine status
+                        from tools.tool_base import ToolResultStatus
+                        status = ToolCallStatus.SUCCESS if result.status == ToolResultStatus.SUCCESS else ToolCallStatus.ERROR
+
+                        # Log the tool call if logger is available
+                        if self.tool_call_logger and OBSERVABILITY_AVAILABLE:
+                            try:
+                                log_entry = ToolCallLog(
+                                    call_id=call_id,
+                                    timestamp=timestamp,
+                                    duration_ms=duration_ms,
+                                    tool_name=tool_name,
+                                    character=self.default_character,
+                                    user_id=user_id,
+                                    request=arguments,
+                                    response=result.data or {"message": result.message},
+                                    status=status,
+                                    error_message=result.error if result.error else None,
+                                    session_id=session_id,
+                                )
+                                self.tool_call_logger.append_tool_call(log_entry)
+                                logger.info(f"✅ Logged tool call: {call_id} - {tool_name}")
+                            except Exception as log_error:
+                                logger.error(f"Failed to log tool call: {log_error}", exc_info=True)
+
+                    except Exception as e:
+                        # Calculate duration even on error
+                        duration_ms = int((time.time() - start_time) * 1000)
+
+                        # Log the failed tool call if logger is available
+                        if self.tool_call_logger and OBSERVABILITY_AVAILABLE:
+                            try:
+                                log_entry = ToolCallLog(
+                                    call_id=call_id,
+                                    timestamp=timestamp,
+                                    duration_ms=duration_ms,
+                                    tool_name=tool_name,
+                                    character=self.default_character,
+                                    user_id=user_id,
+                                    request=arguments,
+                                    response={"error": str(e)},
+                                    status=ToolCallStatus.ERROR,
+                                    error_message=str(e),
+                                    session_id=session_id,
+                                )
+                                self.tool_call_logger.append_tool_call(log_entry)
+                                logger.info(f"✅ Logged failed tool call: {call_id} - {tool_name}")
+                            except Exception as log_error:
+                                logger.error(f"Failed to log tool call error: {log_error}", exc_info=True)
+
+                        # Re-raise the exception
+                        raise
+
+                    # Notify Story Engine about tool execution
+                    self.story_engine.on_tool_executed(user_id, tool_name)
+
+                    # Store last tool used for story beat context
+                    context.metadata["last_tool_used"] = tool_name
+
+                    tool_results.append({
+                        "tool_call_id": tool_call["id"],
+                        "role": "tool",
+                        "name": tool_name,
+                        "content": result.message
+                    })
+
+                # Rebuild messages with assistant's tool call message + tool results
+                messages = self._prepare_messages(context, user_message=None)
+
+                # Add assistant message with tool_calls
+                messages.append({
+                    "role": "assistant",
+                    "content": llm_response.get("content") or "",
+                    "tool_calls": llm_response["tool_calls"]
+                })
+
+                # Add tool results
+                for tool_result in tool_results:
+                    messages.append(tool_result)
+
+                # Get next LLM response with tool results
+                llm_response = self.llm.generate_response(
+                    messages=messages,
+                    temperature=0.7,
+                    tools=tools
+                )
+
+            # Circuit breaker: if max tool calls reached
+            if tool_call_count >= self.max_tool_calls:
+                logger.warning(f"Hit tool call limit ({self.max_tool_calls}) for session {session_id}")
+
+            # Extract final response text
+            response_text = llm_response.get("content", "")
+
+            if not response_text:
+                # Handle case where there's no content
+                response_text = "I've completed the task."
+                logger.warning(f"No content in final LLM response for session {session_id}")
+
+            # Retrieve current story chapter for context
+            user_story_state = self.story_engine.get_or_create_user_state(user_id)
+            current_chapter = user_story_state.current_chapter
+
+            # Character coordination: invite a secondary character to weigh in when relevant
+            coordination_response = await self._handle_character_coordination(
                 context=context,
-                input_mode=input_mode,
+                user_message=user_message,
+                primary_response=response_text,
+                user_id=user_id,
+                session_id=session_id,
+                current_chapter=current_chapter
+            )
+            # Do NOT append coordination_response to response_text here.
+            # The websocket layer sends it as a separate message so the
+            # frontend can display it under a different character header.
+
+            # Phase 5: Check for story beat injection
+            story_beat_injected = False
+            story_beat_info = None
+
+            # Emit event to Story Engine
+            self.story_engine.on_user_message(user_id)
+
+            # Check if we should inject a story beat
+            beat_context = {
+                "user_message": user_message,
+                "task_completed": tool_call_count > 0,
+                "tool_used": context.metadata.get("last_tool_used"),
+                "response_length": len(response_text),
+                "chapter_id": current_chapter
+            }
+
+            beat_result = self.story_engine.should_inject_beat(user_id, beat_context)
+
+            if beat_result:
+                beat, stage, variant_type = beat_result
+                beat_content_result = self.story_engine.get_beat_content(beat, stage, variant_type)
+
+                if beat_content_result:
+                    beat_content, delivery_type = beat_content_result
+
+                    # Inject beat based on delivery type
+                    if delivery_type == "append":
+                        response_text = f"{response_text}\n\n{beat_content}"
+                    elif delivery_type == "replace":
+                        response_text = beat_content
+
+                    # Mark beat as delivered
+                    self.story_engine.mark_beat_stage_delivered(user_id, beat.id, stage)
+
+                    story_beat_injected = True
+                    story_beat_info = {
+                        "beat_id": beat.id,
+                        "stage": stage,
+                        "variant": variant_type,
+                        "delivery": delivery_type
+                    }
+
+                    logger.info(
+                        f"Injected story beat '{beat.id}' (stage {stage}, {variant_type}) "
+                        f"into response for session {session_id}"
+                    )
+
+            # Check for chapter progression
+            next_chapter = self.story_engine.check_chapter_progression(user_id)
+            if next_chapter:
+                logger.info(f"User {user_id} progressed to Chapter {next_chapter}")
+
+            # Add final assistant message to history (with story beat if injected)
+            assistant_msg = Message(
+                role="assistant",
+                content=response_text,
+                timestamp=datetime.utcnow()
+            )
+            context.history.append(assistant_msg)
+
+            # Save assistant message to persistent storage
+            self.memory_manager.add_conversation_message(user_id, assistant_msg, "assistant")
+
+            # Manage history size (in-memory context only)
+            self._manage_history(context)
+
+            # Build response
+            response = {
+                "text": response_text,
+                "metadata": {
+                    "session_id": session_id,
+                    "tokens_used": llm_response["usage"]["total_tokens"],
+                    "response_time": llm_response["response_time"],
+                    "finish_reason": llm_response["finish_reason"],
+                    "tool_calls_made": tool_call_count,
+                    "story_beat_injected": story_beat_injected,
+                    "current_chapter": current_chapter,
+                    "coordination_active": coordination_response is not None
+                }
+            }
+
+            # Expose the secondary character's response so the websocket layer
+            # can send it as a distinct message (separate character bubble).
+            if coordination_response:
+                response["coordination"] = {
+                    "character": "hank",
+                    "text": coordination_response
+                }
+
+            if story_beat_info:
+                response["metadata"]["story_beat"] = story_beat_info
+
+            logger.info(
+                f"Generated response for session {session_id} "
+                f"(tokens: {llm_response['usage']['total_tokens']}, "
+                f"time: {llm_response['response_time']:.2f}s, "
+                f"tool_calls: {tool_call_count}, "
+                f"story_beat: {story_beat_injected})"
             )
 
         except Exception as e:

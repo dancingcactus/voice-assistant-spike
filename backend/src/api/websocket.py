@@ -158,52 +158,39 @@ async def websocket_endpoint(websocket: WebSocket):
 
                     # Build assistant response
                     metadata = result.get("metadata", {})
-                    fragments = metadata.get("fragments", [])
+                    response = AssistantResponse(
+                        text=result["text"],
+                        audio_url=metadata.get("audio_url"),
+                        character="delilah",
+                        metadata=metadata
+                    )
 
-                    if fragments:
-                        # Phase 5.1 multi-character: send each fragment as a separate message
-                        for fragment in fragments:
-                            frag_metadata = {
-                                "session_id": metadata.get("session_id"),
-                                "character": fragment["character"],
-                                "voice_mode": fragment.get("voice_mode"),
-                            }
-                            frag_response = AssistantResponse(
-                                text=fragment["text"],
-                                audio_url=fragment.get("audio_url"),
-                                character=fragment["character"],
-                                metadata=frag_metadata
-                            )
-                            await manager.send_message(
-                                session_id,
-                                WebSocketMessage(
-                                    type="assistant_response",
-                                    data=frag_response.model_dump(mode='json')
-                                )
-                            )
-                            logger.info(
-                                f"📤 Sent {fragment['character']} fragment to {session_id}: "
-                                f"{fragment['text'][:50]}..."
-                            )
-                    else:
-                        # Single-character response
-                        character_id = metadata.get("character", "delilah")
-                        response = AssistantResponse(
-                            text=result["text"],
-                            audio_url=metadata.get("audio_url"),
-                            character=character_id,
-                            metadata=metadata
+                    # Send primary (Delilah) response
+                    await manager.send_message(
+                        session_id,
+                        WebSocketMessage(
+                            type="assistant_response",
+                            data=response.model_dump(mode='json')
+                        )
+
+                    # Send secondary character response as a separate message if present
+                    coordination = result.get("coordination")
+                    if coordination:
+                        secondary_response = AssistantResponse(
+                            text=coordination["text"],
+                            character=coordination["character"],
+                            metadata={}
                         )
                         await manager.send_message(
                             session_id,
                             WebSocketMessage(
                                 type="assistant_response",
-                                data=response.model_dump(mode='json')
+                                data=secondary_response.model_dump(mode='json')
                             )
                         )
                         logger.info(
-                            f"📤 Sent to {session_id}: {response.text[:50]}... "
-                            f"(tokens: {result['metadata'].get('tokens_used', 0)})"
+                            f"📤 Sent coordination from {coordination['character']} "
+                            f"to {session_id}: {coordination['text'][:50]}..."
                         )
 
             except json.JSONDecodeError:

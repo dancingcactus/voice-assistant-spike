@@ -126,6 +126,40 @@
     }
   },
   "available_tools": ["set_timer", "save_memory", "control_device"],
+  "tool_instructions": {
+    "save_memory": {
+      "general_guidance": "Save important information users share about themselves, their tasks, and preferences. Hank keeps the ship's log accurate.",
+      "when_to_use": [
+        "User shares task preferences or recurring routines",
+        "User mentions household facts relevant to future tasks",
+        "User corrects previously stored information"
+      ],
+      "when_NOT_to_use": [
+        "One-time tasks (e.g., 'turn off the lights')",
+        "Information already saved",
+        "Temporary states with no lasting relevance"
+      ],
+      "examples": [
+        {
+          "user_says": "We always do grocery runs on Saturday mornings",
+          "action": "Call save_memory once",
+          "calls": [
+            {
+              "category": "preference",
+              "content": "Grocery run on Saturday mornings",
+              "importance": 5
+            }
+          ]
+        }
+      ],
+      "importance_guidelines": {
+        "10": "Critical safety or household information",
+        "7": "Regular routines and important schedules",
+        "5": "Recurring preferences and habits",
+        "3": "Casual mentions worth logging"
+      }
+    }
+  },
   "capabilities": [
     "Task and checklist management",
     "Basic smart home control assistance",
