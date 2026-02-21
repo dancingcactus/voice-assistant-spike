@@ -375,6 +375,17 @@ export interface CharacterStatistics {
   average_response_length: number;
 }
 
+export interface LogEntry {
+  timestamp: string;
+  level: string;
+  logger: string;
+  message: string;
+}
+
+export interface LogsResponse {
+  logs: LogEntry[];
+}
+
 class ApiClient {
   private baseUrl: string;
   private authToken: string;
@@ -637,6 +648,13 @@ class ApiClient {
     return this.request<{ tool_instructions: Record<string, any> }>(
       `/characters/${characterId}/tool-instructions?${params.toString()}`
     );
+  }
+
+  // Logs endpoint
+  async getLogs(limit: number = 200, level?: string): Promise<LogsResponse> {
+    const params = new URLSearchParams({ limit: limit.toString() });
+    if (level) params.append('level', level);
+    return this.request<LogsResponse>(`/logs?${params.toString()}`);
   }
 }
 

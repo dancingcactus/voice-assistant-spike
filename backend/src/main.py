@@ -97,6 +97,11 @@ if os.getenv("ENABLE_TEST_API", "false").lower() == "true":
     app.include_router(test_router)
     print("✅ Test API enabled")
 
+# Install observability log handler so system logs are captured
+from observability.log_handler import install as _install_log_handler
+_install_log_handler()
+print("✅ Observability log handler installed")
+
 # Startup event to initialize memory manager periodic flush
 @app.on_event("startup")
 async def startup_event():
