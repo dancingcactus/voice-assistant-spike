@@ -638,6 +638,27 @@ class ApiClient {
       `/characters/${characterId}/tool-instructions?${params.toString()}`
     );
   }
+
+  // Lists endpoints
+  async getLists(userId: string): Promise<any> {
+    return this.request<any>(`/lists/users/${userId}`);
+  }
+
+  async getList(userId: string, listName: string, includeCompleted: boolean = false): Promise<any> {
+    const params = new URLSearchParams();
+    if (includeCompleted) params.append('include_completed', 'true');
+    return this.request<any>(`/lists/users/${userId}/${encodeURIComponent(listName)}?${params.toString()}`);
+  }
+
+  // Timers endpoints
+  async getTimersStatus(): Promise<any> {
+    return this.request<any>('/timers/status');
+  }
+
+  // Devices endpoints
+  async getDevicesStatus(): Promise<any> {
+    return this.request<any>('/devices/status');
+  }
 }
 
 export const apiClient = new ApiClient();

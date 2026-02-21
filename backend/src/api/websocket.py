@@ -19,6 +19,7 @@ from integrations.tts_integration import create_tts_provider
 from tools.timer_tool import TimerTool
 from tools.device_tool import DeviceTool
 from tools.memory_tool import MemoryTool
+from tools.list_tool import ListTool
 import os
 
 logger = logging.getLogger(__name__)
@@ -35,6 +36,7 @@ tool_system = ToolSystem()
 tool_system.register_tool(TimerTool())
 tool_system.register_tool(DeviceTool())
 tool_system.register_tool(MemoryTool())
+tool_system.register_tool(ListTool(data_dir=str(data_dir)))
 
 logger.info(f"Registered tools: {tool_system.list_tools()}")
 
