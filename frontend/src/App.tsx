@@ -220,7 +220,10 @@ function App() {
             <select
               id="user-select"
               value={selectedUserId}
-              onChange={(e) => setSelectedUserId(e.target.value)}
+              onChange={(e) => {
+                setSelectedUserId(e.target.value);
+                setMessages([]);
+              }}
               className="user-select"
             >
               {users.map((user) => (
