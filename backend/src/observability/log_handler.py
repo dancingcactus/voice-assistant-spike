@@ -7,7 +7,7 @@ Captures recent log records and exposes them via the /logs API endpoint.
 import logging
 from collections import deque
 from datetime import datetime, timezone
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Deque
 
 
 # Maximum number of log entries to keep in memory
@@ -19,7 +19,7 @@ class ObservabilityLogHandler(logging.Handler):
 
     def __init__(self, maxlen: int = MAX_LOG_ENTRIES):
         super().__init__()
-        self._records: deque = deque(maxlen=maxlen)
+        self._records: Deque[Dict[str, Any]] = deque(maxlen=maxlen)
 
     def emit(self, record: logging.LogRecord) -> None:
         try:

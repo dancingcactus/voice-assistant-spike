@@ -90,7 +90,7 @@ export function SystemLogTool() {
           <div className="log-status">No log entries yet. Activity will appear here automatically.</div>
         )}
         {logs.map((entry, idx) => (
-          <div key={idx} className={`log-line ${LEVEL_CLASS[entry.level] ?? ''}`}>
+          <div key={`${entry.timestamp}-${entry.logger}-${idx}`} className={`log-line ${LEVEL_CLASS[entry.level] ?? ''}`}>
             <span className="log-time">{formatTime(entry.timestamp)}</span>
             <span className={`log-level-badge ${LEVEL_CLASS[entry.level] ?? ''}`}>{entry.level}</span>
             <span className="log-logger">{entry.logger}</span>
