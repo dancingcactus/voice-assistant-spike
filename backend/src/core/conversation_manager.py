@@ -315,7 +315,8 @@ class ConversationManager:
     def _prepare_messages(
         self,
         context: ConversationContext,
-        user_message: Optional[str] = None
+        user_message: Optional[str] = None,
+        character_id: Optional[str] = None
     ) -> List[Dict[str, str]]:
         """
         Prepare messages for the LLM API call.
@@ -323,6 +324,8 @@ class ConversationManager:
         Args:
             context: Conversation context
             user_message: Latest user message for voice mode selection
+            character_id: Override character for this turn only (does not mutate
+                          instance state). Defaults to self.default_character.
 
         Returns:
             List of message dicts in OpenAI format
@@ -330,7 +333,9 @@ class ConversationManager:
         messages = []
 
         # Add system prompt (with voice mode selection based on user message)
-        system_prompt = self._build_system_prompt(context, user_message=user_message)
+        system_prompt = self._build_system_prompt(
+            context, character_id=character_id, user_message=user_message
+        )
         messages.append({
             "role": "system",
             "content": system_prompt
@@ -1005,17 +1010,18 @@ class ConversationManager:
                             input_mode=input_mode
                         )
                     else:
-                        # Single character: update default character if different
+                        # Single character: record the assigned character for this turn
+                        # WITHOUT permanently mutating self.default_character (which is
+                        # shared across all turns on this ConversationManager instance).
                         if character_plan.tasks:
-                            assigned_character = character_plan.tasks[0].character
-                            if assigned_character != self.default_character:
+                            _turn_character = character_plan.tasks[0].character
+                            if _turn_character != self.default_character:
                                 logger.info(
-                                    f"Phase 4.5: Single character assignment changed from "
-                                    f"'{self.default_character}' to '{assigned_character}'"
+                                    f"Phase 4.5: Single character for this turn: "
+                                    f"'{_turn_character}' (default remains '{self.default_character}')"
                                 )
-                                # Use the assigned character for this turn
-                                self.default_character = assigned_character
-                                
+                            context.metadata["_phase45_turn_character"] = _turn_character
+
                 except Exception as e:
                     # Phase 4.5 failure: log error and fall back to existing flow
                     logger.error(
@@ -1023,17 +1029,23 @@ class ConversationManager:
                         exc_info=True
                     )
 
+            # Resolve the character to use for this turn. Phase 4.5 may have stored
+            # a turn-specific assignment in context metadata; fall back to the instance default.
+            turn_character = context.metadata.pop("_phase45_turn_character", self.default_character)
+
             # Select voice mode for this response (store for TTS later)
             voice_mode = None
             voice_mode_selection = self.character_system.select_voice_mode(
-                self.default_character, user_message, context.metadata
+                turn_character, user_message, context.metadata
             )
             if voice_mode_selection:
                 voice_mode = voice_mode_selection.mode.name.lower()
                 logger.debug(f"Selected voice mode: {voice_mode}")
 
             # Prepare messages for LLM (pass user_message for voice mode selection)
-            messages = self._prepare_messages(context, user_message=user_message)
+            messages = self._prepare_messages(
+                context, user_message=user_message, character_id=turn_character
+            )
 
             # Get tool definitions
             tools = self.tool_system.get_openai_functions() if self.tool_system.list_tools() else None
