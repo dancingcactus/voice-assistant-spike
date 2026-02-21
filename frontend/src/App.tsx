@@ -16,6 +16,7 @@ function App() {
   const [selectedUserId, setSelectedUserId] = useState<string>('user_justin');
   const [users, setUsers] = useState<UserSummary[]>([]);
   const [autoAdvanceBeats, setAutoAdvanceBeats] = useState<AutoAdvanceNotification[]>([]);
+  const [copyStatus, setCopyStatus] = useState<'idle' | 'copied' | 'error'>('idle');
   const wsRef = useRef<WebSocketService | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -166,6 +167,23 @@ function App() {
     }
   };
 
+  const copyConversation = async () => {
+    const text = messages
+      .map((message) => {
+        const role = message.role === 'user' ? 'User' : (message.character || 'Delilah');
+        return `${role}: ${message.content}`;
+      })
+      .join('\n');
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopyStatus('copied');
+    } catch {
+      setCopyStatus('error');
+    } finally {
+      setTimeout(() => setCopyStatus('idle'), 2000);
+    }
+  };
+
   const getStatusColor = () => {
     switch (connectionStatus) {
       case 'connected':
@@ -213,6 +231,14 @@ function App() {
               ))}
             </select>
           </div>
+          <button
+            className={`btn-copy-conversation${copyStatus !== 'idle' ? ` btn-copy-${copyStatus}` : ''}`}
+            onClick={copyConversation}
+            disabled={messages.length === 0}
+            title="Copy conversation to clipboard"
+          >
+            {copyStatus === 'copied' ? '✓ Copied!' : copyStatus === 'error' ? '✗ Failed' : 'Copy Conversation'}
+          </button>
           <div className="status-bar">
             <div
               className="status-indicator"
