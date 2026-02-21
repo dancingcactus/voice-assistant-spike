@@ -169,6 +169,103 @@ class ConversationManager:
 
         return self.conversations[session_id]
 
+    def _build_system_prompt(
+        self,
+        context: ConversationContext,
+        character_id: Optional[str] = None,
+        user_message: Optional[str] = None
+    ) -> str:
+        """
+        Build the system prompt for the LLM using Character System.
+
+        Args:
+            context: Conversation context
+            character_id: Character to use (defaults to default_character)
+            user_message: Latest user message for voice mode selection
+
+        Returns:
+            System prompt string
+        """
+        char_id = character_id or self.default_character
+
+        # Load user memories
+        from observability.memory_access import MemoryAccessor
+        memory_accessor = MemoryAccessor(str(Path(__file__).parent.parent.parent / "data"))
+        memories = memory_accessor.get_all_memories(context.user_id)
+
+        # Group memories by category
+        memory_context = {
+            "dietary_restrictions": [],
+            "preferences": [],
+            "facts": [],
+            "relationships": [],
+            "events": []
+        }
+
+        for memory in memories:
+            if memory.category == "dietary_restriction":
+                memory_context["dietary_restrictions"].append(memory)
+            elif memory.category == "preference":
+                memory_context["preferences"].append(memory)
+            elif memory.category == "fact":
+                memory_context["facts"].append(memory)
+            elif memory.category == "relationship":
+                memory_context["relationships"].append(memory)
+            elif memory.category == "event":
+                memory_context["events"].append(memory)
+
+        # If we have a user message, select the appropriate voice mode
+        if user_message:
+            voice_mode_selection = self.character_system.select_voice_mode(
+                char_id, user_message, context.metadata
+            )
+
+            if voice_mode_selection:
+                logger.debug(
+                    f"Selected voice mode: {voice_mode_selection.mode.name} "
+                    f"(confidence: {voice_mode_selection.confidence:.2f}) - "
+                    f"{voice_mode_selection.reasoning}"
+                )
+                return self.character_system.build_system_prompt(
+                    char_id, voice_mode_selection.mode, memory_context=memory_context
+                )
+
+        # Fallback to character prompt without specific voice mode
+        return self.character_system.build_system_prompt(char_id, memory_context=memory_context)
+
+    def _prepare_messages(
+        self,
+        context: ConversationContext,
+        user_message: Optional[str] = None
+    ) -> List[Dict[str, str]]:
+        """
+        Prepare messages for the LLM API call.
+
+        Args:
+            context: Conversation context
+            user_message: Latest user message for voice mode selection
+
+        Returns:
+            List of message dicts in OpenAI format
+        """
+        messages = []
+
+        # Add system prompt (with voice mode selection based on user message)
+        system_prompt = self._build_system_prompt(context, user_message=user_message)
+        messages.append({
+            "role": "system",
+            "content": system_prompt
+        })
+
+        # Add conversation history
+        for msg in context.history:
+            messages.append({
+                "role": msg.role,
+                "content": msg.content
+            })
+
+        return messages
+
     def _manage_history(self, context: ConversationContext):
         """
         Manage conversation history to prevent it from growing too large.
@@ -975,6 +1072,8 @@ class ConversationManager:
                 f"tool_calls: {tool_call_count}, "
                 f"story_beat: {story_beat_injected})"
             )
+
+            return response
 
         except Exception as e:
             logger.error(f"Error handling user message: {str(e)}", exc_info=True)

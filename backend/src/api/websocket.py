@@ -172,6 +172,7 @@ async def websocket_endpoint(websocket: WebSocket):
                             type="assistant_response",
                             data=response.model_dump(mode='json')
                         )
+                    )
 
                     # Send secondary character response as a separate message if present
                     coordination = result.get("coordination")
