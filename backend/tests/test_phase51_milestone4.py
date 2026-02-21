@@ -2,10 +2,10 @@
 Tests for Phase 5.1 Milestone 4: Full Wiring & End-to-End Validation.
 
 Covers:
-- ConversationManager.__init__: enable_phase51 flag, Phase 5.1 dep injection
-- Feature flag: enable_phase51=False falls back to legacy path
+- ConversationManager.__init__: Phase 5.1 dep injection (no feature flags)
+- Router is always called (single code path)
 - _handle_phase51 execution path via handle_user_message:
-  - US1: single-message multi-task → two character fragments
+  - US1: request_handoff tool call → two character fragments same turn
   - US2: two-turn confirm → pending state + secondary execution on affirmation
   - US3: direct follow-on ("add to my list") → hank responds, not delilah
   - US4: topic change → pending state cleared, no leaked action
@@ -110,7 +110,6 @@ def _make_cm(
     classifier=None,
     state_manager=None,
     memory_manager=None,
-    enable_phase51=True,
 ):
     """Build a ConversationManager with all Phase 5.1 deps injected as mocks."""
     llm = _make_llm()
@@ -135,8 +134,6 @@ def _make_cm(
         turn_classifier=classifier or _make_classifier(),
         conversation_router=router or _make_router(),
         character_executor=executor or _make_executor(),
-        enable_phase51=enable_phase51,
-        enable_phase45=False,  # keep legacy path quiet
     )
     return cm
 
@@ -147,14 +144,6 @@ def _make_cm(
 
 
 class TestConversationManagerInit:
-    def test_enable_phase51_defaults_true(self):
-        cm = _make_cm()
-        assert cm.enable_phase51 is True
-
-    def test_enable_phase51_can_be_false(self):
-        cm = _make_cm(enable_phase51=False)
-        assert cm.enable_phase51 is False
-
     def test_state_manager_injected(self):
         sm = ConversationStateManager()
         cm = _make_cm(state_manager=sm)
@@ -175,42 +164,24 @@ class TestConversationManagerInit:
         cm = _make_cm(executor=exe)
         assert cm.character_executor is exe
 
+    def test_no_legacy_flags(self):
+        """enable_phase51 and enable_phase45 flags no longer exist."""
+        cm = _make_cm()
+        assert not hasattr(cm, "enable_phase51")
+        assert not hasattr(cm, "enable_phase45")
+
 
 # ===========================================================================
-# Feature flag: enable_phase51=False uses legacy path
+# Router is always called
 # ===========================================================================
 
 
-class TestFeatureFlag:
+class TestRouterAlwaysCalled:
     @pytest.mark.asyncio
-    async def test_enable_phase51_false_does_not_call_router(self):
-        """When flag is False, the new router must NOT be called."""
+    async def test_router_called_on_every_message(self):
+        """The router is always called — there is no feature flag bypass."""
         router = _make_router()
-        cm = _make_cm(router=router, enable_phase51=False)
-        # Legacy path will fall through to single-character LLM call
-        # We stub the LLM to return a response with required keys
-        cm.llm.generate_response.return_value = {
-            "content": "Legacy response",
-            "tool_calls": None,
-            "usage": {"total_tokens": 10},
-            "response_time": 0.01,
-            "finish_reason": "stop",
-        }
-        with patch.object(cm.story_engine, "should_inject_beat", return_value=None), \
-             patch.object(cm.story_engine, "check_chapter_progression", return_value=None), \
-             patch("observability.memory_access.MemoryAccessor") as mock_ma:
-            mock_ma.return_value.get_all_memories.return_value = []
-            result = await cm.handle_user_message(
-                session_id="s1", user_message="hello", user_id="u1"
-            )
-        router.route.assert_not_called()
-        assert result["text"] == "Legacy response"
-
-    @pytest.mark.asyncio
-    async def test_enable_phase51_true_calls_router(self):
-        """When flag is True, the router IS called."""
-        router = _make_router()
-        cm = _make_cm(router=router, enable_phase51=True)
+        cm = _make_cm(router=router)
         result = await cm.handle_user_message(
             session_id="s1", user_message="hello", user_id="u1"
         )
@@ -647,7 +618,7 @@ class TestSecondaryFailureFallback:
 class TestPhase51Metadata:
     @pytest.mark.asyncio
     async def test_metadata_phase51_true_when_enabled(self):
-        cm = _make_cm(enable_phase51=True)
+        cm = _make_cm()
         result = await cm.handle_user_message(
             session_id="s1", user_message="hello", user_id="u1"
         )
@@ -655,7 +626,7 @@ class TestPhase51Metadata:
 
     @pytest.mark.asyncio
     async def test_metadata_has_characters_list(self):
-        cm = _make_cm(enable_phase51=True)
+        cm = _make_cm()
         result = await cm.handle_user_message(
             session_id="s1", user_message="hello", user_id="u1"
         )
@@ -665,7 +636,7 @@ class TestPhase51Metadata:
 
     @pytest.mark.asyncio
     async def test_metadata_has_fragments(self):
-        cm = _make_cm(enable_phase51=True)
+        cm = _make_cm()
         result = await cm.handle_user_message(
             session_id="s1", user_message="hello", user_id="u1"
         )

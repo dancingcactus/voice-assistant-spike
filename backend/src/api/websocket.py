@@ -96,7 +96,6 @@ conversation_manager = ConversationManager(
     story_engine=story_engine,
     tts_provider=tts_provider,
     memory_manager=memory_manager,
-    enable_phase51=True,
 )
 
 
