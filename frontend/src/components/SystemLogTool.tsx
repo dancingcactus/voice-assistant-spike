@@ -3,7 +3,7 @@
  * Displays a running log of system activity captured from the backend.
  */
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { apiClient, type LogEntry } from '../services/api';
 import './SystemLogTool.css';
@@ -18,6 +18,32 @@ const LEVEL_CLASS: Record<string, string> = {
   ERROR: 'log-error',
   CRITICAL: 'log-critical',
 };
+
+const ERROR_LEVELS = new Set(['ERROR', 'CRITICAL']);
+
+function CopyButton({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = useCallback(() => {
+    navigator.clipboard.writeText(text).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }).catch(() => {
+      // Fallback: no visual feedback if clipboard access is denied
+    });
+  }, [text]);
+
+  return (
+    <button
+      className={`log-copy-btn${copied ? ' log-copy-btn--copied' : ''}`}
+      onClick={handleCopy}
+      title="Copy error message"
+      aria-label="Copy error message"
+    >
+      {copied ? '✓' : '⎘'}
+    </button>
+  );
+}
 
 export function SystemLogTool() {
   const [levelFilter, setLevelFilter] = useState<string>('');
@@ -50,6 +76,10 @@ export function SystemLogTool() {
     } catch {
       return isoTimestamp;
     }
+  }
+
+  function copyText(entry: LogEntry): string {
+    return `[${formatTime(entry.timestamp)}] ${entry.level} ${entry.logger} - ${entry.message}`;
   }
 
   return (
@@ -95,6 +125,9 @@ export function SystemLogTool() {
             <span className={`log-level-badge ${LEVEL_CLASS[entry.level] ?? ''}`}>{entry.level}</span>
             <span className="log-logger">{entry.logger}</span>
             <span className="log-message">{entry.message}</span>
+            {ERROR_LEVELS.has(entry.level) && (
+              <CopyButton text={copyText(entry)} />
+            )}
           </div>
         ))}
         <div ref={bottomRef} />

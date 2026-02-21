@@ -175,3 +175,34 @@
 .log-warning .log-message {
   color: #f0a500;
 }
+
+/* Copy button — only visible on row hover */
+.log-copy-btn {
+  flex-shrink: 0;
+  margin-left: auto;
+  padding: 0.1rem 0.4rem;
+  background: transparent;
+  border: 1px solid #444;
+  border-radius: 3px;
+  color: #666;
+  font-size: 0.75rem;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s, color 0.15s, border-color 0.15s;
+  line-height: 1.4;
+}
+
+.log-line:hover .log-copy-btn {
+  opacity: 1;
+}
+
+.log-copy-btn:hover {
+  color: #e57373;
+  border-color: #e57373;
+}
+
+.log-line .log-copy-btn--copied {
+  color: #66bb6a;
+  border-color: #66bb6a;
+  opacity: 1;
+}
