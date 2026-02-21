@@ -26,10 +26,14 @@ class SubTask:
         text: The text of the sub-task
         intent: The intent category for this sub-task
         confidence: Confidence score (0.0 to 1.0) for this classification
+        is_dependent: Whether this task requires the output of the preceding task to execute
+            meaningfully. When True, the task is deferred until the user confirms the
+            preceding task's result (e.g., a shopping list task depends on a meal being chosen).
     """
     text: str
     intent: IntentCategory
     confidence: float
+    is_dependent: bool = False
 
     def __post_init__(self):
         """Validate confidence is in valid range."""
@@ -78,7 +82,8 @@ class IntentResult:
                 {
                     "text": st.text,
                     "intent": st.intent,
-                    "confidence": st.confidence
+                    "confidence": st.confidence,
+                    "is_dependent": st.is_dependent
                 }
                 for st in self.sub_tasks
             ]

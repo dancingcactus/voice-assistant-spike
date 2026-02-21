@@ -15,6 +15,7 @@ from models.intent import IntentResult, SubTask
 from models.character_plan import (
     CharacterTask,
     CharacterPlan,
+    DeferredTask,
     ExecutionMode,
     PlanLog,
     CharacterName
@@ -222,6 +223,7 @@ class CharacterPlanner:
             return self._create_single_task_plan(intent_result, chapter_id, available_characters)
         
         tasks: List[CharacterTask] = []
+        deferred_tasks: List[DeferredTask] = []
         prev_character: Optional[CharacterName] = None
         total_confidence = 0.0
         total_duration = 0
@@ -244,6 +246,19 @@ class CharacterPlanner:
             
             # Cast to CharacterName type for type safety
             character: CharacterName = character_name  # type: ignore
+            
+            # Dependent tasks are deferred until the user confirms the preceding result
+            if sub_task.is_dependent:
+                logger.info(
+                    f"Sub-task {i} is dependent — deferring to deferred_tasks list: '{sub_task.text}'"
+                )
+                deferred_tasks.append(DeferredTask(
+                    character=character,
+                    task_description=sub_task.text,
+                    intent=sub_task.intent
+                ))
+                # Don't update prev_character — dependents are invisible to the handoff chain
+                continue
             
             # Determine if handoff is needed
             requires_handoff = (i > 0 and prev_character is not None and 
@@ -269,6 +284,11 @@ class CharacterPlanner:
             total_duration += task.estimated_duration_ms
             prev_character = character
         
+        # If all tasks were deferred, fall back to single-task plan
+        if not tasks:
+            logger.warning("All sub-tasks were dependent — treating as single task")
+            return self._create_single_task_plan(intent_result, chapter_id, available_characters)
+        
         # Calculate average confidence
         avg_confidence = total_confidence / len(tasks) if tasks else 0.0
         
@@ -290,9 +310,11 @@ class CharacterPlanner:
             execution_mode=execution_mode,
             total_confidence=avg_confidence,
             estimated_total_duration_ms=total_duration,
+            deferred_tasks=deferred_tasks,
             metadata={
                 "intent": "multi_task",
                 "sub_task_count": len(tasks),
+                "deferred_task_count": len(deferred_tasks),
                 "unique_characters": list(unique_characters),
                 "handoff_count": handoff_count,
                 "classification_method": intent_result.classification_method

@@ -31,6 +31,7 @@ from core.intent_detector import IntentDetector
 from core.character_planner import CharacterPlanner
 from core.dialogue_synthesizer import DialogueSynthesizer
 from core.coordination_tracker import CoordinationTracker
+from core.utils import is_affirmation
 
 logger = logging.getLogger(__name__)
 
@@ -240,12 +241,62 @@ class ConversationManager:
                     f"(confidence: {voice_mode_selection.confidence:.2f}) - "
                     f"{voice_mode_selection.reasoning}"
                 )
-                return self.character_system.build_system_prompt(
+                prompt = self.character_system.build_system_prompt(
                     char_id, voice_mode_selection.mode, memory_context=memory_context
                 )
+                return self._inject_deferred_task_hint(prompt, char_id, context)
 
         # Fallback to character prompt without specific voice mode
-        return self.character_system.build_system_prompt(char_id, memory_context=memory_context)
+        prompt = self.character_system.build_system_prompt(char_id, memory_context=memory_context)
+        return self._inject_deferred_task_hint(prompt, char_id, context)
+
+    def _inject_deferred_task_hint(
+        self,
+        prompt: str,
+        char_id: str,
+        context: ConversationContext
+    ) -> str:
+        """
+        Append a deferred-task follow-up hint to Delilah's system prompt when there
+        are pending deferred tasks that are still within their expiry window.
+
+        This shapes Delilah's response so she naturally invites Hank to handle the
+        logistics once the user approves her suggestion — without calling tool
+        functions herself.
+
+        Args:
+            prompt: The already-built system prompt string.
+            char_id: The character being prompted.
+            context: Current conversation context.
+
+        Returns:
+            The prompt, optionally extended with the deferred-task note.
+        """
+        if char_id != "delilah":
+            return prompt
+
+        deferred = context.metadata.get("deferred_tasks")
+        if not deferred:
+            return prompt
+
+        # Check expiry
+        expires_str = context.metadata.get("deferred_tasks_expires_at")
+        if expires_str:
+            try:
+                if datetime.fromisoformat(expires_str) < datetime.utcnow():
+                    return prompt  # Expired — don't inject
+            except (ValueError, TypeError):
+                return prompt
+
+        deferred_hint = (
+            "\n\n## Pending Follow-up Action\n"
+            "Once the user confirms or approves your suggestion, naturally and briefly invite "
+            "Hank to handle the follow-up logistics. Keep it short and in character — for example:\n"
+            "\"Hankie, darlin', would you be a dear and add those to the list?\"\n"
+            "Do NOT use a list tool yourself for this purpose; Hank will handle the logistics."
+        )
+        logger.debug("Phase 5: Injecting deferred task hint into Delilah's system prompt")
+        return prompt + deferred_hint
 
     def _manage_history(self, context: ConversationContext):
         """
@@ -608,6 +659,225 @@ class ConversationManager:
                 }
             }
 
+    async def _execute_deferred_tasks(
+        self,
+        session_id: str,
+        user_id: str,
+        user_message: str,
+        context: ConversationContext,
+        input_mode: str = "chat"
+    ) -> Dict[str, Any]:
+        """
+        Execute deferred subtasks that were waiting for user confirmation.
+
+        Called when the user affirms a preceding suggestion (e.g., "that looks good")
+        and there are pending deferred tasks stored in session metadata.  Produces a
+        two-fragment response: Delilah's handoff phrase (her voice) followed by Hank's
+        acknowledgement and list-management action (his voice).
+
+        The ``fragments`` key in the returned metadata provides per-character segment
+        information for the TTS layer to render each fragment in the correct voice.
+
+        Args:
+            session_id: Session identifier
+            user_id: User identifier
+            user_message: The user's affirmation message
+            context: Conversation context (contains deferred_tasks in metadata)
+            input_mode: Input mode (affects TTS generation)
+
+        Returns:
+            Response dict with ``text`` and ``metadata`` (including ``fragments``).
+        """
+        try:
+            deferred = context.metadata.get("deferred_tasks", [])
+            if not deferred:
+                # Safety check — should not reach here if caller guards correctly
+                logger.warning("Phase 5: _execute_deferred_tasks called with no deferred tasks")
+                return {
+                    "text": "Sure thing!",
+                    "metadata": {"session_id": session_id, "deferred_executed": False}
+                }
+
+            logger.info(
+                f"Phase 5: Executing {len(deferred)} deferred task(s) after user affirmation"
+            )
+
+            # --- Step 1: Delilah's handoff phrase (in her voice) ---
+            handoff_phrase = ""
+            if self.dialogue_synthesizer:
+                handoff_phrase = self.dialogue_synthesizer.synthesize_handoff(
+                    from_character="delilah",
+                    to_character="hank",
+                    context=context,
+                    user_id=user_id,
+                    intent="household"
+                )
+            if not handoff_phrase:
+                handoff_phrase = "Hankie, darlin', would you be a dear and take care of that?"
+
+            # --- Step 2: Generate Hank's response for each deferred task ---
+            # For now we combine all deferred tasks into one Hank turn
+            combined_task_desc = "; ".join(t.get("task_description", "") for t in deferred)
+            hank_intent = deferred[0].get("intent", "household") if deferred else "household"
+
+            # Select Hank's voice mode
+            hank_voice_mode = "working"
+            voice_mode_selection = self.character_system.select_voice_mode(
+                "hank", combined_task_desc, context.metadata
+            )
+            if voice_mode_selection:
+                hank_voice_mode = voice_mode_selection.mode.name.lower()
+
+            # Build Hank's system prompt
+            hank_system_prompt = self._build_system_prompt(
+                context,
+                character_id="hank",
+                user_message=combined_task_desc
+            )
+
+            # Prepare messages for Hank (recent history + the deferred task as user turn)
+            hank_messages = [{"role": "system", "content": hank_system_prompt}]
+            for msg in context.history[-4:]:
+                hank_messages.append({"role": msg.role, "content": msg.content})
+            hank_messages.append({"role": "user", "content": combined_task_desc})
+
+            # Get tools
+            tools = self.tool_system.get_openai_functions() if self.tool_system.list_tools() else None
+
+            # Generate Hank's LLM response with tool call loop
+            llm_response = self.llm.generate_response(
+                messages=hank_messages,
+                temperature=0.7,
+                tools=tools
+            )
+
+            tool_call_count = 0
+            while llm_response.get("tool_calls") and tool_call_count < self.max_tool_calls:
+                tool_call_count += 1
+                logger.info(
+                    f"Phase 5: Hank processing tool call {tool_call_count}/{self.max_tool_calls}"
+                )
+
+                tool_results = []
+                for tool_call in llm_response["tool_calls"]:
+                    tool_name = tool_call["function"]["name"]
+                    try:
+                        arguments = json.loads(tool_call["function"]["arguments"])
+                    except json.JSONDecodeError:
+                        arguments = {}
+
+                    tool_context = ToolContext(
+                        user_id=user_id,
+                        session_id=session_id,
+                        character_id="hank",
+                        metadata=context.metadata
+                    )
+                    result = await self.tool_system.execute_tool(
+                        tool_name, tool_context, arguments
+                    )
+                    self.story_engine.on_tool_executed(user_id, tool_name)
+
+                    tool_results.append({
+                        "tool_call_id": tool_call["id"],
+                        "role": "tool",
+                        "name": tool_name,
+                        "content": result.message
+                    })
+
+                hank_messages.append({
+                    "role": "assistant",
+                    "content": llm_response.get("content") or "",
+                    "tool_calls": llm_response["tool_calls"]
+                })
+                for tr in tool_results:
+                    hank_messages.append(tr)
+
+                llm_response = self.llm.generate_response(
+                    messages=hank_messages,
+                    temperature=0.7,
+                    tools=tools
+                )
+
+            hank_text = llm_response.get("content", "") or "Aye, got it done, Cap'n."
+
+            # --- Step 3: Assemble per-character fragments for TTS ---
+            fragments = [
+                {
+                    "character": "delilah",
+                    "text": handoff_phrase,
+                    "voice_mode": "warm_baseline"
+                },
+                {
+                    "character": "hank",
+                    "text": hank_text,
+                    "voice_mode": hank_voice_mode
+                }
+            ]
+            full_text = f"{handoff_phrase} {hank_text}"
+
+            # --- Step 4: Persist to history ---
+            assistant_msg = Message(
+                role="assistant",
+                content=full_text,
+                timestamp=datetime.utcnow()
+            )
+            context.history.append(assistant_msg)
+            self.memory_manager.add_conversation_message(user_id, assistant_msg, "assistant")
+            self._manage_history(context)
+
+            # --- Step 5: Clear deferred task metadata ---
+            context.metadata.pop("deferred_tasks", None)
+            context.metadata.pop("deferred_tasks_expires_at", None)
+            context.metadata.pop("deferred_tasks_trigger_intent", None)
+
+            logger.info(
+                f"Phase 5: Deferred task execution complete "
+                f"({tool_call_count} tool call(s), {len(fragments)} fragments)"
+            )
+
+            # Track coordination event
+            if self.coordination_tracker:
+                from models.coordination import CoordinationEvent
+                from datetime import datetime as dt
+                self.coordination_tracker.log_event(
+                    CoordinationEvent(
+                        event_type="deferred_handoff",
+                        timestamp=dt.utcnow(),
+                        user_id=user_id,
+                        from_character="delilah",
+                        to_character="hank",
+                        intent=hank_intent,
+                        template_used=None,
+                        success=True,
+                        metadata={"trigger": user_message, "task_count": len(deferred)}
+                    ),
+                    user_id
+                )
+
+            return {
+                "text": full_text,
+                "metadata": {
+                    "session_id": session_id,
+                    "user_id": user_id,
+                    "deferred_executed": True,
+                    "fragments": fragments,
+                    "characters": ["delilah", "hank"],
+                    "tool_calls": tool_call_count,
+                    "phase5": True
+                }
+            }
+
+        except Exception as e:
+            logger.error(f"Phase 5 deferred task execution failed: {e}", exc_info=True)
+            return {
+                "text": "I ran into a little trouble with that. Mind trying again, sugar?",
+                "metadata": {
+                    "error": str(e),
+                    "session_id": session_id,
+                    "phase5_error": True
+                }
+            }
+
     async def handle_user_message(
         self,
         session_id: str,
@@ -649,6 +919,41 @@ class ConversationManager:
 
             logger.info(f"Processing user message in session {session_id}: {user_message[:50]}...")
 
+            # ----------------------------------------------------------------
+            # Phase 5: Deferred task expiry & affirmation trigger
+            # ----------------------------------------------------------------
+
+            # Silently evict any expired deferred tasks before doing anything else
+            expires_str = context.metadata.get("deferred_tasks_expires_at")
+            if expires_str:
+                try:
+                    expires_at = datetime.fromisoformat(expires_str)
+                    if datetime.utcnow() > expires_at:
+                        logger.info(
+                            "Phase 5: Deferred tasks expired — clearing silently"
+                        )
+                        context.metadata.pop("deferred_tasks", None)
+                        context.metadata.pop("deferred_tasks_expires_at", None)
+                        context.metadata.pop("deferred_tasks_trigger_intent", None)
+                except (ValueError, TypeError) as e:
+                    logger.warning(f"Phase 5: Could not parse deferred_tasks_expires_at: {e}")
+                    context.metadata.pop("deferred_tasks", None)
+                    context.metadata.pop("deferred_tasks_expires_at", None)
+                    context.metadata.pop("deferred_tasks_trigger_intent", None)
+
+            # If the user is affirming a previous suggestion, execute deferred tasks
+            if context.metadata.get("deferred_tasks") and is_affirmation(user_message):
+                logger.info(
+                    "Phase 5: Affirmation detected with pending deferred tasks — executing"
+                )
+                return await self._execute_deferred_tasks(
+                    session_id=session_id,
+                    user_id=user_id,
+                    user_message=user_message,
+                    context=context,
+                    input_mode=input_mode
+                )
+
             # Phase 4.5: Intent detection and character planning (if enabled)
             if self.enable_phase45 and self.intent_detector and self.character_planner:
                 try:
@@ -670,6 +975,22 @@ class ConversationManager:
                         f"Phase 4.5: Character plan created with {len(character_plan.tasks)} task(s), "
                         f"mode={character_plan.execution_mode}"
                     )
+
+                    # Phase 5: Store any dependent (deferred) tasks in session metadata
+                    if character_plan.deferred_tasks:
+                        logger.info(
+                            f"Phase 5: Storing {len(character_plan.deferred_tasks)} deferred task(s) "
+                            f"with 20-minute expiry"
+                        )
+                        context.metadata["deferred_tasks"] = [
+                            dt.to_dict() for dt in character_plan.deferred_tasks
+                        ]
+                        context.metadata["deferred_tasks_expires_at"] = (
+                            datetime.utcnow() + timedelta(minutes=20)
+                        ).isoformat()
+                        context.metadata["deferred_tasks_trigger_intent"] = (
+                            character_plan.tasks[-1].intent if character_plan.tasks else "general"
+                        )
                     
                     # If multi-character coordination needed, use Phase 4.5 flow
                     if len(character_plan.tasks) > 1 and any(task.requires_handoff for task in character_plan.tasks):

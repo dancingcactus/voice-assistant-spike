@@ -302,11 +302,16 @@ For each sub-task, determine:
 - text: the task description
 - intent: category (cooking, household, smart_home, or general)
 - confidence: how confident you are (0.0 to 1.0)
+- is_dependent: true if this task cannot execute meaningfully until the preceding task produces
+  output that the user has confirmed (e.g., "create a shopping list for that dinner" depends on
+  the user first choosing a dinner; "add those items to my list" depends on a suggestion being
+  made). Set to false if the task can run immediately with no prerequisite.
 
 Respond with ONLY a JSON array of tasks:
 [
-  {"text": "set a timer for 30 minutes", "intent": "cooking", "confidence": 0.9},
-  {"text": "add milk to shopping list", "intent": "household", "confidence": 0.95}
+  {"text": "set a timer for 30 minutes", "intent": "cooking", "confidence": 0.9, "is_dependent": false},
+  {"text": "add milk to shopping list", "intent": "household", "confidence": 0.95, "is_dependent": false},
+  {"text": "create shopping list for that dinner", "intent": "household", "confidence": 0.9, "is_dependent": true}
 ]"""
 
         messages = [
@@ -317,7 +322,7 @@ Respond with ONLY a JSON array of tasks:
         response = self.llm.generate_response(
             messages=messages,
             temperature=0.1,
-            max_tokens=200
+            max_tokens=300
         )
         
         # Parse JSON response
@@ -336,6 +341,7 @@ Respond with ONLY a JSON array of tasks:
                 text = task_data.get("text", "").strip()
                 intent = task_data.get("intent", "general")
                 confidence = float(task_data.get("confidence", 0.5))
+                is_dependent = bool(task_data.get("is_dependent", False))
                 
                 # Validate
                 if not text:
@@ -347,7 +353,8 @@ Respond with ONLY a JSON array of tasks:
                 sub_tasks.append(SubTask(
                     text=text,
                     intent=intent,
-                    confidence=confidence
+                    confidence=confidence,
+                    is_dependent=is_dependent
                 ))
             
             return sub_tasks

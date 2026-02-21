@@ -30,6 +30,33 @@ CharacterName = Literal["delilah", "hank", "rex", "dimitria"]
 
 
 @dataclass
+class DeferredTask:
+    """
+    A task that cannot execute until a preceding task produces output.
+
+    Deferred tasks are stored in ConversationContext.metadata and executed
+    once the user confirms or approves the preceding task's result via an
+    affirmation (e.g., "that looks good", "sounds great").
+
+    Attributes:
+        character: The character assigned to execute this deferred task
+        task_description: Human-readable description of the deferred task
+        intent: The intent category for this task
+    """
+    character: CharacterName
+    task_description: str
+    intent: str
+
+    def to_dict(self) -> dict:
+        """Convert to dictionary for JSON serialization."""
+        return {
+            "character": self.character,
+            "task_description": self.task_description,
+            "intent": self.intent
+        }
+
+
+@dataclass
 class CharacterTask:
     """
     Represents a single task assigned to a character.
@@ -86,16 +113,19 @@ class CharacterPlan:
     Complete execution plan for handling a user query with character assignments.
     
     Attributes:
-        tasks: List of character tasks to execute
+        tasks: List of character tasks to execute immediately
         execution_mode: How the plan should be executed (single/sequential/parallel)
         total_confidence: Overall confidence in this plan (weighted average of task confidence)
         estimated_total_duration_ms: Total estimated time to complete all tasks
+        deferred_tasks: Tasks that depend on the current tasks' output and should be executed
+            after the user confirms. Stored in session metadata with a 20-minute expiry.
         metadata: Additional information about the plan
     """
     tasks: List[CharacterTask]
     execution_mode: ExecutionMode
     total_confidence: float
     estimated_total_duration_ms: int
+    deferred_tasks: List[DeferredTask] = field(default_factory=list)
     metadata: dict = field(default_factory=dict)
 
     def __post_init__(self):
@@ -135,6 +165,7 @@ class CharacterPlan:
             "execution_mode": self.execution_mode.value,
             "total_confidence": self.total_confidence,
             "estimated_total_duration_ms": self.estimated_total_duration_ms,
+            "deferred_tasks": [dt.to_dict() for dt in self.deferred_tasks],
             "metadata": self.metadata
         }
 
