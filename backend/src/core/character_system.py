@@ -126,7 +126,8 @@ class CharacterSystem:
         self,
         character_id: str,
         voice_mode: Optional[VoiceMode] = None,
-        memory_context: Optional[Dict[str, List[Memory]]] = None
+        memory_context: Optional[Dict[str, List[Memory]]] = None,
+        crew_context: Optional[str] = None
     ) -> str:
         """
         Build a comprehensive system prompt for the character.
@@ -135,6 +136,7 @@ class CharacterSystem:
             character_id: ID of the character
             voice_mode: Specific voice mode to use (optional)
             memory_context: Dict of memory lists grouped by category (optional)
+            crew_context: Description of other available crew members (optional)
 
         Returns:
             System prompt string for the LLM
@@ -303,6 +305,17 @@ class CharacterSystem:
         for capability in character.capabilities:
             prompt_parts.append(f"- {capability}")
 
+        # Add available tools
+        if character.available_tools:
+            prompt_parts.append("\n\n## Available Tools")
+            prompt_parts.append("You have access to the following tools:")
+            for tool_name in character.available_tools:
+                prompt_parts.append(f"- {tool_name}")
+
+        # Add crew context (other characters available in this chapter)
+        if crew_context:
+            prompt_parts.append(f"\n\n## Your Crew\n{crew_context}")
+
         # Add response guidelines
         prompt_parts.append("\n\n## Response Guidelines")
         prompt_parts.append(
@@ -322,6 +335,34 @@ class CharacterSystem:
         )
 
         return "\n".join(prompt_parts)
+
+    def build_crew_context(self, active_character_id: str) -> Optional[str]:
+        """
+        Build a description of other crew members available to coordinate with.
+
+        Args:
+            active_character_id: The character currently responding (excluded from context)
+
+        Returns:
+            A string describing other crew members, or None if no others are loaded
+        """
+        other_characters = [
+            char for char_id, char in self.characters.items()
+            if char_id != active_character_id
+        ]
+
+        if not other_characters:
+            return None
+
+        lines = ["You work alongside the following crew members:"]
+        for char in other_characters:
+            relationship_note = ""
+            if char.relationships and active_character_id in char.relationships:
+                rel = char.relationships[active_character_id]
+                relationship_note = f" ({rel.interaction_style})"
+            lines.append(f"- **{char.name}** ({char.role}){relationship_note}")
+
+        return "\n".join(lines)
 
     def list_characters(self) -> Dict[str, str]:
         """Get a dict of character IDs to names."""

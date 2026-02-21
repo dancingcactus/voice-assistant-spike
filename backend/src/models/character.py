@@ -54,6 +54,7 @@ class Character(BaseModel):
     context_awareness: Optional[ContextAwareness] = Field(default=None)
     tool_instructions: Optional[Dict[str, Dict[str, Any]]] = Field(default=None, description="Instructions for using tools")
     story_arc: Optional[StoryArc] = Field(default=None)
+    available_tools: Optional[List[str]] = Field(default=None, description="Tool names this character can use")
     capabilities: List[str] = Field(..., min_items=1)
     relationships: Optional[Dict[str, CharacterRelationship]] = Field(default=None)
 

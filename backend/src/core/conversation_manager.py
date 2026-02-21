@@ -201,12 +201,17 @@ class ConversationManager:
                     f"(confidence: {voice_mode_selection.confidence:.2f}) - "
                     f"{voice_mode_selection.reasoning}"
                 )
+                crew_context = self.character_system.build_crew_context(char_id)
                 return self.character_system.build_system_prompt(
-                    char_id, voice_mode_selection.mode, memory_context=memory_context
+                    char_id, voice_mode_selection.mode,
+                    memory_context=memory_context, crew_context=crew_context
                 )
 
         # Fallback to character prompt without specific voice mode
-        return self.character_system.build_system_prompt(char_id, memory_context=memory_context)
+        crew_context = self.character_system.build_crew_context(char_id)
+        return self.character_system.build_system_prompt(
+            char_id, memory_context=memory_context, crew_context=crew_context
+        )
 
     def _manage_history(self, context: ConversationContext):
         """
@@ -254,6 +259,98 @@ class ConversationManager:
             })
 
         return messages
+
+    # Keywords that suggest Hank should weigh in on task/list management
+    _COORDINATION_KEYWORDS = [
+        "shopping list", "grocery list", "to-do list", "todo list",
+        "task list", "checklist", "remind me", "don't forget",
+        "add to list", "make a list", "write down", "note that",
+        "pick up", "need to buy", "need to get", "grab some", "grab a"
+    ]
+
+    async def _handle_character_coordination(
+        self,
+        context: ConversationContext,
+        user_message: str,
+        primary_response: str,
+        user_id: str,
+        session_id: str,
+        current_chapter: int
+    ) -> Optional[str]:
+        """
+        Generate a secondary character response when the task warrants coordination.
+
+        Called after the primary character (Delilah) responds to check whether a
+        second crew member should weigh in — for example, Hank stepping in to
+        acknowledge a shopping list or task management request.
+
+        Only activates in chapter 2 or later, when Hank has joined the crew.
+
+        Args:
+            context: Current conversation context
+            user_message: The user's original message
+            primary_response: The primary character's response text
+            user_id: User identifier
+            session_id: Session identifier
+            current_chapter: The user's current story chapter
+
+        Returns:
+            Secondary character's response text, or None if coordination is not needed
+        """
+        # Coordination only available in chapter 2+ (Hank must be unlocked)
+        if current_chapter < 2:
+            return None
+
+        secondary_character_id = "hank"
+        if secondary_character_id not in self.character_system.characters:
+            return None
+
+        # Check whether the user message or primary response signals a coordination need
+        combined_text = (user_message + " " + primary_response).lower()
+        if not any(kw in combined_text for kw in self._COORDINATION_KEYWORDS):
+            return None
+
+        logger.info(
+            f"Coordination triggered for session {session_id}: "
+            f"secondary character '{secondary_character_id}'"
+        )
+
+        # Build a focused prompt for the secondary character
+        crew_context = self.character_system.build_crew_context(secondary_character_id)
+        secondary_system_prompt = self.character_system.build_system_prompt(
+            secondary_character_id,
+            crew_context=crew_context
+        )
+
+        # Include the full exchange so Hank has the context he needs
+        secondary_messages = [
+            {"role": "system", "content": secondary_system_prompt},
+            {"role": "user", "content": user_message},
+            {"role": "assistant", "content": primary_response},
+            {
+                "role": "user",
+                "content": (
+                    "Hank, do you have anything to add or any tasks to take care of?"
+                )
+            }
+        ]
+
+        try:
+            secondary_response = self.llm.generate_response(
+                messages=secondary_messages,
+                temperature=0.7
+            )
+            content = secondary_response.get("content", "").strip()
+            if content:
+                logger.info(
+                    f"Secondary character '{secondary_character_id}' responded "
+                    f"({secondary_response['usage']['total_tokens']} tokens)"
+                )
+                return content
+        except Exception as e:
+            logger.warning(f"Secondary character coordination failed: {e}")
+
+        return None
 
     async def handle_user_message(
         self,
@@ -456,6 +553,22 @@ class ConversationManager:
                 response_text = "I've completed the task."
                 logger.warning(f"No content in final LLM response for session {session_id}")
 
+            # Retrieve current story chapter for context
+            user_story_state = self.story_engine.get_or_create_user_state(user_id)
+            current_chapter = user_story_state.current_chapter
+
+            # Character coordination: invite a secondary character to weigh in when relevant
+            coordination_response = await self._handle_character_coordination(
+                context=context,
+                user_message=user_message,
+                primary_response=response_text,
+                user_id=user_id,
+                session_id=session_id,
+                current_chapter=current_chapter
+            )
+            if coordination_response:
+                response_text = f"{response_text}\n\n{coordination_response}"
+
             # Phase 5: Check for story beat injection
             story_beat_injected = False
             story_beat_info = None
@@ -468,7 +581,8 @@ class ConversationManager:
                 "user_message": user_message,
                 "task_completed": tool_call_count > 0,
                 "tool_used": context.metadata.get("last_tool_used"),
-                "response_length": len(response_text)
+                "response_length": len(response_text),
+                "chapter_id": current_chapter
             }
 
             beat_result = self.story_engine.should_inject_beat(user_id, beat_context)
@@ -530,7 +644,9 @@ class ConversationManager:
                     "response_time": llm_response["response_time"],
                     "finish_reason": llm_response["finish_reason"],
                     "tool_calls_made": tool_call_count,
-                    "story_beat_injected": story_beat_injected
+                    "story_beat_injected": story_beat_injected,
+                    "current_chapter": current_chapter,
+                    "coordination_active": coordination_response is not None
                 }
             }
 
