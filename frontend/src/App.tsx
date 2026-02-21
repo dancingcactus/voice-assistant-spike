@@ -7,6 +7,11 @@ import { VoiceInput } from './components/VoiceInput';
 import { apiClient } from './services/api';
 import type { UserSummary, AutoAdvanceNotification } from './services/api';
 
+const CHARACTER_DISPLAY_NAMES: Record<string, string> = {
+  delilah: 'Delilah',
+  hank: 'Hank',
+};
+
 function App() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
@@ -299,7 +304,9 @@ function App() {
             >
               <div className="message-header">
                 <span className="message-role">
-                  {message.role === 'user' ? 'You' : message.character || 'Delilah'}
+                  {message.role === 'user'
+                    ? 'You'
+                    : (message.character && CHARACTER_DISPLAY_NAMES[message.character]) || 'Delilah'}
                 </span>
                 <span className="message-time">
                   {new Date(message.timestamp).toLocaleTimeString()}
