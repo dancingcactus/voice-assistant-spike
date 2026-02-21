@@ -77,7 +77,7 @@ export function Dashboard() {
   return (
     <div className="dashboard">
       <header className="dashboard-header">
-        <h1>🎭 Hey Chat! Observability Dashboard</h1>
+        <h1>Hey Chat! Observability Dashboard</h1>
         <nav className="main-nav">
           <button
             className={currentView === 'home' ? 'active' : ''}
@@ -162,7 +162,7 @@ export function Dashboard() {
         <div className="dashboard-content">
           {/* Welcome Section */}
           <section className="info-card welcome-card">
-            <h2>🎭 Welcome to Observability Dashboard</h2>
+            <h2>Welcome to Observability Dashboard</h2>
             <p>
               Comprehensive tooling for debugging, testing, and inspecting the Hey Chat! voice assistant system.
               All Phase 1.5 milestones are complete.
@@ -194,7 +194,7 @@ export function Dashboard() {
                 <span className="action-desc">Inspect API calls and performance</span>
               </button>
               <button className="action-card" onClick={() => setCurrentView('characters')}>
-                <span className="action-icon">🎭</span>
+                <span className="action-icon">👤</span>
                 <span className="action-title">Characters</span>
                 <span className="action-desc">View character configurations</span>
               </button>
