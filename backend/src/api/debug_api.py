@@ -1,12 +1,12 @@
 """
-Debug API endpoints for Phase 4.5 development and testing.
+Debug API endpoints for Phase 4.5 / Phase 5.1 development and testing.
 
 These endpoints are for development/testing only and should not be exposed in production.
 """
 
 import time
 import logging
-from typing import Optional, List
+from typing import Any, Dict, List, Optional
 from datetime import datetime
 
 from fastapi import APIRouter, HTTPException, Query
@@ -16,10 +16,15 @@ from core.intent_detector import IntentDetector
 from core.character_planner import CharacterPlanner
 from core.coordination_tracker import CoordinationTracker
 from core.memory_manager import MemoryManager
+from core.turn_classifier import TurnClassifier
+from core.conversation_router import ConversationRouter
+from core.conversation_state import ConversationStateManager
 from integrations.llm_integration import LLMIntegration
 from models.intent import IntentResult
 from models.character_plan import CharacterPlan
 from models.coordination import CoordinationEvent, CoordinationMetrics
+from models.message import ConversationContext
+from config.character_assignments import get_available_characters
 
 logger = logging.getLogger(__name__)
 
@@ -30,6 +35,9 @@ _intent_detector: Optional[IntentDetector] = None
 _character_planner: Optional[CharacterPlanner] = None
 _coordination_tracker: Optional[CoordinationTracker] = None
 _memory_manager: Optional[MemoryManager] = None
+_turn_classifier: Optional[TurnClassifier] = None
+_conversation_router: Optional[ConversationRouter] = None
+_state_manager: ConversationStateManager = ConversationStateManager()
 
 
 def get_intent_detector() -> IntentDetector:
@@ -98,6 +106,34 @@ def get_coordination_tracker() -> CoordinationTracker:
             logger.error(f"Failed to initialize CoordinationTracker: {e}")
             raise
     return _coordination_tracker
+
+
+def get_turn_classifier() -> TurnClassifier:
+    """Get or create the global TurnClassifier instance."""
+    global _turn_classifier
+    if _turn_classifier is None:
+        try:
+            llm = LLMIntegration()
+            _turn_classifier = TurnClassifier(llm=llm)
+            logger.info("TurnClassifier initialized successfully")
+        except Exception as e:
+            logger.error(f"Failed to initialize TurnClassifier: {e}")
+            raise
+    return _turn_classifier
+
+
+def get_conversation_router() -> ConversationRouter:
+    """Get or create the global ConversationRouter instance."""
+    global _conversation_router
+    if _conversation_router is None:
+        try:
+            llm = LLMIntegration()
+            _conversation_router = ConversationRouter(llm=llm)
+            logger.info("ConversationRouter initialized successfully")
+        except Exception as e:
+            logger.error(f"Failed to initialize ConversationRouter: {e}")
+            raise
+    return _conversation_router
 
 
 # Request/Response models
@@ -420,4 +456,155 @@ async def get_coordination_milestones(user_id: str) -> CoordinationMilestonesRes
         raise HTTPException(
             status_code=500,
             detail=f"Failed to retrieve coordination milestones: {str(e)}"
+        )
+
+
+# ============================================================================
+# Phase 5.1 Routing Debug Endpoints (Milestone 2)
+# ============================================================================
+
+
+class HistoryMessage(BaseModel):
+    """A single history message for router/classifier testing."""
+    role: str = Field(..., description="'user' or 'assistant'")
+    content: str = Field(..., description="Message content")
+
+
+class TestRouterRequest(BaseModel):
+    """
+    Request body for the test-router endpoint.
+
+    Simulates a user message arriving with a given conversation history so
+    that the TurnClassifier and ConversationRouter can be exercised without
+    needing a live conversation session.
+    """
+    user_id: str = Field(default="debug_user", description="User ID (for chapter lookup)")
+    message: str = Field(..., description="Latest user message to route", min_length=1)
+    history: List[HistoryMessage] = Field(
+        default_factory=list,
+        description="Recent conversation history (last few turns)",
+    )
+    chapter_id: int = Field(
+        default=2,
+        ge=1,
+        description="Story chapter to use for available characters and handoff pairs",
+    )
+
+
+class TestRouterResponse(BaseModel):
+    """Response from the test-router endpoint."""
+    routing_decision: Dict[str, Any] = Field(..., description="RoutingDecision as dict")
+    turn_classification: Optional[Dict[str, Any]] = Field(
+        default=None,
+        description="TurnClassification (only present when coordination_state is non-IDLE)",
+    )
+    available_characters: List[str] = Field(..., description="Characters active for this chapter")
+    processing_time_ms: float = Field(..., description="Total time taken (milliseconds)")
+
+
+@router.post("/test-router", response_model=TestRouterResponse)
+async def test_router(request: TestRouterRequest) -> TestRouterResponse:
+    """
+    Exercise the ConversationRouter (and optionally TurnClassifier) without a live session.
+
+    Useful for debugging routing decisions and verifying that character assignments
+    and pending-followup logic behave correctly for a given conversation.
+
+    The TurnClassifier is called only when ``coordination_state`` is non-IDLE.
+    For this debug endpoint the coordination state is always IDLE (no pending context),
+    so only the ConversationRouter runs.
+    """
+    try:
+        conv_router = get_conversation_router()
+
+        available_chars = get_available_characters(request.chapter_id)
+        history = [{"role": m.role, "content": m.content} for m in request.history]
+
+        start_time = time.time()
+
+        decision = conv_router.route(
+            user_message=request.message,
+            recent_history=history,
+            available_characters=available_chars,
+            chapter_id=request.chapter_id,
+        )
+
+        elapsed_ms = (time.time() - start_time) * 1000
+
+        logger.info(
+            "test-router: message=%r → primary=%s, followup=%s (%.1f ms)",
+            request.message,
+            decision.primary_character,
+            decision.pending_followup.character if decision.pending_followup else None,
+            elapsed_ms,
+        )
+
+        return TestRouterResponse(
+            routing_decision=decision.to_dict(),
+            turn_classification=None,
+            available_characters=available_chars,
+            processing_time_ms=elapsed_ms,
+        )
+
+    except Exception as exc:
+        logger.error("test-router failed: %s", exc, exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Router test failed: {exc}")
+
+
+class CoordinationStateResponse(BaseModel):
+    """Response for the coordination-state endpoint."""
+    user_id: str
+    coordination_state: Dict[str, Any] = Field(
+        ..., description="Current CoordinationState as dict (IDLE when no active session)"
+    )
+    note: str = Field(
+        default="",
+        description="Advisory message (e.g. no active session found)",
+    )
+
+
+@router.get("/coordination-state/{user_id}", response_model=CoordinationStateResponse)
+async def get_coordination_state(user_id: str) -> CoordinationStateResponse:
+    """
+    Return the current coordination state for *user_id*.
+
+    Reads the in-memory ``ConversationContext.metadata`` for the user's active
+    session via the shared ``ConversationManager`` reference when available,
+    and otherwise returns an IDLE placeholder.
+
+    This endpoint is primarily useful for debugging multi-turn handoff scenarios
+    via ``GET /api/debug/coordination-state/{user_id}`` to inspect whether the
+    system is currently in PROPOSING or AWAITING_ACTION mode.
+    """
+    try:
+        # Attempt to load from ConversationManager if accessible
+        # (the manager lives in the websocket router; import lazily to avoid circular imports)
+        try:
+            from api.websocket import conversation_manager
+
+            ctx = conversation_manager.conversations.get(user_id)
+            if ctx is None:
+                # Try with user_id as session_id (common in debug usage)
+                ctx = ConversationContext(session_id=user_id, user_id=user_id)
+                note = f"No active session for '{user_id}'; returning IDLE placeholder"
+            else:
+                note = ""
+        except Exception:
+            ctx = ConversationContext(session_id=user_id, user_id=user_id)
+            note = "ConversationManager unavailable; returning IDLE placeholder"
+
+        state = _state_manager.get_state(ctx)
+
+        logger.info("coordination-state: user=%s mode=%s", user_id, state.mode.value)
+
+        return CoordinationStateResponse(
+            user_id=user_id,
+            coordination_state=state.to_dict(),
+            note=note,
+        )
+
+    except Exception as exc:
+        logger.error("coordination-state lookup failed for %s: %s", user_id, exc, exc_info=True)
+        raise HTTPException(
+            status_code=500, detail=f"Failed to retrieve coordination state: {exc}"
         )
