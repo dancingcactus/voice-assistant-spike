@@ -82,8 +82,8 @@ class ElevenLabsTTS(TTSProvider):
         # Voice mapping: character_id -> ElevenLabs voice ID
         self.voice_mapping = {
             "delilah": os.getenv("ELEVENLABS_VOICE_ID", ""),
+            "hank": os.getenv("ELEVENLABS_HANK_VOICE_ID", ""),
             # Future characters will be added here
-            # "hank": os.getenv("ELEVENLABS_HANK_VOICE_ID", ""),
             # "rex": os.getenv("ELEVENLABS_REX_VOICE_ID", ""),
         }
 
@@ -132,6 +132,32 @@ class ElevenLabsTTS(TTSProvider):
                     "stability": 0.50,  # Phase 3: 9.9/10 (1 iteration - best debut!)
                     "similarity_boost": 0.75,
                     "style": 0.50,  # Natural, conversational, versatile default
+                    "use_speaker_boost": True
+                }
+            },
+            "hank": {
+                "default": {
+                    "stability": 0.85,  # Working mode default
+                    "similarity_boost": 0.85,
+                    "style": 0.10,
+                    "use_speaker_boost": True
+                },
+                "working_mode": {
+                    "stability": 0.85,  # Phase 4: iteration_5_final
+                    "similarity_boost": 0.85,
+                    "style": 0.10,  # Deliberate, unhurried pacing
+                    "use_speaker_boost": True
+                },
+                "protective": {
+                    "stability": 0.60,  # Phase 4: iteration_1_baseline
+                    "similarity_boost": 0.75,
+                    "style": 0.40,  # Firm, direct protection
+                    "use_speaker_boost": True
+                },
+                "resigned": {
+                    "stability": 0.70,  # Phase 4: iteration_1_baseline
+                    "similarity_boost": 0.75,
+                    "style": 0.30,  # Weary acceptance
                     "use_speaker_boost": True
                 }
             }

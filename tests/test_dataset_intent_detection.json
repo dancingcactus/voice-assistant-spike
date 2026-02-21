@@ -1,0 +1,702 @@
+[
+  {
+    "id": 1,
+    "query": "Set a timer for 30 minutes",
+    "expected_intent": "cooking",
+    "expected_confidence_min": 0.8,
+    "notes": "Clear timer request"
+  },
+  {
+    "id": 2,
+    "query": "How do I make chocolate chip cookies?",
+    "expected_intent": "cooking",
+    "expected_confidence_min": 0.7,
+    "notes": "Recipe request"
+  },
+  {
+    "id": 3,
+    "query": "What temperature should I bake a cake?",
+    "expected_intent": "cooking",
+    "expected_confidence_min": 0.7,
+    "notes": "Cooking instruction"
+  },
+  {
+    "id": 4,
+    "query": "How long should I roast chicken?",
+    "expected_intent": "cooking",
+    "expected_confidence_min": 0.7,
+    "notes": "Cooking time question"
+  },
+  {
+    "id": 5,
+    "query": "Can you give me a recipe for lasagna?",
+    "expected_intent": "cooking",
+    "expected_confidence_min": 0.8,
+    "notes": "Explicit recipe request"
+  },
+  {
+    "id": 6,
+    "query": "Set timer for 45 mins",
+    "expected_intent": "cooking",
+    "expected_confidence_min": 0.8,
+    "notes": "Timer with abbreviation"
+  },
+  {
+    "id": 7,
+    "query": "What ingredients do I need for pad thai?",
+    "expected_intent": "cooking",
+    "expected_confidence_min": 0.7,
+    "notes": "Ingredient question"
+  },
+  {
+    "id": 8,
+    "query": "Timer for 10 minutes please",
+    "expected_intent": "cooking",
+    "expected_confidence_min": 0.8,
+    "notes": "Polite timer request"
+  },
+  {
+    "id": 9,
+    "query": "How do I prepare salmon?",
+    "expected_intent": "cooking",
+    "expected_confidence_min": 0.7,
+    "notes": "Food preparation"
+  },
+  {
+    "id": 10,
+    "query": "What's a good meal plan for this week?",
+    "expected_intent": "cooking",
+    "expected_confidence_min": 0.6,
+    "notes": "Meal planning"
+  },
+  {
+    "id": 11,
+    "query": "Add milk to shopping list",
+    "expected_intent": "household",
+    "expected_confidence_min": 0.8,
+    "notes": "Clear list addition"
+  },
+  {
+    "id": 12,
+    "query": "What's on my calendar today?",
+    "expected_intent": "household",
+    "expected_confidence_min": 0.8,
+    "notes": "Calendar query"
+  },
+  {
+    "id": 13,
+    "query": "Add eggs to the list",
+    "expected_intent": "household",
+    "expected_confidence_min": 0.8,
+    "notes": "List addition"
+  },
+  {
+    "id": 14,
+    "query": "Remind me to call the dentist tomorrow",
+    "expected_intent": "household",
+    "expected_confidence_min": 0.7,
+    "notes": "Reminder request"
+  },
+  {
+    "id": 15,
+    "query": "What's on my schedule for Monday?",
+    "expected_intent": "household",
+    "expected_confidence_min": 0.7,
+    "notes": "Schedule query"
+  },
+  {
+    "id": 16,
+    "query": "Check my grocery list",
+    "expected_intent": "household",
+    "expected_confidence_min": 0.8,
+    "notes": "List retrieval"
+  },
+  {
+    "id": 17,
+    "query": "Add bread and butter to shopping list",
+    "expected_intent": "household",
+    "expected_confidence_min": 0.8,
+    "notes": "Multiple items"
+  },
+  {
+    "id": 18,
+    "query": "When is my next appointment?",
+    "expected_intent": "household",
+    "expected_confidence_min": 0.7,
+    "notes": "Appointment query"
+  },
+  {
+    "id": 19,
+    "query": "Remind me to pick up dry cleaning",
+    "expected_intent": "household",
+    "expected_confidence_min": 0.7,
+    "notes": "Reminder"
+  },
+  {
+    "id": 20,
+    "query": "What do I have scheduled this afternoon?",
+    "expected_intent": "household",
+    "expected_confidence_min": 0.6,
+    "notes": "Schedule query"
+  },
+  {
+    "id": 21,
+    "query": "Turn on the kitchen lights",
+    "expected_intent": "smart_home",
+    "expected_confidence_min": 0.8,
+    "notes": "Light control"
+  },
+  {
+    "id": 22,
+    "query": "Set thermostat to 72 degrees",
+    "expected_intent": "smart_home",
+    "expected_confidence_min": 0.8,
+    "notes": "Thermostat control"
+  },
+  {
+    "id": 23,
+    "query": "Lock the front door",
+    "expected_intent": "smart_home",
+    "expected_confidence_min": 0.8,
+    "notes": "Lock control"
+  },
+  {
+    "id": 24,
+    "query": "Turn off all the lights",
+    "expected_intent": "smart_home",
+    "expected_confidence_min": 0.8,
+    "notes": "Multiple light control"
+  },
+  {
+    "id": 25,
+    "query": "Dim the living room lights",
+    "expected_intent": "smart_home",
+    "expected_confidence_min": 0.8,
+    "notes": "Light dimming"
+  },
+  {
+    "id": 26,
+    "query": "Check the greenhouse humidity",
+    "expected_intent": "smart_home",
+    "expected_confidence_min": 0.7,
+    "notes": "Greenhouse monitoring"
+  },
+  {
+    "id": 27,
+    "query": "Open the garage door",
+    "expected_intent": "smart_home",
+    "expected_confidence_min": 0.8,
+    "notes": "Garage control"
+  },
+  {
+    "id": 28,
+    "query": "What's the temperature in the house?",
+    "expected_intent": "smart_home",
+    "expected_confidence_min": 0.6,
+    "notes": "Temperature query"
+  },
+  {
+    "id": 29,
+    "query": "Turn on the fan",
+    "expected_intent": "smart_home",
+    "expected_confidence_min": 0.7,
+    "notes": "Fan control"
+  },
+  {
+    "id": 30,
+    "query": "Unlock the back door",
+    "expected_intent": "smart_home",
+    "expected_confidence_min": 0.8,
+    "notes": "Unlock control"
+  },
+  {
+    "id": 31,
+    "query": "What's the weather like today?",
+    "expected_intent": "general",
+    "expected_confidence_min": 0.5,
+    "notes": "Weather query"
+  },
+  {
+    "id": 32,
+    "query": "Hello",
+    "expected_intent": "general",
+    "expected_confidence_min": 0.6,
+    "notes": "Greeting"
+  },
+  {
+    "id": 33,
+    "query": "What time is it?",
+    "expected_intent": "general",
+    "expected_confidence_min": 0.6,
+    "notes": "Time query"
+  },
+  {
+    "id": 34,
+    "query": "Thank you",
+    "expected_intent": "general",
+    "expected_confidence_min": 0.5,
+    "notes": "Gratitude"
+  },
+  {
+    "id": 35,
+    "query": "Good morning",
+    "expected_intent": "general",
+    "expected_confidence_min": 0.5,
+    "notes": "Greeting"
+  },
+  {
+    "id": 36,
+    "query": "Help",
+    "expected_intent": "general",
+    "expected_confidence_min": 0.5,
+    "notes": "Help request"
+  },
+  {
+    "id": 37,
+    "query": "What can you do?",
+    "expected_intent": "general",
+    "expected_confidence_min": 0.5,
+    "notes": "Capability query"
+  },
+  {
+    "id": 38,
+    "query": "Tell me about yourself",
+    "expected_intent": "general",
+    "expected_confidence_min": 0.5,
+    "notes": "General conversation"
+  },
+  {
+    "id": 39,
+    "query": "What's today's date?",
+    "expected_intent": "general",
+    "expected_confidence_min": 0.5,
+    "notes": "Date query"
+  },
+  {
+    "id": 40,
+    "query": "How are you?",
+    "expected_intent": "general",
+    "expected_confidence_min": 0.5,
+    "notes": "Greeting question"
+  },
+  {
+    "id": 41,
+    "query": "Set a timer for 20 minutes and add flour to the shopping list",
+    "expected_intent": "multi_task",
+    "expected_confidence_min": 0.7,
+    "notes": "Cooking + household"
+  },
+  {
+    "id": 42,
+    "query": "Turn off the lights and lock the door",
+    "expected_intent": "multi_task",
+    "expected_confidence_min": 0.7,
+    "notes": "Two smart home tasks"
+  },
+  {
+    "id": 43,
+    "query": "Add eggs to the list and set a timer for 15 minutes",
+    "expected_intent": "multi_task",
+    "expected_confidence_min": 0.7,
+    "notes": "Household + cooking"
+  },
+  {
+    "id": 44,
+    "query": "Start the timer and turn on the oven light",
+    "expected_intent": "multi_task",
+    "expected_confidence_min": 0.6,
+    "notes": "Cooking + smart home"
+  },
+  {
+    "id": 45,
+    "query": "Add milk to the list, set a timer, and turn off the lights",
+    "expected_intent": "multi_task",
+    "expected_confidence_min": 0.7,
+    "notes": "Three tasks"
+  },
+  {
+    "id": 46,
+    "query": "Set timer 5 mins",
+    "expected_intent": "cooking",
+    "expected_confidence_min": 0.8,
+    "notes": "Short form timer"
+  },
+  {
+    "id": 47,
+    "query": "Bake at 350",
+    "expected_intent": "cooking",
+    "expected_confidence_min": 0.7,
+    "notes": "Temperature instruction"
+  },
+  {
+    "id": 48,
+    "query": "How to bake bread?",
+    "expected_intent": "cooking",
+    "expected_confidence_min": 0.8,
+    "notes": "Baking question"
+  },
+  {
+    "id": 49,
+    "query": "Recipe for spaghetti carbonara",
+    "expected_intent": "cooking",
+    "expected_confidence_min": 0.8,
+    "notes": "Recipe request"
+  },
+  {
+    "id": 50,
+    "query": "Cooking time for turkey",
+    "expected_intent": "cooking",
+    "expected_confidence_min": 0.7,
+    "notes": "Cooking duration"
+  },
+  {
+    "id": 51,
+    "query": "Put bananas on the list",
+    "expected_intent": "household",
+    "expected_confidence_min": 0.7,
+    "notes": "List addition variant"
+  },
+  {
+    "id": 52,
+    "query": "Schedule dentist appointment",
+    "expected_intent": "household",
+    "expected_confidence_min": 0.7,
+    "notes": "Appointment scheduling"
+  },
+  {
+    "id": 53,
+    "query": "Show my calendar",
+    "expected_intent": "household",
+    "expected_confidence_min": 0.8,
+    "notes": "Calendar view"
+  },
+  {
+    "id": 54,
+    "query": "Todo list",
+    "expected_intent": "household",
+    "expected_confidence_min": 0.6,
+    "notes": "Todo reference"
+  },
+  {
+    "id": 55,
+    "query": "Remind me about the meeting",
+    "expected_intent": "household",
+    "expected_confidence_min": 0.7,
+    "notes": "Meeting reminder"
+  },
+  {
+    "id": 56,
+    "query": "Lights on",
+    "expected_intent": "smart_home",
+    "expected_confidence_min": 0.8,
+    "notes": "Brief light command"
+  },
+  {
+    "id": 57,
+    "query": "Brighten bedroom",
+    "expected_intent": "smart_home",
+    "expected_confidence_min": 0.7,
+    "notes": "Brightness adjustment"
+  },
+  {
+    "id": 58,
+    "query": "Heating up",
+    "expected_intent": "smart_home",
+    "expected_confidence_min": 0.5,
+    "notes": "Ambiguous heating"
+  },
+  {
+    "id": 59,
+    "query": "Lock all doors",
+    "expected_intent": "smart_home",
+    "expected_confidence_min": 0.8,
+    "notes": "Multiple locks"
+  },
+  {
+    "id": 60,
+    "query": "Greenhouse status",
+    "expected_intent": "smart_home",
+    "expected_confidence_min": 0.7,
+    "notes": "Status check"
+  },
+  {
+    "id": 61,
+    "query": "Hi there",
+    "expected_intent": "general",
+    "expected_confidence_min": 0.5,
+    "notes": "Casual greeting"
+  },
+  {
+    "id": 62,
+    "query": "What's up?",
+    "expected_intent": "general",
+    "expected_confidence_min": 0.4,
+    "notes": "Informal greeting"
+  },
+  {
+    "id": 63,
+    "query": "Tell me a joke",
+    "expected_intent": "general",
+    "expected_confidence_min": 0.4,
+    "notes": "Entertainment request"
+  },
+  {
+    "id": 64,
+    "query": "Weather forecast",
+    "expected_intent": "general",
+    "expected_confidence_min": 0.6,
+    "notes": "Weather"
+  },
+  {
+    "id": 65,
+    "query": "Never mind",
+    "expected_intent": "general",
+    "expected_confidence_min": 0.3,
+    "notes": "Cancellation"
+  },
+  {
+    "id": 66,
+    "query": "What should I cook for dinner tonight?",
+    "expected_intent": "cooking",
+    "expected_confidence_min": 0.6,
+    "notes": "Meal suggestion"
+  },
+  {
+    "id": 67,
+    "query": "Start a 1 hour timer",
+    "expected_intent": "cooking",
+    "expected_confidence_min": 0.8,
+    "notes": "Hour timer"
+  },
+  {
+    "id": 68,
+    "query": "Ingredient substitutions for butter",
+    "expected_intent": "cooking",
+    "expected_confidence_min": 0.6,
+    "notes": "Substitution query"
+  },
+  {
+    "id": 69,
+    "query": "How to dice an onion?",
+    "expected_intent": "cooking",
+    "expected_confidence_min": 0.7,
+    "notes": "Technique question"
+  },
+  {
+    "id": 70,
+    "query": "Steak done at what temp?",
+    "expected_intent": "cooking",
+    "expected_confidence_min": 0.6,
+    "notes": "Temperature question"
+  },
+  {
+    "id": 71,
+    "query": "Need cheese and crackers",
+    "expected_intent": "household",
+    "expected_confidence_min": 0.5,
+    "notes": "Implied list addition"
+  },
+  {
+    "id": 72,
+    "query": "When do I need to leave for the airport?",
+    "expected_intent": "household",
+    "expected_confidence_min": 0.5,
+    "notes": "Schedule planning"
+  },
+  {
+    "id": 73,
+    "query": "What's next on my agenda?",
+    "expected_intent": "household",
+    "expected_confidence_min": 0.6,
+    "notes": "Agenda query"
+  },
+  {
+    "id": 74,
+    "query": "Am I free this Saturday?",
+    "expected_intent": "household",
+    "expected_confidence_min": 0.5,
+    "notes": "Availability check"
+  },
+  {
+    "id": 75,
+    "query": "Shopping list status",
+    "expected_intent": "household",
+    "expected_confidence_min": 0.7,
+    "notes": "List status"
+  },
+  {
+    "id": 76,
+    "query": "Close the garage",
+    "expected_intent": "smart_home",
+    "expected_confidence_min": 0.8,
+    "notes": "Garage control"
+  },
+  {
+    "id": 77,
+    "query": "Make it warmer",
+    "expected_intent": "smart_home",
+    "expected_confidence_min": 0.6,
+    "notes": "Temperature adjustment"
+  },
+  {
+    "id": 78,
+    "query": "Turn everything off",
+    "expected_intent": "smart_home",
+    "expected_confidence_min": 0.6,
+    "notes": "Global off command"
+  },
+  {
+    "id": 79,
+    "query": "Is the door locked?",
+    "expected_intent": "smart_home",
+    "expected_confidence_min": 0.7,
+    "notes": "Status query"
+  },
+  {
+    "id": 80,
+    "query": "Water the plants",
+    "expected_intent": "smart_home",
+    "expected_confidence_min": 0.6,
+    "notes": "Watering command"
+  },
+  {
+    "id": 81,
+    "query": "Good night",
+    "expected_intent": "general",
+    "expected_confidence_min": 0.4,
+    "notes": "Evening greeting"
+  },
+  {
+    "id": 82,
+    "query": "Stop",
+    "expected_intent": "general",
+    "expected_confidence_min": 0.3,
+    "notes": "Stop command"
+  },
+  {
+    "id": 83,
+    "query": "Yes",
+    "expected_intent": "general",
+    "expected_confidence_min": 0.3,
+    "notes": "Affirmation"
+  },
+  {
+    "id": 84,
+    "query": "No thanks",
+    "expected_intent": "general",
+    "expected_confidence_min": 0.3,
+    "notes": "Declination"
+  },
+  {
+    "id": 85,
+    "query": "Okay",
+    "expected_intent": "general",
+    "expected_confidence_min": 0.3,
+    "notes": "Acknowledgment"
+  },
+  {
+    "id": 86,
+    "query": "Set timer and add milk to list and turn off lights",
+    "expected_intent": "multi_task",
+    "expected_confidence_min": 0.7,
+    "notes": "Three distinct tasks"
+  },
+  {
+    "id": 87,
+    "query": "Show calendar then add bread to list",
+    "expected_intent": "multi_task",
+    "expected_confidence_min": 0.6,
+    "notes": "Sequential household tasks"
+  },
+  {
+    "id": 88,
+    "query": "Lock door and set alarm",
+    "expected_intent": "multi_task",
+    "expected_confidence_min": 0.6,
+    "notes": "Security tasks"
+  },
+  {
+    "id": 89,
+    "query": "Timer 30 mins plus remind me to flip the meat",
+    "expected_intent": "multi_task",
+    "expected_confidence_min": 0.6,
+    "notes": "Cooking tasks"
+  },
+  {
+    "id": 90,
+    "query": "Add tomatoes, set timer 10 mins, and close garage",
+    "expected_intent": "multi_task",
+    "expected_confidence_min": 0.7,
+    "notes": "Three category mix"
+  },
+  {
+    "id": 91,
+    "query": "Pasta boiling time",
+    "expected_intent": "cooking",
+    "expected_confidence_min": 0.6,
+    "notes": "Cooking duration query"
+  },
+  {
+    "id": 92,
+    "query": "Defrost chicken how long",
+    "expected_intent": "cooking",
+    "expected_confidence_min": 0.6,
+    "notes": "Food preparation"
+  },
+  {
+    "id": 93,
+    "query": "Oven preheat 425",
+    "expected_intent": "cooking",
+    "expected_confidence_min": 0.7,
+    "notes": "Oven instruction"
+  },
+  {
+    "id": 94,
+    "query": "Cancel my 2pm meeting",
+    "expected_intent": "household",
+    "expected_confidence_min": 0.6,
+    "notes": "Meeting cancellation"
+  },
+  {
+    "id": 95,
+    "query": "Clear the list",
+    "expected_intent": "household",
+    "expected_confidence_min": 0.6,
+    "notes": "List management"
+  },
+  {
+    "id": 96,
+    "query": "Bedroom lights dimmer",
+    "expected_intent": "smart_home",
+    "expected_confidence_min": 0.7,
+    "notes": "Dim command"
+  },
+  {
+    "id": 97,
+    "query": "Cooler please",
+    "expected_intent": "smart_home",
+    "expected_confidence_min": 0.5,
+    "notes": "Temperature down"
+  },
+  {
+    "id": 98,
+    "query": "Thanks so much",
+    "expected_intent": "general",
+    "expected_confidence_min": 0.4,
+    "notes": "Gratitude expression"
+  },
+  {
+    "id": 99,
+    "query": "Why is the sky blue?",
+    "expected_intent": "general",
+    "expected_confidence_min": 0.4,
+    "notes": "General knowledge"
+  },
+  {
+    "id": 100,
+    "query": "What's 15 plus 27?",
+    "expected_intent": "general",
+    "expected_confidence_min": 0.4,
+    "notes": "Math question"
+  }
+]

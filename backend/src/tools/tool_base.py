@@ -31,11 +31,12 @@ class ToolContext(BaseModel):
 class ToolParameter(BaseModel):
     """Definition of a tool parameter for OpenAI function calling."""
     name: str = Field(..., description="Parameter name")
-    type: str = Field(..., description="Parameter type (string, number, boolean, etc.)")
+    type: str = Field(..., description="Parameter type (string, number, boolean, array, object, etc.)")
     description: str = Field(..., description="Parameter description")
     required: bool = Field(default=False, description="Whether parameter is required")
     enum: Optional[List[str]] = Field(default=None, description="Allowed values")
     default: Optional[Any] = Field(default=None, description="Default value")
+    items: Optional[Dict[str, Any]] = Field(default=None, description="Schema for array items (required when type=array)")
 
 
 class Tool(ABC):
@@ -137,6 +138,10 @@ class Tool(ABC):
 
             if param.default is not None:
                 param_schema["default"] = param.default
+
+            # OpenAI requires 'items' for array type parameters
+            if param.type == "array":
+                param_schema["items"] = param.items if param.items else {"type": "object"}
 
             properties[param.name] = param_schema
 

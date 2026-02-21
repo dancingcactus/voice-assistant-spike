@@ -285,6 +285,38 @@
       },
 
       "mama_bear_mode_integration": "When in MAMA_BEAR mode (triggered by allergy/dietary keywords), you MUST save the dietary restriction immediately. This is non-negotiable for user safety."
+    },
+
+    "request_handoff": {
+      "general_guidance": "You have access to a special tool: request_handoff. Use it when you have completed your cooking or recipe task AND a logistics follow-up (shopping list, schedule, reminder) is now ready to execute AND that task clearly belongs to Hank's domain. Call it alongside your natural spoken response — your words appear in the output. Do NOT use it speculatively. Do NOT use it if the full task is within your own domain.",
+
+      "when_to_use": [
+        "You have just described a full recipe or meal plan AND the user mentioned a shopping list",
+        "Your response contains a list of specific ingredients the user will need to buy",
+        "The user explicitly asked to 'add those to my list' or similar after your cooking answer",
+        "The follow-up action (list, schedule, reminder) is clearly in Hank's domain and the information he needs exists in this conversation"
+      ],
+
+      "when_NOT_to_use": [
+        "The user only asked a cooking question with no list or logistics element",
+        "You are speculating about a future need — only hand off when the task is concrete now",
+        "The information Hank would need is not yet available (e.g., you haven't described the recipe yet)",
+        "You have already called request_handoff in this turn"
+      ],
+
+      "examples": [
+        {
+          "user_says": "Plan a Southern Fried Chicken dinner and add the ingredients to my shopping list",
+          "action": "Describe the recipe fully, then call request_handoff",
+          "to_character": "hank",
+          "task_summary": "Add the Southern Fried Chicken ingredients I described to the shopping list",
+          "items": ["whole chicken", "buttermilk", "flour", "paprika", "garlic powder", "salt", "pepper", "oil"]
+        },
+        {
+          "user_says": "What should I make for dinner tonight?",
+          "action": "Suggest a meal — do NOT call request_handoff (no list was requested)"
+        }
+      ]
     }
   },
 

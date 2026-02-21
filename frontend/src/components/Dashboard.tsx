@@ -6,10 +6,10 @@ import { useState, useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { apiClient, type UserSummary } from '../services/api';
 import { StoryBeatTool } from './StoryBeatTool';
-import { MemoryTool } from './MemoryTool';
 import UserTestingTool from './UserTestingTool';
 import { ToolCallsTool } from './ToolCallsTool';
 import { CharacterTool } from './CharacterTool';
+import { ToolsView } from './tools/ToolsView';
 import { KeyboardShortcutsModal } from './KeyboardShortcutsModal';
 import { LoadingSpinner } from './LoadingSpinner';
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
@@ -17,7 +17,7 @@ import './Dashboard.css';
 import './LoadingSpinner.css';
 
 export function Dashboard() {
-  const [currentView, setCurrentView] = useState<'home' | 'story' | 'memory' | 'users' | 'toolcalls' | 'characters'>('home');
+  const [currentView, setCurrentView] = useState<'home' | 'story' | 'tools' | 'users' | 'toolcalls' | 'characters'>('home');
   const [selectedUserId, setSelectedUserId] = useState<string>('');
   const [showShortcuts, setShowShortcuts] = useState(false);
   const userSelectRef = useRef<HTMLSelectElement>(null);
@@ -36,7 +36,7 @@ export function Dashboard() {
   useKeyboardShortcuts([
     { key: '1', handler: () => setCurrentView('home'), description: 'Go to Home' },
     { key: '2', handler: () => setCurrentView('story'), description: 'Go to Story Beats' },
-    { key: '3', handler: () => setCurrentView('memory'), description: 'Go to Memory' },
+    { key: '3', handler: () => setCurrentView('tools'), description: 'Go to Tools' },
     { key: '4', handler: () => setCurrentView('users'), description: 'Go to User Testing' },
     { key: '5', handler: () => setCurrentView('toolcalls'), description: 'Go to Tool Calls' },
     { key: '6', handler: () => setCurrentView('characters'), description: 'Go to Characters' },
@@ -92,10 +92,10 @@ export function Dashboard() {
             Story Beats
           </button>
           <button
-            className={currentView === 'memory' ? 'active' : ''}
-            onClick={() => setCurrentView('memory')}
+            className={currentView === 'tools' ? 'active' : ''}
+            onClick={() => setCurrentView('tools')}
           >
-            Memories
+            Tools
           </button>
           <button
             className={currentView === 'users' ? 'active' : ''}
@@ -150,8 +150,8 @@ export function Dashboard() {
 
       {currentView === 'story' ? (
         <StoryBeatTool userId={selectedUserId} />
-      ) : currentView === 'memory' ? (
-        <MemoryTool userId={selectedUserId} />
+      ) : currentView === 'tools' ? (
+        <ToolsView userId={selectedUserId} />
       ) : currentView === 'users' ? (
         <UserTestingTool />
       ) : currentView === 'toolcalls' ? (
@@ -178,10 +178,10 @@ export function Dashboard() {
                 <span className="action-title">Story Beats</span>
                 <span className="action-desc">View and trigger story beats</span>
               </button>
-              <button className="action-card" onClick={() => setCurrentView('memory')}>
-                <span className="action-icon">🧠</span>
-                <span className="action-title">Memories</span>
-                <span className="action-desc">Manage user memories</span>
+              <button className="action-card" onClick={() => setCurrentView('tools')}>
+                <span className="action-icon">🔧</span>
+                <span className="action-title">Tools</span>
+                <span className="action-desc">Lists, Timers, Devices & Memories</span>
               </button>
               <button className="action-card" onClick={() => setCurrentView('users')}>
                 <span className="action-icon">👥</span>

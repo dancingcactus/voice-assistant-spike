@@ -97,6 +97,11 @@ if os.getenv("ENABLE_TEST_API", "false").lower() == "true":
     app.include_router(test_router)
     print("✅ Test API enabled")
 
+# Debug API (Phase 4.5) - for development and testing
+from api.debug_api import router as debug_router
+app.include_router(debug_router)
+print("✅ Debug API enabled (Phase 4.5)")
+
 # Startup event to initialize memory manager periodic flush
 @app.on_event("startup")
 async def startup_event():

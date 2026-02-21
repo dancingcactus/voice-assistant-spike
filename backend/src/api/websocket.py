@@ -19,6 +19,7 @@ from integrations.tts_integration import create_tts_provider
 from tools.timer_tool import TimerTool
 from tools.device_tool import DeviceTool
 from tools.memory_tool import MemoryTool
+from tools.list_tool import ListTool
 import os
 
 logger = logging.getLogger(__name__)
@@ -35,6 +36,7 @@ tool_system = ToolSystem()
 tool_system.register_tool(TimerTool())
 tool_system.register_tool(DeviceTool())
 tool_system.register_tool(MemoryTool())
+tool_system.register_tool(ListTool(data_dir=str(data_dir)))
 
 logger.info(f"Registered tools: {tool_system.list_tools()}")
 
@@ -93,7 +95,7 @@ conversation_manager = ConversationManager(
     tool_system=tool_system,
     story_engine=story_engine,
     tts_provider=tts_provider,
-    memory_manager=memory_manager
+    memory_manager=memory_manager,
 )
 
 
@@ -170,12 +172,6 @@ async def websocket_endpoint(websocket: WebSocket):
                             type="assistant_response",
                             data=response.model_dump(mode='json')
                         )
-                    )
-
-                    logger.info(
-                        f"📤 Sent to {session_id}: {response.text[:50]}... "
-                        f"(tokens: {result['metadata'].get('tokens_used', 0)})"
-                    )
 
                     # Send secondary character response as a separate message if present
                     coordination = result.get("coordination")

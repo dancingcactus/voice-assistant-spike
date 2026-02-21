@@ -50,6 +50,24 @@ class ToolCallLog(BaseModel):
     is_replay: bool = Field(default=False, description="Whether this was a replay of another call")
     replayed_from: Optional[str] = Field(None, description="Original call_id if this is a replay")
 
+    # Phase 5.1: Orchestrator decision fields (only populated for request_handoff calls)
+    orchestrator_decision: Optional[Dict[str, Any]] = Field(
+        default=None,
+        description=(
+            "For request_handoff calls: orchestrator decision metadata. "
+            "Keys: accepted (bool), rejected_reason (str|None). "
+            "None for all other tool types."
+        ),
+    )
+    resulted_in_character: Optional[str] = Field(
+        default=None,
+        description=(
+            "For request_handoff calls: the character ID that was triggered "
+            "as a result of the accepted handoff. None if the handoff was "
+            "rejected or the tool is not request_handoff."
+        ),
+    )
+
 
 class ToolCallFilter(BaseModel):
     """Filtering options for querying tool calls"""

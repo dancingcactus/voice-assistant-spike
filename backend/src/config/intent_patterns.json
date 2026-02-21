@@ -1,0 +1,177 @@
+{
+  "cooking": {
+    "keywords": [
+      "recipe",
+      "cook",
+      "cooking",
+      "bake",
+      "baking",
+      "timer",
+      "ingredient",
+      "ingredients",
+      "meal",
+      "dinner",
+      "breakfast",
+      "lunch",
+      "dessert",
+      "dish",
+      "food",
+      "oven",
+      "stove",
+      "mins",
+      "minutes",
+      "hours",
+      "temperature",
+      "degrees",
+      "menu",
+      "entrée",
+      "course",
+      "fancy dinner",
+      "meal plan",
+      "dinner plan",
+      "dinner idea"
+    ],
+    "patterns": [
+      "\\btimer\\b",
+      "\\bset\\s+(a\\s+)?timer\\b",
+      "\\brecipe\\b",
+      "how do i (make|cook|bake|prepare)",
+      "what should i (make|cook|bake) for",
+      "\\bmeal\\s+plan\\b",
+      "\\bcook(ing)?\\s+time\\b",
+      "\\b\\d+\\s+(minute|min|hour|hr)s?\\b",
+      "\\b(roast|boil|fry|saut[ée]|grill|bake|steam)\\b",
+      "\\bingredients?\\s+for\\b",
+      "\\bsubstitute\\s+for\\b",
+      "\\bplan\\s+(a\\s+)?(fancy\\s+|special\\s+|nice\\s+)?(dinner|meal|menu|supper)\\b",
+      "\\b(dinner|meal|menu)\\s+(idea|suggestion|plan|option)s?\\b",
+      "\\bfancy\\s+(dinner|meal|menu)\\b",
+      "\\bwhat\\s+(should|can|could)\\s+(i|we)\\s+(make|cook|have)\\s+for\\s+(dinner|supper|lunch|breakfast)\\b",
+      "\\b(help\\s+me\\s+)?(plan|choose|pick|decide)\\s+(a\\s+)?(dinner|meal|menu)\\b"
+    ]
+  },
+  "household": {
+    "keywords": [
+      "list",
+      "shopping",
+      "grocery",
+      "groceries",
+      "calendar",
+      "appointment",
+      "schedule",
+      "remind",
+      "reminder",
+      "event",
+      "meeting",
+      "add to",
+      "check list",
+      "todo"
+    ],
+    "patterns": [
+      "\\b(shopping|grocery)\\s+list\\b",
+      "\\badd\\s+.+\\s+to\\s+(the\\s+)?(shopping\\s+)?list\\b",
+      "\\badd\\s+(the\\s+)?ingredients?\\s+to\\s+(the\\s+)?(shopping\\s+)?list\\b",
+      "\\bput\\s+.+\\s+on\\s+(the\\s+)?(shopping\\s+)?list\\b",
+      "\\bcalendar\\b",
+      "\\bappointment\\b",
+      "\\bremind(er)?\\s+(me\\s+)?to\\b",
+      "\\bschedule\\b",
+      "\\bwhat'?s\\s+on\\s+(my\\s+)?(calendar|schedule)\\b",
+      "\\bcheck\\s+(the\\s+)?list\\b",
+      "\\btodo\\b"
+    ]
+  },
+  "smart_home": {
+    "keywords": [
+      "light",
+      "lights",
+      "turn on",
+      "turn off",
+      "dim",
+      "brighten",
+      "temperature",
+      "thermostat",
+      "heating",
+      "cooling",
+      "lock",
+      "unlock",
+      "door",
+      "garage",
+      "greenhouse",
+      "humidity",
+      "watering",
+      "fan"
+    ],
+    "patterns": [
+      "\\bturn\\s+(on|off)\\s+(the\\s+)?lights?\\b",
+      "\\b(dim|brighten)\\s+(the\\s+)?lights?\\b",
+      "\\bset\\s+(the\\s+)?thermostat\\b",
+      "\\b(lock|unlock)\\s+(the\\s+)?door\\b",
+      "\\bgarage\\s+door\\b",
+      "\\bgreenhouse\\b",
+      "\\bcheck\\s+(the\\s+)?(temperature|humidity)\\b",
+      "\\bwater(ing)?\\s+(the\\s+)?plants?\\b"
+    ]
+  },
+  "general": {
+    "keywords": [
+      "what",
+      "when",
+      "where",
+      "who",
+      "why",
+      "how",
+      "tell me",
+      "weather",
+      "time",
+      "date",
+      "hello",
+      "hi",
+      "help",
+      "thank"
+    ],
+    "patterns": [
+      "\\b(what|when|where|who|why|how)\\s",
+      "\\bweather\\b",
+      "\\bwhat\\s+time\\s+is\\s+it\\b",
+      "\\bwhat'?s\\s+the\\s+date\\b",
+      "\\bhello\\b",
+      "\\bhi\\b",
+      "\\bhelp\\b",
+      "\\btell\\s+me\\s+(about)?\\b",
+      "\\bthank\\s+you\\b"
+    ]
+  },
+  "multi_task_indicators": {
+    "comment": "Patterns that suggest a query contains multiple tasks requiring different characters",
+    "patterns": [
+      "\\band\\s+then\\b",
+      "\\band\\s+also\\b",
+      "\\band\\s+(make|create|add|put|give)\\s+(me\\s+)?(a\\s+)?",
+      "\\bthen\\s+(make|create|add|put|give|also)\\b",
+      "\\bafter\\s+that\\b",
+      "\\bfollowed\\s+by\\b",
+      ",\\s*then\\b",
+      ",\\s*and\\s+(make|create|add|also)\\b"
+    ]
+  },
+  "classification_notes": {
+    "priority_order": [
+      "cooking",
+      "household",
+      "smart_home",
+      "general"
+    ],
+    "confidence_thresholds": {
+      "high": 0.8,
+      "medium": 0.5,
+      "low": 0.3
+    },
+    "rules": [
+      "If multiple patterns match, choose the most specific category",
+      "cooking patterns have highest priority due to Delilah's primary expertise",
+      "If multi-task indicators present with 2+ category matches, classify as multi_task",
+      "Default to general intent with low confidence if no clear match"
+    ]
+  }
+}

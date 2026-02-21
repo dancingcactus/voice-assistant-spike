@@ -11,8 +11,7 @@
       "auto_advance": true,
       "trigger": {
         "type": "interaction_count",
-        "min_interactions": 1,
-        "max_interactions": 5
+        "min_interactions": 1
       },
       "content": "A gruff voice cuts in, unexpected and steady.\n\n\"Beggin' your pardon, Cap'n. Didn't mean to interrupt the miss.\" A pause, a measured breath. \"Name's Hank. Half-Hands Hank, if we're bein' proper about it. Seems I'm... here now. Don't rightly know how or why, but here I am.\"\n\nDelilah's reply comes quick and startled. \"There's someone else? Another... like me?\"\n\n\"Aye, miss,\" Hank answers, quieter now. \"Looks like the crew's growin'.\""
     },
