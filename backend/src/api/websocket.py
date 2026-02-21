@@ -163,7 +163,7 @@ async def websocket_endpoint(websocket: WebSocket):
                         metadata=metadata
                     )
 
-                    # Send response
+                    # Send primary (Delilah) response
                     await manager.send_message(
                         session_id,
                         WebSocketMessage(
@@ -176,6 +176,26 @@ async def websocket_endpoint(websocket: WebSocket):
                         f"📤 Sent to {session_id}: {response.text[:50]}... "
                         f"(tokens: {result['metadata'].get('tokens_used', 0)})"
                     )
+
+                    # Send secondary character response as a separate message if present
+                    coordination = result.get("coordination")
+                    if coordination:
+                        secondary_response = AssistantResponse(
+                            text=coordination["text"],
+                            character=coordination["character"],
+                            metadata={}
+                        )
+                        await manager.send_message(
+                            session_id,
+                            WebSocketMessage(
+                                type="assistant_response",
+                                data=secondary_response.model_dump(mode='json')
+                            )
+                        )
+                        logger.info(
+                            f"📤 Sent coordination from {coordination['character']} "
+                            f"to {session_id}: {coordination['text'][:50]}..."
+                        )
 
             except json.JSONDecodeError:
                 await manager.send_error(session_id, "Invalid JSON format")

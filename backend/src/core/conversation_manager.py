@@ -268,6 +268,8 @@ class ConversationManager:
         "pick up", "need to buy", "need to get", "grab some", "grab a"
     ]
 
+    # Sentinel the LLM returns when it has nothing to add
+    _COORDINATION_SILENT = "SILENT"
     async def _handle_character_coordination(
         self,
         context: ConversationContext,
@@ -305,9 +307,11 @@ class ConversationManager:
         if secondary_character_id not in self.character_system.characters:
             return None
 
-        # Check whether the user message or primary response signals a coordination need
-        combined_text = (user_message + " " + primary_response).lower()
-        if not any(kw in combined_text for kw in self._COORDINATION_KEYWORDS):
+        # Check whether the user message signals a coordination need.
+        # We only scan the user message — NOT Delilah's response — to avoid
+        # triggering Hank every time Delilah herself mentions "shopping list".
+        user_lower = user_message.lower()
+        if not any(kw in user_lower for kw in self._COORDINATION_KEYWORDS):
             return None
 
         logger.info(
@@ -322,7 +326,10 @@ class ConversationManager:
             crew_context=crew_context
         )
 
-        # Include the full exchange so Hank has the context he needs
+        # Include the full exchange so Hank has the context he needs.
+        # The prompt is deliberately restrictive: Hank should only speak if
+        # he has a specific task-management or list-tracking contribution.
+        # If he has nothing concrete to add, he should say nothing at all.
         secondary_messages = [
             {"role": "system", "content": secondary_system_prompt},
             {"role": "user", "content": user_message},
@@ -330,7 +337,11 @@ class ConversationManager:
             {
                 "role": "user",
                 "content": (
-                    "Hank, do you have anything to add or any tasks to take care of?"
+                    "Hank, if the user is specifically asking you to track a list, "
+                    "manage tasks, or set a reminder, give one brief acknowledgment in "
+                    "your voice (one or two sentences at most). "
+                    "If Delilah has already fully covered it or there is nothing "
+                    f"concrete for you to add, stay silent and reply with only the word: {self._COORDINATION_SILENT}"
                 )
             }
         ]
@@ -341,12 +352,14 @@ class ConversationManager:
                 temperature=0.7
             )
             content = secondary_response.get("content", "").strip()
-            if content:
+            # Hank signals he has nothing to add with the sentinel word
+            if content and content.upper() != self._COORDINATION_SILENT:
                 logger.info(
                     f"Secondary character '{secondary_character_id}' responded "
                     f"({secondary_response['usage']['total_tokens']} tokens)"
                 )
                 return content
+            logger.debug(f"Secondary character '{secondary_character_id}' chose to stay silent")
         except Exception as e:
             logger.warning(f"Secondary character coordination failed: {e}")
 
@@ -566,8 +579,9 @@ class ConversationManager:
                 session_id=session_id,
                 current_chapter=current_chapter
             )
-            if coordination_response:
-                response_text = f"{response_text}\n\n{coordination_response}"
+            # Do NOT append coordination_response to response_text here.
+            # The websocket layer sends it as a separate message so the
+            # frontend can display it under a different character header.
 
             # Phase 5: Check for story beat injection
             story_beat_injected = False
@@ -649,6 +663,14 @@ class ConversationManager:
                     "coordination_active": coordination_response is not None
                 }
             }
+
+            # Expose the secondary character's response so the websocket layer
+            # can send it as a distinct message (separate character bubble).
+            if coordination_response:
+                response["coordination"] = {
+                    "character": "hank",
+                    "text": coordination_response
+                }
 
             if story_beat_info:
                 response["metadata"]["story_beat"] = story_beat_info
