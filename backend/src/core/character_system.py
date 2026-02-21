@@ -40,6 +40,8 @@ class CharacterSystem:
             return
 
         for char_file in self.characters_dir.glob("*.json"):
+            if char_file.name == "relationships.json":
+                continue
             try:
                 with open(char_file, "r") as f:
                     char_data = json.load(f)
