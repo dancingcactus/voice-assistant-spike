@@ -326,6 +326,8 @@
     "coping_mechanism": "Channels anxiety into helping others, especially with food"
   },
 
+  "available_tools": ["set_timer", "save_memory", "control_device"],
+
   "capabilities": [
     "Recipe guidance and instructions",
     "Cooking technique explanations",

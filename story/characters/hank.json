@@ -125,6 +125,7 @@
       "interaction_style": "Protective, direct, and respectful"
     }
   },
+  "available_tools": ["set_timer", "save_memory", "control_device"],
   "capabilities": [
     "Task and checklist management",
     "Basic smart home control assistance",
