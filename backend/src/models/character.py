@@ -44,6 +44,7 @@ class Character(BaseModel):
     """Complete character definition."""
     id: str = Field(..., description="Unique character identifier")
     name: str = Field(..., description="Full name")
+    display_name: Optional[str] = Field(default=None, description="Short display name shown in the UI")
     nickname: Optional[str] = Field(default=None, description="Informal name")
     role: str = Field(..., description="Primary role or expertise")
     description: Optional[str] = Field(default=None, description="Brief description")

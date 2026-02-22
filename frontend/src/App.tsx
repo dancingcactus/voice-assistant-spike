@@ -7,11 +7,6 @@ import { VoiceInput } from './components/VoiceInput';
 import { apiClient } from './services/api';
 import type { UserSummary, AutoAdvanceNotification } from './services/api';
 
-const CHARACTER_DISPLAY_NAMES: Record<string, string> = {
-  delilah: 'Delilah',
-  hank: 'Hank',
-};
-
 function App() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
@@ -22,6 +17,7 @@ function App() {
   const [users, setUsers] = useState<UserSummary[]>([]);
   const [autoAdvanceBeats, setAutoAdvanceBeats] = useState<AutoAdvanceNotification[]>([]);
   const [copyStatus, setCopyStatus] = useState<'idle' | 'copied' | 'error'>('idle');
+  const [characterDisplayNames, setCharacterDisplayNames] = useState<Record<string, string>>({});
   const wsRef = useRef<WebSocketService | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -89,6 +85,23 @@ function App() {
       }
     };
     loadUsers();
+  }, []);
+
+  useEffect(() => {
+    // Load character display names from the API
+    const loadCharacters = async () => {
+      try {
+        const { characters } = await apiClient.listCharacters();
+        const names: Record<string, string> = {};
+        for (const char of characters) {
+          names[char.id] = char.display_name || char.name;
+        }
+        setCharacterDisplayNames(names);
+      } catch (error) {
+        console.error('Failed to load characters:', error);
+      }
+    };
+    loadCharacters();
   }, []);
 
   useEffect(() => {
@@ -175,7 +188,7 @@ function App() {
   const copyConversation = async () => {
     const text = messages
       .map((message) => {
-        const role = message.role === 'user' ? 'User' : (message.character || 'Delilah');
+        const role = message.role === 'user' ? 'User' : (message.character ? (characterDisplayNames[message.character] || message.character) : 'Assistant');
         return `${role}: ${message.content}`;
       })
       .join('\n');
@@ -293,7 +306,7 @@ function App() {
         <div className="messages">
           {messages.length === 0 && (
             <div className="empty-state">
-              <p>Send a message to start chatting with Delilah!</p>
+              <p>Send a message to start chatting with {characterDisplayNames['delilah'] || 'Delilah'}!</p>
               <p className="phase-indicator">Phase 6: TTS Integration - Voice Input & Audio Output</p>
             </div>
           )}
@@ -306,7 +319,7 @@ function App() {
                 <span className="message-role">
                   {message.role === 'user'
                     ? 'You'
-                    : (message.character && CHARACTER_DISPLAY_NAMES[message.character]) || 'Delilah'}
+                    : (message.character ? (characterDisplayNames[message.character] || message.character) : 'Assistant')}
                 </span>
                 <span className="message-time">
                   {new Date(message.timestamp).toLocaleTimeString()}
@@ -337,7 +350,7 @@ function App() {
           {isThinking && (
             <div className="message assistant thinking">
               <div className="message-header">
-                <span className="message-role">Delilah</span>
+                <span className="message-role">{characterDisplayNames['delilah'] || 'Delilah'}</span>
               </div>
               <div className="message-content thinking-indicator">
                 <span className="dot"></span>
