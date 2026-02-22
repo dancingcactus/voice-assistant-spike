@@ -9,7 +9,7 @@ import { StoryBeatTool } from './StoryBeatTool';
 import UserTestingTool from './UserTestingTool';
 import { ToolCallsTool } from './ToolCallsTool';
 import { CharacterTool } from './CharacterTool';
-import { ToolsView } from './tools/ToolsView';
+import { SystemLogTool } from './SystemLogTool';
 import { KeyboardShortcutsModal } from './KeyboardShortcutsModal';
 import { LoadingSpinner } from './LoadingSpinner';
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
@@ -34,7 +34,7 @@ export function Dashboard() {
 
   // Keyboard shortcuts
   useKeyboardShortcuts([
-    { key: '1', handler: () => setCurrentView('home'), description: 'Go to Home' },
+    { key: '1', handler: () => setCurrentView('home'), description: 'Go to Logs' },
     { key: '2', handler: () => setCurrentView('story'), description: 'Go to Story Beats' },
     { key: '3', handler: () => setCurrentView('tools'), description: 'Go to Tools' },
     { key: '4', handler: () => setCurrentView('users'), description: 'Go to User Testing' },
@@ -72,8 +72,6 @@ export function Dashboard() {
     );
   }
 
-  const selectedUser = users?.find((u: UserSummary) => u.user_id === selectedUserId);
-
   return (
     <div className="dashboard">
       <header className="dashboard-header">
@@ -83,7 +81,7 @@ export function Dashboard() {
             className={currentView === 'home' ? 'active' : ''}
             onClick={() => setCurrentView('home')}
           >
-            Home
+            Logs
           </button>
           <button
             className={currentView === 'story' ? 'active' : ''}
@@ -159,137 +157,7 @@ export function Dashboard() {
       ) : currentView === 'characters' ? (
         <CharacterTool userId={selectedUserId} />
       ) : (
-        <div className="dashboard-content">
-          {/* Welcome Section */}
-          <section className="info-card welcome-card">
-            <h2>Welcome to Observability Dashboard</h2>
-            <p>
-              Comprehensive tooling for debugging, testing, and inspecting the Hey Chat! voice assistant system.
-              All Phase 1.5 milestones are complete.
-            </p>
-          </section>
-
-          {/* Quick Actions */}
-          <section className="info-card">
-            <h3>Quick Actions</h3>
-            <div className="quick-actions">
-              <button className="action-card" onClick={() => setCurrentView('story')}>
-                <span className="action-icon">📖</span>
-                <span className="action-title">Story Beats</span>
-                <span className="action-desc">View and trigger story beats</span>
-              </button>
-              <button className="action-card" onClick={() => setCurrentView('tools')}>
-                <span className="action-icon">🔧</span>
-                <span className="action-title">Tools</span>
-                <span className="action-desc">Lists, Timers, Devices & Memories</span>
-              </button>
-              <button className="action-card" onClick={() => setCurrentView('users')}>
-                <span className="action-icon">👥</span>
-                <span className="action-title">Test Users</span>
-                <span className="action-desc">Create and manage test users</span>
-              </button>
-              <button className="action-card" onClick={() => setCurrentView('toolcalls')}>
-                <span className="action-icon">🔧</span>
-                <span className="action-title">Tool Calls</span>
-                <span className="action-desc">Inspect API calls and performance</span>
-              </button>
-              <button className="action-card" onClick={() => setCurrentView('characters')}>
-                <span className="action-icon">👤</span>
-                <span className="action-title">Characters</span>
-                <span className="action-desc">View character configurations</span>
-              </button>
-            </div>
-          </section>
-
-          {/* Current User Profile */}
-          {selectedUser && (
-            <section className="info-card highlight">
-              <h3>Current User: {selectedUser.user_id}</h3>
-              <div className="profile-info">
-                <div className="profile-field">
-                  <label>User ID:</label>
-                  <span>{selectedUser.user_id}</span>
-                </div>
-                <div className="profile-field">
-                  <label>Current Chapter:</label>
-                  <span>Chapter {selectedUser.current_chapter}</span>
-                </div>
-                <div className="profile-field">
-                  <label>Interactions:</label>
-                  <span>{selectedUser.interaction_count}</span>
-                </div>
-                <div className="profile-field">
-                  <label>Type:</label>
-                  <span>{selectedUser.user_id === 'user_justin' ? <span className="badge production">PRODUCTION</span> : 'Test User'}</span>
-                </div>
-              </div>
-            </section>
-          )}
-
-          {/* System Overview */}
-          <section className="info-card">
-            <h3>System Overview</h3>
-            <div className="system-stats">
-              <div className="stat-card">
-                <div className="stat-value">{users?.length || 0}</div>
-                <div className="stat-label">Total Users</div>
-              </div>
-              <div className="stat-card">
-                <div className="stat-value">6</div>
-                <div className="stat-label">Available Tools</div>
-              </div>
-              <div className="stat-card">
-                <div className="stat-value">1</div>
-                <div className="stat-label">Active Character</div>
-              </div>
-              <div className="stat-card">
-                <div className="stat-value">7/7</div>
-                <div className="stat-label">Milestones Complete</div>
-              </div>
-            </div>
-          </section>
-
-          {/* All Users */}
-          <section className="info-card">
-            <h3>All Users ({users?.length || 0})</h3>
-            <div className="users-list">
-              {users?.map((user: UserSummary) => (
-                <div
-                  key={user.user_id}
-                  className={`user-card ${user.user_id === selectedUserId ? 'selected' : ''}`}
-                  onClick={() => setSelectedUserId(user.user_id)}
-                  style={{ cursor: 'pointer' }}
-                >
-                  <div className="user-header">
-                    <strong>{user.user_id}</strong>
-                    {user.user_id === 'user_justin' && (
-                      <span className="badge production">PRODUCTION</span>
-                    )}
-                  </div>
-                  <div className="user-stats">
-                    <span>Chapter {user.current_chapter}</span>
-                    <span>•</span>
-                    <span>{user.interaction_count} interactions</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          {/* Phase 1.5 Milestones */}
-          <section className="info-card">
-            <h3>Phase 1.5 Milestones</h3>
-            <ul className="next-steps">
-              <li>✅ Milestone 1: Foundation & Data Access</li>
-              <li>✅ Milestone 2: Story Beat Tool</li>
-              <li>✅ Milestone 3: Memory Tool</li>
-              <li>✅ Milestone 4: User Testing Tool</li>
-              <li>✅ Milestone 5: Tool Calls Inspection</li>
-              <li>✅ Milestone 6: Memory Extraction & Character Tool</li>
-              <li>✅ Milestone 7: Polish & Integration</li>
-            </ul>
-          </section>
-        </div>
+        <SystemLogTool />
       )}
 
       <footer className="dashboard-footer">
