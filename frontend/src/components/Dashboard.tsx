@@ -75,7 +75,7 @@ export function Dashboard() {
   return (
     <div className="dashboard">
       <header className="dashboard-header">
-        <h1>🎭 Hey Chat! Observability Dashboard</h1>
+        <h1>Hey Chat! Observability Dashboard</h1>
         <nav className="main-nav">
           <button
             className={currentView === 'home' ? 'active' : ''}
