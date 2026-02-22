@@ -1212,6 +1212,7 @@ async def get_tool_call_detail(
 class CharacterSummary(BaseModel):
     id: str
     name: str
+    display_name: Optional[str] = None
     nickname: Optional[str] = None
     role: str
     description: Optional[str] = None

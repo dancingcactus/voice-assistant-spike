@@ -47,6 +47,7 @@ class CharacterAccessLayer:
             characters.append({
                 "id": character.id,
                 "name": character.name,
+                "display_name": character.display_name,
                 "nickname": character.nickname,
                 "role": character.role,
                 "description": character.description,

@@ -281,6 +281,7 @@ export interface ToolCallStatistics {
 export interface CharacterSummary {
   id: string;
   name: string;
+  display_name?: string;
   nickname?: string;
   role: string;
   description?: string;
@@ -325,6 +326,7 @@ export interface CharacterRelationship {
 export interface Character {
   id: string;
   name: string;
+  display_name?: string;
   nickname?: string;
   role: string;
   description?: string;

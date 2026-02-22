@@ -15,6 +15,10 @@
       "type": "string",
       "description": "Full name of the character"
     },
+    "display_name": {
+      "type": "string",
+      "description": "Short display name shown in the UI"
+    },
     "nickname": {
       "type": "string",
       "description": "Shortened or informal name"
