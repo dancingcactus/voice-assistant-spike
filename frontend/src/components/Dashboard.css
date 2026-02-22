@@ -25,28 +25,38 @@
 
 .main-nav {
   display: flex;
-  gap: 0.5rem;
+  align-items: center;
 }
 
-.main-nav button {
-  padding: 0.75rem 1.5rem;
+.nav-dropdown {
+  padding: 0.6rem 2.5rem 0.6rem 1rem;
   background: #1a1a1a;
-  border: 2px solid transparent;
+  border: 2px solid #333;
   border-radius: 6px;
-  color: #aaa;
+  color: #fff;
+  font-size: 0.95rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%234a90e2' d='M6 8L0 0h12z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
 }
 
-.main-nav button:hover {
-  background: #2a2a2a;
-  color: #fff;
+.nav-dropdown:hover {
+  background-color: #2a2a2a;
+  border-color: #555;
 }
 
-.main-nav button.active {
-  background: #1a3a5c;
+.nav-dropdown:focus {
+  outline: none;
   border-color: #4a90e2;
+  background-color: #1a3a5c;
+}
+
+.nav-dropdown option {
+  background: #1a1a1a;
   color: #fff;
 }
 
@@ -416,13 +426,11 @@
   }
 
   .main-nav {
-    flex-wrap: wrap;
     width: 100%;
   }
 
-  .main-nav button {
-    flex: 1 1 calc(50% - 0.25rem);
-    min-width: 120px;
+  .nav-dropdown {
+    width: 100%;
   }
 
   .header-controls {
