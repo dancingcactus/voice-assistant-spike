@@ -1432,6 +1432,19 @@ async def get_character_tool_instructions(
     return {"tool_instructions": instructions}
 
 
+@app.get("/logs")
+async def get_logs(
+    limit: int = 200,
+    level: Optional[str] = None,
+    authorization: Optional[str] = Header(None)
+):
+    """Return recent system log entries captured by the observability handler."""
+    verify_token(authorization)
+    from .log_handler import get_handler
+    handler = get_handler()
+    return {"logs": handler.get_logs(limit=limit, level=level)}
+
+
 @app.on_event("startup")
 async def startup_event():
     """Run on application startup."""

@@ -9,6 +9,9 @@ Responsibilities:
 """
 
 import logging
+import json
+import time
+import uuid
 from typing import List, Dict, Any, Optional
 from datetime import datetime
 
@@ -18,6 +21,7 @@ from integrations.llm_integration import LLMIntegration
 from integrations.tts_integration import TTSProvider
 from core.character_system import CharacterSystem
 from core.tool_system import ToolSystem
+from tools.tool_base import ToolContext, ToolResultStatus
 from core.story_engine import StoryEngine
 from core.memory_manager import MemoryManager
 from pathlib import Path
@@ -858,7 +862,6 @@ class ConversationManager:
                         duration_ms = int((time.time() - start_time) * 1000)
 
                         # Determine status
-                        from tools.tool_base import ToolResultStatus
                         status = ToolCallStatus.SUCCESS if result.status == ToolResultStatus.SUCCESS else ToolCallStatus.ERROR
 
                         # Log the tool call if logger is available
@@ -1050,7 +1053,8 @@ class ConversationManager:
                     "tool_calls_made": tool_call_count,
                     "story_beat_injected": story_beat_injected,
                     "current_chapter": current_chapter,
-                    "coordination_active": coordination_response is not None
+                    "coordination_active": coordination_response is not None,
+                    "voice_mode": voice_mode,
                 }
             }
 
