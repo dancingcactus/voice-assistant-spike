@@ -162,8 +162,8 @@ export function Dashboard() {
               {item.icon}
               {!sidebarCollapsed && (
                 <>
-                  <span className="flex-1 truncate">{item.label}</span>
-                  <kbd className="ml-auto text-xs opacity-50">{item.shortcut}</kbd>
+                  <span className="truncate">{item.label}</span>
+                  <kbd className="text-xs opacity-50">{item.shortcut}</kbd>
                 </>
               )}
             </button>
