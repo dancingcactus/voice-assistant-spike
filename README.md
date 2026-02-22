@@ -122,7 +122,17 @@ chmod +x scripts/servers.sh
 ./scripts/servers.sh stop     # stop the servers
 ```
 
-Logs and pidfile are written to `.tool_logs/` (`.tool_logs/backend.log`, `.tool_logs/frontend.log`, `.tool_logs/server_pids`).
+Logs and pidfile are written to `.tool_logs/` by the script:
+
+- `.tool_logs/backend.log` — backend stdout/stderr
+- `.tool_logs/frontend.log` — frontend stdout/stderr
+- `.tool_logs/server_pids` — PIDs recorded when servers are started
+
+Notes:
+
+- The script will create a Python virtual environment at `backend/.venv` if one is missing and will try to install the backend requirements before starting the backend process.
+- It backgrounds both processes using `nohup` and records their PIDs in `.tool_logs/server_pids` so `./scripts/servers.sh stop` can terminate them.
+- Make the script executable with `chmod +x scripts/servers.sh`.
 
 ## Testing Your Setup
 

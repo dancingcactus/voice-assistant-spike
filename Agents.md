@@ -141,6 +141,15 @@ Open:
 -- The URL printed by `npm run dev` (Vite) — typically `http://localhost:5173/`
 -- Observability: append `/observability` to that URL (e.g. `http://localhost:5173/observability`)
 
+### Convenience script: scripts/servers.sh
+
+A convenience script is provided at `scripts/servers.sh` to start/stop the backend and frontend together from the repository root. It backgrounds the processes and records PIDs and logs under `.tool_logs`.
+
+- Usage: `./scripts/servers.sh start|stop|status|restart`
+- PID file: `.tool_logs/server_pids`
+- Logs: `.tool_logs/backend.log` and `.tool_logs/frontend.log`
+- Notes: The script will create or use `backend/.venv` and will (attempt to) install Python requirements for the backend. Make it executable with `chmod +x scripts/servers.sh`.
+
 ### Voice Interface Strategy
 
 **The Latency Challenge**: Multi-character interactions risk 4+ second delays
