@@ -78,42 +78,19 @@ export function Dashboard() {
       <header className="dashboard-header">
         <h1>Hey Chat! Observability Dashboard</h1>
         <nav className="main-nav">
-          <button
-            className={currentView === 'home' ? 'active' : ''}
-            onClick={() => setCurrentView('home')}
+          <select
+            className="nav-dropdown"
+            value={currentView}
+            onChange={(e) => setCurrentView(e.target.value as typeof currentView)}
+            aria-label="Navigate to section"
           >
-            Logs
-          </button>
-          <button
-            className={currentView === 'story' ? 'active' : ''}
-            onClick={() => setCurrentView('story')}
-          >
-            Story Beats
-          </button>
-          <button
-            className={currentView === 'tools' ? 'active' : ''}
-            onClick={() => setCurrentView('tools')}
-          >
-            Tools
-          </button>
-          <button
-            className={currentView === 'users' ? 'active' : ''}
-            onClick={() => setCurrentView('users')}
-          >
-            User Testing
-          </button>
-          <button
-            className={currentView === 'toolcalls' ? 'active' : ''}
-            onClick={() => setCurrentView('toolcalls')}
-          >
-            Tool Calls
-          </button>
-          <button
-            className={currentView === 'characters' ? 'active' : ''}
-            onClick={() => setCurrentView('characters')}
-          >
-            Characters
-          </button>
+            <option value="home">Logs</option>
+            <option value="story">Story Beats</option>
+            <option value="tools">Tools</option>
+            <option value="users">User Testing</option>
+            <option value="toolcalls">Tool Calls</option>
+            <option value="characters">Characters</option>
+          </select>
         </nav>
         <div className="header-controls">
           <div className="user-selector">
