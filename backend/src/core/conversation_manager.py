@@ -2,31 +2,23 @@
 Conversation Manager - Core module for handling user conversations.
 
 Responsibilities:
-- Managing conversation history
-- Constructing prompts for the LLM
-- Coordinating with LLM Integration
+- Managing conversation history and session context
+- Routing user messages through the TurnClassifier → ConversationRouter → CharacterExecutor pipeline
 - Emitting events for other systems (Story Engine, Character System)
 """
 
 import logging
-import json
-import time
-import uuid
 from typing import List, Dict, Any, Optional
 from datetime import datetime
 
-from models.message import Message, ConversationContext, LLMResponse, ToolCall
-from models.user_state import ConversationMessage
+from models.message import Message, ConversationContext
 from integrations.llm_integration import LLMIntegration
 from integrations.tts_integration import TTSProvider
 from core.character_system import CharacterSystem
 from core.tool_system import ToolSystem
-from tools.tool_base import ToolContext, ToolResultStatus
 from core.story_engine import StoryEngine
 from core.memory_manager import MemoryManager
-from pathlib import Path
 
-# Phase 5.1 imports
 from core.conversation_state import ConversationStateManager
 from core.turn_classifier import TurnClassifier
 from core.conversation_router import ConversationRouter
@@ -36,28 +28,9 @@ from config.character_assignments import get_available_characters
 
 logger = logging.getLogger(__name__)
 
-# Import observability modules with error handling
-try:
-    import sys
-    # Ensure src directory is in path for observability imports
-    src_dir = Path(__file__).parent.parent
-    if str(src_dir) not in sys.path:
-        sys.path.insert(0, str(src_dir))
-
-    from observability.tool_call_access import ToolCallDataAccess
-    from observability.tool_call_models import ToolCallLog, ToolCallStatus
-    OBSERVABILITY_AVAILABLE = True
-    logger.info("Tool call logging enabled")
-except ImportError as e:
-    logger.warning(f"Tool call logging unavailable: {e}")
-    OBSERVABILITY_AVAILABLE = False
-    ToolCallDataAccess = None
-    ToolCallLog = None
-    ToolCallStatus = None
-
 
 class ConversationManager:
-    """Manages conversation flow and LLM interaction."""
+    """Manages conversation flow through the character routing pipeline."""
 
     def __init__(
         self,
@@ -67,7 +40,6 @@ class ConversationManager:
         story_engine: Optional[StoryEngine] = None,
         tts_provider: Optional[TTSProvider] = None,
         memory_manager: Optional[MemoryManager] = None,
-        # Phase 5.1 injectable dependencies
         state_manager: Optional[ConversationStateManager] = None,
         turn_classifier: Optional[TurnClassifier] = None,
         conversation_router: Optional[ConversationRouter] = None,
@@ -104,7 +76,6 @@ class ConversationManager:
         self.default_character = default_character
         self.max_tool_calls = max_tool_calls
 
-        # Phase 5.1 components
         self.state_manager = state_manager or ConversationStateManager()
         self.turn_classifier = turn_classifier or TurnClassifier(llm=self.llm)
         self.conversation_router = conversation_router or ConversationRouter(llm=self.llm)
@@ -119,19 +90,11 @@ class ConversationManager:
         # Store active conversations by session_id (in-memory for current session)
         self.conversations: Dict[str, ConversationContext] = {}
 
-        # Initialize tool call logger if observability is available
-        if OBSERVABILITY_AVAILABLE:
-            data_dir = Path(__file__).parent.parent.parent / "data"
-            self.tool_call_logger = ToolCallDataAccess(data_dir=str(data_dir))
-        else:
-            self.tool_call_logger = None
-
         logger.info(
             f"Conversation Manager initialized "
             f"(max_history={max_history}, default_character={default_character}, "
             f"max_tool_calls={max_tool_calls}, tts={self.tts_provider is not None}, "
-            f"memory={self.memory_manager is not None}, "
-            f"tool_logging={self.tool_call_logger is not None})"
+            f"memory={self.memory_manager is not None})"
         )
 
     def get_or_create_conversation(
@@ -173,103 +136,6 @@ class ConversationManager:
 
         return self.conversations[session_id]
 
-    def _build_system_prompt(
-        self,
-        context: ConversationContext,
-        character_id: Optional[str] = None,
-        user_message: Optional[str] = None
-    ) -> str:
-        """
-        Build the system prompt for the LLM using Character System.
-
-        Args:
-            context: Conversation context
-            character_id: Character to use (defaults to default_character)
-            user_message: Latest user message for voice mode selection
-
-        Returns:
-            System prompt string
-        """
-        char_id = character_id or self.default_character
-
-        # Load user memories
-        from observability.memory_access import MemoryAccessor
-        memory_accessor = MemoryAccessor(str(Path(__file__).parent.parent.parent / "data"))
-        memories = memory_accessor.get_all_memories(context.user_id)
-
-        # Group memories by category
-        memory_context = {
-            "dietary_restrictions": [],
-            "preferences": [],
-            "facts": [],
-            "relationships": [],
-            "events": []
-        }
-
-        for memory in memories:
-            if memory.category == "dietary_restriction":
-                memory_context["dietary_restrictions"].append(memory)
-            elif memory.category == "preference":
-                memory_context["preferences"].append(memory)
-            elif memory.category == "fact":
-                memory_context["facts"].append(memory)
-            elif memory.category == "relationship":
-                memory_context["relationships"].append(memory)
-            elif memory.category == "event":
-                memory_context["events"].append(memory)
-
-        # If we have a user message, select the appropriate voice mode
-        if user_message:
-            voice_mode_selection = self.character_system.select_voice_mode(
-                char_id, user_message, context.metadata
-            )
-
-            if voice_mode_selection:
-                logger.debug(
-                    f"Selected voice mode: {voice_mode_selection.mode.name} "
-                    f"(confidence: {voice_mode_selection.confidence:.2f}) - "
-                    f"{voice_mode_selection.reasoning}"
-                )
-                return self.character_system.build_system_prompt(
-                    char_id, voice_mode_selection.mode, memory_context=memory_context
-                )
-
-        # Fallback to character prompt without specific voice mode
-        return self.character_system.build_system_prompt(char_id, memory_context=memory_context)
-
-    def _prepare_messages(
-        self,
-        context: ConversationContext,
-        user_message: Optional[str] = None
-    ) -> List[Dict[str, str]]:
-        """
-        Prepare messages for the LLM API call.
-
-        Args:
-            context: Conversation context
-            user_message: Latest user message for voice mode selection
-
-        Returns:
-            List of message dicts in OpenAI format
-        """
-        messages = []
-
-        # Add system prompt (with voice mode selection based on user message)
-        system_prompt = self._build_system_prompt(context, user_message=user_message)
-        messages.append({
-            "role": "system",
-            "content": system_prompt
-        })
-
-        # Add conversation history
-        for msg in context.history:
-            messages.append({
-                "role": msg.role,
-                "content": msg.content
-            })
-
-        return messages
-
     def _manage_history(self, context: ConversationContext):
         """
         Manage conversation history to prevent it from growing too large.
@@ -288,7 +154,7 @@ class ConversationManager:
     # Orchestration path
     # ------------------------------------------------------------------
 
-    # Named limits used across the Phase 5.1 path
+    # Named limits used across the orchestration path
     _MAX_HANDOFF_ITEMS = 20          # Cap on structured items passed to secondary (token budget)
     _MAX_CONTEXT_EXCERPT = 500       # Character limit for context excerpts passed to secondary
 
@@ -383,7 +249,7 @@ class ConversationManager:
                 and self.state_manager.is_expired(coord_state)
             ):
                 logger.info(
-                    "Phase 5.1: Coordination state expired — clearing (session=%s)", session_id
+                    "Orchestrator: Coordination state expired — clearing (session=%s)", session_id
                 )
                 self.state_manager.clear(context)
                 coord_state = self.state_manager.get_state(context)
@@ -398,7 +264,7 @@ class ConversationManager:
                 )
                 turn_type = classification.turn_type
                 logger.info(
-                    "Phase 5.1: TurnClassifier → %s (confidence=%.2f, session=%s)",
+                    "Orchestrator: TurnClassifier → %s (confidence=%.2f, session=%s)",
                     turn_type,
                     classification.confidence,
                     session_id,
@@ -411,7 +277,7 @@ class ConversationManager:
                 and coord_state.pending_character
             ):
                 logger.info(
-                    "Phase 5.1: AFFIRMATION — executing pending character '%s' (session=%s)",
+                    "Orchestrator: AFFIRMATION — executing pending character '%s' (session=%s)",
                     coord_state.pending_character,
                     session_id,
                 )
@@ -440,7 +306,7 @@ class ConversationManager:
             if turn_type in (TurnType.REJECTION, TurnType.NEW_REQUEST):
                 if coord_state.mode != CoordinationMode.IDLE:
                     logger.info(
-                        "Phase 5.1: %s — clearing pending state (session=%s)",
+                        "Orchestrator: %s — clearing pending state (session=%s)",
                         turn_type,
                         session_id,
                     )
@@ -454,7 +320,7 @@ class ConversationManager:
                 chapter_id=chapter_id,
             )
             logger.info(
-                "Phase 5.1: Router → primary='%s', followup=%s, rationale=%r (session=%s)",
+                "Orchestrator: Router → primary='%s', followup=%s, rationale=%r (session=%s)",
                 routing.primary_character,
                 routing.pending_followup.character if routing.pending_followup else None,
                 routing.rationale,
@@ -510,7 +376,7 @@ class ConversationManager:
                     proposed_summary=primary_response.text[:self._MAX_CONTEXT_EXCERPT],
                 )
                 logger.info(
-                    "Phase 5.1: Stored pending followup → '%s' (session=%s)",
+                    "Orchestrator: Stored pending followup → '%s' (session=%s)",
                     router_followup.character,
                     session_id,
                 )
@@ -560,13 +426,13 @@ class ConversationManager:
                     if audio_path:
                         response["metadata"]["audio_url"] = f"/{audio_path}"
                 except Exception as tts_err:
-                    logger.error("Phase 5.1: TTS failed: %s", tts_err)
+                    logger.error("Orchestrator: TTS failed: %s", tts_err)
 
             return response
 
         except Exception as exc:
             logger.error(
-                "Phase 5.1 orchestration failed: %s — falling back to single-character delilah",
+                "Orchestration failed: %s — falling back to single-character delilah",
                 exc,
                 exc_info=True,
             )
@@ -575,7 +441,7 @@ class ConversationManager:
                 "metadata": {
                     "error": str(exc),
                     "session_id": session_id,
-                    "phase51_error": True,
+                    "orchestration_error": True,
                 },
             }
 
@@ -610,7 +476,7 @@ class ConversationManager:
             )
         except Exception as sec_exc:
             logger.error(
-                "Phase 5.1: Secondary character '%s' execution failed: %s",
+                "Orchestrator: Secondary character '%s' execution failed: %s",
                 secondary_char,
                 sec_exc,
                 exc_info=True,
@@ -656,111 +522,6 @@ class ConversationManager:
                 "character_count": len(fragments),
             },
         }
-
-    # Keywords that suggest Hank should weigh in on task/list management
-    _COORDINATION_KEYWORDS = [
-        "shopping list", "grocery list", "to-do list", "todo list",
-        "task list", "checklist", "remind me", "don't forget",
-        "add to list", "make a list", "write down", "note that",
-        "pick up", "need to buy", "need to get", "grab some", "grab a"
-    ]
-
-    # Sentinel the LLM returns when it has nothing to add
-    _COORDINATION_SILENT = "SILENT"
-    async def _handle_character_coordination(
-        self,
-        context: ConversationContext,
-        user_message: str,
-        primary_response: str,
-        user_id: str,
-        session_id: str,
-        current_chapter: int
-    ) -> Optional[str]:
-        """
-        Generate a secondary character response when the task warrants coordination.
-
-        Called after the primary character (Delilah) responds to check whether a
-        second crew member should weigh in — for example, Hank stepping in to
-        acknowledge a shopping list or task management request.
-
-        Only activates in chapter 2 or later, when Hank has joined the crew.
-
-        Args:
-            context: Current conversation context
-            user_message: The user's original message
-            primary_response: The primary character's response text
-            user_id: User identifier
-            session_id: Session identifier
-            current_chapter: The user's current story chapter
-
-        Returns:
-            Secondary character's response text, or None if coordination is not needed
-        """
-        # Coordination only available in chapter 2+ (Hank must be unlocked)
-        if current_chapter < 2:
-            return None
-
-        secondary_character_id = "hank"
-        if secondary_character_id not in self.character_system.characters:
-            return None
-
-        # Check whether the user message signals a coordination need.
-        # We only scan the user message — NOT Delilah's response — to avoid
-        # triggering Hank every time Delilah herself mentions "shopping list".
-        user_lower = user_message.lower()
-        if not any(kw in user_lower for kw in self._COORDINATION_KEYWORDS):
-            return None
-
-        logger.info(
-            f"Coordination triggered for session {session_id}: "
-            f"secondary character '{secondary_character_id}'"
-        )
-
-        # Build a focused prompt for the secondary character
-        crew_context = self.character_system.build_crew_context(secondary_character_id)
-        secondary_system_prompt = self.character_system.build_system_prompt(
-            secondary_character_id,
-            crew_context=crew_context
-        )
-
-        # Include the full exchange so Hank has the context he needs.
-        # The prompt is deliberately restrictive: Hank should only speak if
-        # he has a specific task-management or list-tracking contribution.
-        # If he has nothing concrete to add, he should say nothing at all.
-        secondary_messages = [
-            {"role": "system", "content": secondary_system_prompt},
-            {"role": "user", "content": user_message},
-            {"role": "assistant", "content": primary_response},
-            {
-                "role": "user",
-                "content": (
-                    "Hank, if the user is specifically asking you to track a list, "
-                    "manage tasks, or set a reminder, give one brief acknowledgment in "
-                    "your voice (one or two sentences at most). "
-                    "If Delilah has already fully covered it or there is nothing "
-                    f"concrete for you to add, stay silent and reply with only the word: {self._COORDINATION_SILENT}"
-                )
-            }
-        ]
-
-        try:
-            secondary_response = self.llm.generate_response(
-                messages=secondary_messages,
-                temperature=0.7
-            )
-            content = secondary_response.get("content", "").strip()
-            # Hank signals he has nothing to add with the sentinel word
-            if content and content.upper() != self._COORDINATION_SILENT:
-                logger.info(
-                    f"Secondary character '{secondary_character_id}' responded "
-                    f"({secondary_response['usage']['total_tokens']} tokens)"
-                )
-                return content
-            logger.debug(f"Secondary character '{secondary_character_id}' chose to stay silent")
-        except Exception as e:
-            logger.warning(f"Secondary character coordination failed: {e}")
-
-        return None
 
     async def handle_user_message(
         self,
