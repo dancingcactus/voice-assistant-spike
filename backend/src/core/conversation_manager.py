@@ -1053,7 +1053,8 @@ class ConversationManager:
                     "tool_calls_made": tool_call_count,
                     "story_beat_injected": story_beat_injected,
                     "current_chapter": current_chapter,
-                    "coordination_active": coordination_response is not None
+                    "coordination_active": coordination_response is not None,
+                    "voice_mode": voice_mode,
                 }
             }
 
