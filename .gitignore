@@ -32,6 +32,9 @@ ENV/
 .venv/
 /backend/.venv/
 
+# Un-ignore frontend source lib directory (matched by the Python lib/ rule above)
+!frontend/src/lib/
+
 # Data directory (runtime state, user data)
 data/
 
