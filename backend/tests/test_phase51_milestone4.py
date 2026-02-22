@@ -4,7 +4,7 @@ Tests for Phase 5.1 Milestone 4: Full Wiring & End-to-End Validation.
 Covers:
 - ConversationManager.__init__: Phase 5.1 dep injection (no feature flags)
 - Router is always called (single code path)
-- _handle_phase51 execution path via handle_user_message:
+- _orchestrate_character_turn execution path via handle_user_message:
   - US1: request_handoff tool call → two character fragments same turn
   - US2: two-turn confirm → pending state + secondary execution on affirmation
   - US3: direct follow-on ("add to my list") → hank responds, not delilah
