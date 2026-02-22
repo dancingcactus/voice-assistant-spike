@@ -6,6 +6,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { apiClient, type UserSummary } from '../services/api';
 import { StoryBeatTool } from './StoryBeatTool';
+import { ToolsView } from './tools/ToolsView';
 import UserTestingTool from './UserTestingTool';
 import { ToolCallsTool } from './ToolCallsTool';
 import { CharacterTool } from './CharacterTool';
