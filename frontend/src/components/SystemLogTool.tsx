@@ -37,6 +37,59 @@ function formatTime(isoTimestamp: string): string {
   }
 }
 
+function formatEntryForCopy(entry: LogEntry): string {
+  const ts = formatTime(entry.timestamp);
+  let line = `[${ts}] ${entry.level} ${entry.logger} - ${entry.message}`;
+  if (entry.fields && Object.keys(entry.fields).length > 0) {
+    line += `  ${JSON.stringify(entry.fields)}`;
+  }
+  return line;
+}
+
+function formatGroupForCopy(group: LogGroup, entries: LogEntry[]): string {
+  const label = group.turn_id ? `Turn ${group.turn_id.slice(0, 8)}` : 'System';
+  const header = `=== ${label} (${formatTime(group.start_timestamp)}) — ${entries.length} entries ===`;
+  return [header, ...entries.map(formatEntryForCopy)].join('\n');
+}
+
+// ===========================================================================
+// CopyButton
+// ===========================================================================
+
+function CopyButton({ getText, title = 'Copy to clipboard', className = '' }: {
+  getText: () => string;
+  title?: string;
+  className?: string;
+}) {
+  const [state, setState] = useState<'idle' | 'copied' | 'failed'>('idle');
+
+  function handleClick(e: React.MouseEvent) {
+    e.stopPropagation();
+    const text = getText();
+    navigator.clipboard.writeText(text).then(() => {
+      setState('copied');
+      setTimeout(() => setState('idle'), 2000);
+    }).catch(() => {
+      setState('failed');
+      setTimeout(() => setState('idle'), 2000);
+    });
+  }
+
+  const icon = state === 'copied' ? '✓' : state === 'failed' ? '✗' : '⎘';
+  const label = state === 'copied' ? 'Copied!' : state === 'failed' ? 'Copy failed' : title;
+
+  return (
+    <button
+      className={`log-copy-btn${state === 'copied' ? ' log-copy-btn--copied' : state === 'failed' ? ' log-copy-btn--failed' : ''}${className ? ` ${className}` : ''}`}
+      onClick={handleClick}
+      title={label}
+      aria-label={label}
+    >
+      {icon}
+    </button>
+  );
+}
+
 function relativeMs(entryTimestamp: string, groupStart: string): string {
   const delta = new Date(entryTimestamp).getTime() - new Date(groupStart).getTime();
   if (delta < 0) return '+0ms';
@@ -179,6 +232,11 @@ function LogEntryRow({ entry, groupStart }: { entry: LogEntry; groupStart: strin
           <pre>{JSON.stringify(entry.fields, null, 2)}</pre>
         </details>
       )}
+      <CopyButton
+        getText={() => formatEntryForCopy(entry)}
+        title="Copy log line"
+        className="log-copy-btn--entry"
+      />
     </div>
   );
 }
@@ -226,6 +284,13 @@ function TurnGroupRow({
         <span className="log-group__timestamp">{formatTime(group.start_timestamp)}</span>
         {badges && <span className="log-group__level-counts">{badges}</span>}
         <span className="log-group__entry-count">{group.entry_count}</span>
+        {entries !== null && !loading && (
+          <CopyButton
+            getText={() => formatGroupForCopy(group, entries)}
+            title="Copy all entries in this group"
+            className="log-copy-btn--group"
+          />
+        )}
       </div>
       {expanded && (
         <div className="log-group__entries">
