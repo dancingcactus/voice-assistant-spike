@@ -26,7 +26,7 @@ from core.logging_context import (
     set_correlation_ids,
     turn_id_var,
 )
-from observability.log_handler import ObservabilityLogHandler, MAX_LOG_ENTRIES
+from observability.log_handler import ObservabilityLogHandler, MAX_LOG_ENTRIES, install
 
 
 # ===========================================================================
@@ -154,3 +154,51 @@ class TestRingBufferSize:
             r = logging.LogRecord("t", logging.DEBUG, "", 0, f"msg{i}", (), None)
             h.emit(r)
         assert len(h.get_logs(limit=100)) == 10
+
+
+# ===========================================================================
+# install() sets root logger level
+# ===========================================================================
+
+
+class TestInstallSetsRootLevel:
+    """install() must lower the root logger level so sub-ERROR records reach the handler."""
+
+    def test_install_lowers_root_level_to_debug(self, monkeypatch):
+        """After install(), root logger level must be <= DEBUG so INFO/DEBUG pass through."""
+        import observability.log_handler as lh
+
+        # Reset singleton so install() runs fresh
+        monkeypatch.setattr(lh, "_handler", None)
+        root = logging.getLogger()
+        original_level = root.level
+        try:
+            root.setLevel(logging.WARNING)
+            install(logging.DEBUG)
+            assert root.level <= logging.DEBUG
+        finally:
+            root.setLevel(original_level)
+            monkeypatch.setattr(lh, "_handler", None)
+
+    def test_install_captures_info_via_root_logger(self, monkeypatch):
+        """INFO messages logged through the root logger must appear in the handler after install()."""
+        import observability.log_handler as lh
+
+        monkeypatch.setattr(lh, "_handler", None)
+        root = logging.getLogger()
+        original_level = root.level
+        try:
+            root.setLevel(logging.WARNING)
+            handler = install(logging.DEBUG)
+            handler.clear()
+
+            test_logger = logging.getLogger("test.install.info")
+            test_logger.info("info-visible")
+
+            messages = [e["message"] for e in handler.get_logs()]
+            assert any("info-visible" in m for m in messages), (
+                "INFO log was not captured; root logger level may still be too high"
+            )
+        finally:
+            root.setLevel(original_level)
+            monkeypatch.setattr(lh, "_handler", None)
