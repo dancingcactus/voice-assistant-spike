@@ -363,7 +363,7 @@ class TestConversationRouterBasic:
         router.route("hello", [], ["delilah"], chapter_id=1)
         call_kwargs = llm.generate_response.call_args[1]
         assert call_kwargs.get("temperature") == 0.1
-        assert call_kwargs.get("max_tokens") == 150
+        assert call_kwargs.get("max_tokens") == 400
 
 
 class TestConversationRouterFallback:
@@ -401,3 +401,12 @@ class TestConversationRouterFallback:
         router = _make_router("```json\n" + _routing_json("delilah") + "\n```")
         decision = router.route("hello", [], ["delilah"], chapter_id=1)
         assert decision.primary_character == "delilah"
+
+    def test_empty_content_falls_back(self):
+        # Reproduces the bug: model returns no content (e.g. gpt-5-mini with
+        # max_completion_tokens too small) → router should fall back to delilah
+        # with a clear error, not a cryptic JSONDecodeError.
+        router = _make_router("")
+        decision = router.route("How many teaspoons in a tablespoon?", [], ["delilah", "hank"], chapter_id=2)
+        assert decision.primary_character == "delilah"
+        assert decision.pending_followup is None

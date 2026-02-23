@@ -29,7 +29,7 @@ logger = logging.getLogger(__name__)
 
 # LLM parameters
 _TEMPERATURE = 0.1
-_MAX_TOKENS = 150
+_MAX_TOKENS = 400
 
 # Default fallback character
 _FALLBACK_CHARACTER = "delilah"
@@ -208,6 +208,11 @@ class ConversationRouter:
         )
 
         raw = response.get("content", "") or ""
+        if not raw:
+            raise ValueError(
+                "Router LLM returned empty content — check that OPENAI_MODEL is set to a "
+                "supported chat model (e.g. gpt-4o-mini) and that max_tokens is sufficient."
+            )
         logger.info("ConversationRouter: LLM raw response: %r", raw[:500])
         decision = self._parse_llm_response(raw, available_characters)
         logger.info(
