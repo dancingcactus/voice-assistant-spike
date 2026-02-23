@@ -133,6 +133,16 @@ class LLMIntegration:
                         "latency_ms": elapsed_time * 1000,
                     },
                 )
+                logger.debug(
+                    "LLM response content (finish_reason=%s): %r",
+                    choice.finish_reason,
+                    (message.content or "")[:500],
+                )
+                if message.tool_calls:
+                    logger.debug(
+                        "LLM response tool_calls: %s",
+                        [tc.function.name for tc in message.tool_calls],
+                    )
 
                 # Build result
                 result = {

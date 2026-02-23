@@ -208,7 +208,15 @@ class ConversationRouter:
         )
 
         raw = response.get("content", "") or ""
-        return self._parse_llm_response(raw, available_characters)
+        logger.debug("ConversationRouter: LLM raw response: %r", raw[:500])
+        decision = self._parse_llm_response(raw, available_characters)
+        logger.info(
+            "ConversationRouter: routing decision — primary=%r, followup=%r, rationale=%r",
+            decision.primary_character,
+            decision.pending_followup.character if decision.pending_followup else None,
+            decision.rationale,
+        )
+        return decision
 
     def _parse_llm_response(
         self, raw: str, available_characters: List[str]
