@@ -10,6 +10,7 @@ Responsibilities:
 import logging
 from typing import List, Dict, Any, Optional
 from datetime import datetime
+import time
 
 from models.message import Message, ConversationContext
 from integrations.llm_integration import LLMIntegration
@@ -25,6 +26,7 @@ from core.conversation_router import ConversationRouter
 from core.character_executor import CharacterExecutor
 from models.routing import CoordinationMode, TurnType
 from config.character_assignments import get_available_characters
+from core.logging_context import generate_id, set_correlation_ids, conversation_id_var, turn_id_var
 
 logger = logging.getLogger(__name__)
 
@@ -548,6 +550,12 @@ class ConversationManager:
                 - metadata: Additional information (characters, fragments, phase51, etc.)
         """
         try:
+            _turn_start = time.monotonic()
+            # Generate correlation IDs for this turn
+            turn_id = generate_id()
+            set_correlation_ids(conversation_id_var.get(), turn_id)
+            logger.info("Turn start", extra={"turn_type": "handle_user_message", "coordination_mode": "idle"})
+
             # Get or create conversation
             context = self.get_or_create_conversation(session_id, user_id)
 
@@ -567,13 +575,18 @@ class ConversationManager:
 
             logger.info(f"Processing user message in session {session_id}: {user_message[:50]}...")
 
-            return await self._orchestrate_character_turn(
+            result = await self._orchestrate_character_turn(
                 session_id=session_id,
                 user_id=user_id,
                 user_message=user_message,
                 context=context,
                 input_mode=input_mode,
             )
+            # Inject turn_id into the response so the frontend can link chat bubbles to log groups
+            result.setdefault("metadata", {})["turn_id"] = turn_id
+            _elapsed_ms = (time.monotonic() - _turn_start) * 1000
+            logger.info("Turn complete", extra={"latency_ms": _elapsed_ms})
+            return result
 
         except Exception as e:
             logger.error(f"Error handling user message: {str(e)}", exc_info=True)

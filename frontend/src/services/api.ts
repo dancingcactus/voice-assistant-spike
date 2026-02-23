@@ -382,10 +382,28 @@ export interface LogEntry {
   level: string;
   logger: string;
   message: string;
+  conversation_id: string;
+  turn_id: string;
+  fields: Record<string, unknown>;
 }
 
 export interface LogsResponse {
   logs: LogEntry[];
+}
+
+export interface LogGroup {
+  turn_id: string | null;
+  conversation_id: string;
+  start_timestamp: string;
+  headline: string | null;
+  level_counts: Record<string, number>;
+  entry_count: number;
+}
+
+export interface FileLoggingStatus {
+  enabled: boolean;
+  path: string | null;
+  size_bytes: number | null;
 }
 
 class ApiClient {
@@ -653,10 +671,33 @@ class ApiClient {
   }
 
   // Logs endpoint
-  async getLogs(limit: number = 200, level?: string): Promise<LogsResponse> {
+  async getLogs(limit: number = 200, level?: string, turnId?: string, conversationId?: string, order?: string): Promise<LogsResponse> {
     const params = new URLSearchParams({ limit: limit.toString() });
     if (level) params.append('level', level);
+    if (turnId) params.append('turn_id', turnId);
+    if (conversationId) params.append('conversation_id', conversationId);
+    if (order) params.append('order', order);
     return this.request<LogsResponse>(`/logs?${params.toString()}`);
+  }
+
+  async getLogGroups(): Promise<{ groups: LogGroup[] }> {
+    return this.request<{ groups: LogGroup[] }>('/logs/groups');
+  }
+
+  async getLogsForTurn(turnId: string, limit: number = 200): Promise<LogsResponse> {
+    const params = new URLSearchParams({ turn_id: turnId, limit: limit.toString() });
+    return this.request<LogsResponse>(`/logs?${params.toString()}`);
+  }
+
+  async getFileLoggingStatus(): Promise<FileLoggingStatus> {
+    return this.request<FileLoggingStatus>('/logs/file-logging');
+  }
+
+  async setFileLogging(enabled: boolean, filename: string): Promise<FileLoggingStatus> {
+    return this.request<FileLoggingStatus>('/logs/file-logging', {
+      method: 'POST',
+      body: JSON.stringify({ enabled, filename }),
+    });
   }
   // Lists endpoints
   async getLists(userId: string): Promise<any> {

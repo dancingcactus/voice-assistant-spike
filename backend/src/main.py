@@ -102,6 +102,14 @@ from observability.log_handler import install as _install_log_handler
 _install_log_handler()
 print("✅ Observability log handler installed")
 
+# Optionally enable file logging from LOG_FILE env var
+_log_file_env = os.getenv("LOG_FILE")
+if _log_file_env:
+    from observability.file_log_manager import FileLogManager
+    _log_filename = Path(_log_file_env).name
+    FileLogManager.instance().enable(_log_filename)
+    print(f"✅ File logging enabled: logs/{_log_filename}")
+
 # Startup event to initialize memory manager periodic flush
 @app.on_event("startup")
 async def startup_event():

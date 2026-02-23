@@ -1437,13 +1437,58 @@ async def get_character_tool_instructions(
 async def get_logs(
     limit: int = 200,
     level: Optional[str] = None,
+    turn_id: Optional[str] = None,
+    conversation_id: Optional[str] = None,
+    order: str = "asc",
     authorization: Optional[str] = Header(None)
 ):
     """Return recent system log entries captured by the observability handler."""
     verify_token(authorization)
     from .log_handler import get_handler
     handler = get_handler()
-    return {"logs": handler.get_logs(limit=limit, level=level)}
+    return {"logs": handler.get_logs(limit=limit, level=level, turn_id=turn_id, conversation_id=conversation_id, order=order)}
+
+
+@app.get("/logs/groups")
+async def get_log_groups(authorization: Optional[str] = Header(None)):
+    """Return lightweight turn-group summaries for the Observability UI."""
+    verify_token(authorization)
+    from .log_handler import get_handler
+    return {"groups": get_handler().get_groups()}
+
+
+class FileLoggingRequest(BaseModel):
+    enabled: bool
+    filename: Optional[str] = None
+
+
+@app.get("/logs/file-logging")
+async def get_file_logging_status(authorization: Optional[str] = Header(None)):
+    """Return current file logging state."""
+    verify_token(authorization)
+    from .file_log_manager import FileLogManager
+    return FileLogManager.instance().status()
+
+
+@app.post("/logs/file-logging")
+async def set_file_logging(
+    body: FileLoggingRequest,
+    authorization: Optional[str] = Header(None)
+):
+    """Enable or disable file logging at runtime."""
+    verify_token(authorization)
+    from .file_log_manager import FileLogManager
+    mgr = FileLogManager.instance()
+    try:
+        if body.enabled:
+            filename = body.filename or os.getenv("LOG_FILE", "aperture-assist.log")
+            filename = Path(filename).name  # strip any accidental path components
+            mgr.enable(filename)
+        else:
+            mgr.disable()
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    return mgr.status()
 
 
 @app.on_event("startup")

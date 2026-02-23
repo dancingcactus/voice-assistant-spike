@@ -20,6 +20,7 @@ from tools.timer_tool import TimerTool
 from tools.device_tool import DeviceTool
 from tools.memory_tool import MemoryTool
 from tools.list_tool import ListTool
+from core.logging_context import conversation_id_var, generate_id
 import os
 
 logger = logging.getLogger(__name__)
@@ -108,6 +109,10 @@ async def websocket_endpoint(websocket: WebSocket):
     session_id = str(uuid.uuid4())
 
     await manager.connect(websocket, session_id)
+
+    # Set conversation_id for this connection (from header or generate new)
+    conversation_id = websocket.headers.get("x-conversation-id") or generate_id()
+    conversation_id_var.set(conversation_id)
 
     # Send connection success message
     await manager.send_message(

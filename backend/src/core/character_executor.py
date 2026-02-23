@@ -13,6 +13,7 @@ call, preventing a second tool-result round-trip to the LLM.
 
 import json
 import logging
+import time
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 
@@ -132,6 +133,7 @@ class CharacterExecutor:
             count, and any ``request_handoff`` signal.
         """
         # --- 1. Select voice mode ---
+        _exec_start = time.monotonic()
         voice_mode: Optional[str] = None
         voice_mode_selection = self.character_system.select_voice_mode(
             character, task_description, context.metadata
@@ -286,6 +288,7 @@ class CharacterExecutor:
             len(text),
             tool_call_count,
             handoff_signal is not None,
+            extra={"character": character, "latency_ms": (time.monotonic() - _exec_start) * 1000},
         )
 
         return CharacterResponse(

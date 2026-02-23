@@ -1,5 +1,5 @@
 /**
- * System Log Tool Styles
+ * System Log Tool Styles — Phase 7
  */
 
 .system-log-tool {
@@ -23,18 +23,21 @@
   border-radius: 6px 6px 0 0;
   gap: 1rem;
   flex-shrink: 0;
+  flex-wrap: wrap;
 }
 
 .log-toolbar-left {
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  flex-wrap: wrap;
 }
 
 .log-toolbar-right {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  flex-wrap: wrap;
 }
 
 .log-toolbar label {
@@ -42,34 +45,9 @@
   font-size: 0.85rem;
 }
 
-.log-level-select {
-  background: #2a2a2a;
-  border: 1px solid #444;
-  color: #e0e0e0;
-  padding: 0.3rem 0.6rem;
-  border-radius: 4px;
-  font-size: 0.85rem;
-  cursor: pointer;
-}
-
-.log-level-select:focus {
-  outline: none;
-  border-color: #4a90e2;
-}
-
 .log-count {
   color: #666;
   font-size: 0.8rem;
-}
-
-.auto-scroll-label {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  color: #999;
-  font-size: 0.85rem;
-  cursor: pointer;
-  user-select: none;
 }
 
 /* Log output */
@@ -95,24 +73,114 @@
   color: #e57373;
 }
 
-/* Log lines */
+/* =========================================================
+   Turn group container
+   ========================================================= */
+
+.log-group {
+  border-left: 3px solid transparent;
+  margin: 0;
+}
+
+.log-group--error {
+  border-left: 3px solid #ef4444;
+}
+
+.log-group--warning {
+  border-left: 3px solid #f59e0b;
+}
+
+.log-group__header {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  padding: 0.4rem 0.75rem;
+  cursor: pointer;
+  background: #141414;
+  border-bottom: 1px solid #1a1a1a;
+  user-select: none;
+}
+
+.log-group__header:hover {
+  background: #1c1c1c;
+}
+
+.log-group__chevron {
+  color: #666;
+  font-size: 0.7rem;
+  flex-shrink: 0;
+  width: 0.8rem;
+}
+
+.log-group__headline {
+  color: #ccc;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.log-group__timestamp {
+  color: #555;
+  font-size: 0.75rem;
+  flex-shrink: 0;
+}
+
+.log-group__level-counts {
+  color: #666;
+  font-size: 0.72rem;
+  flex-shrink: 0;
+}
+
+.log-group__entry-count {
+  color: #444;
+  font-size: 0.7rem;
+  flex-shrink: 0;
+}
+
+.log-group__entries {
+  padding-left: 1rem;
+  border-bottom: 1px solid #1a1a1a;
+}
+
+/* Skeleton loading rows */
+.log-skeleton {
+  height: 1.3rem;
+  background: linear-gradient(90deg, #1a1a1a 25%, #222 50%, #1a1a1a 75%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.2s infinite;
+  margin: 0.2rem 0.75rem;
+  border-radius: 3px;
+}
+
+@keyframes skeleton-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* =========================================================
+   Log lines (inside groups)
+   ========================================================= */
+
 .log-line {
   display: flex;
   align-items: baseline;
   gap: 0.5rem;
   padding: 0.15rem 0.75rem;
-  border-bottom: 1px solid #1a1a1a;
+  border-bottom: 1px solid #111;
   line-height: 1.5;
+  flex-wrap: wrap;
 }
 
 .log-line:hover {
   background: #181818;
 }
 
-.log-time {
-  color: #555;
+.log-entry__relative-time {
+  color: #444;
   flex-shrink: 0;
-  min-width: 7rem;
+  min-width: 5rem;
+  font-size: 0.75rem;
 }
 
 .log-level-badge {
@@ -136,9 +204,43 @@
   color: #ccc;
   word-break: break-word;
   white-space: pre-wrap;
+  flex: 1;
 }
 
-/* Level colours */
+/* Structured fields sub-row */
+.log-entry__fields {
+  width: 100%;
+  margin: 0.1rem 0 0.2rem 5.5rem;
+}
+
+.log-entry__fields summary {
+  color: #666;
+  cursor: pointer;
+  font-size: 0.75rem;
+  user-select: none;
+}
+
+.log-entry__fields summary:hover {
+  color: #999;
+}
+
+.log-entry__fields pre {
+  background: #111;
+  border: 1px solid #222;
+  border-radius: 3px;
+  color: #aaa;
+  font-size: 0.75rem;
+  margin: 0.2rem 0;
+  padding: 0.4rem 0.6rem;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* =========================================================
+   Level colours
+   ========================================================= */
+
 .log-debug .log-level-badge,
 .log-debug.log-level-badge {
   color: #888;
@@ -176,33 +278,112 @@
   color: #f0a500;
 }
 
-/* Copy button — only visible on row hover */
-.log-copy-btn {
-  flex-shrink: 0;
-  margin-left: auto;
-  padding: 0.1rem 0.4rem;
-  background: transparent;
+/* =========================================================
+   Level toggle pills
+   ========================================================= */
+
+.level-pills {
+  display: flex;
+  gap: 0.3rem;
+  flex-wrap: wrap;
+}
+
+.level-pill {
+  padding: 0.15rem 0.5rem;
+  border-radius: 12px;
   border: 1px solid #444;
-  border-radius: 3px;
+  background: #2a2a2a;
+  color: #666;
+  font-size: 0.72rem;
+  font-weight: bold;
+  cursor: pointer;
+  text-transform: uppercase;
+  opacity: 0.5;
+  transition: opacity 0.15s, border-color 0.15s;
+}
+
+.level-pill--active {
+  opacity: 1;
+}
+
+.level-pill--debug         { color: #888;    border-color: #555; }
+.level-pill--debug.level-pill--active  { color: #aaa;    border-color: #888; }
+
+.level-pill--info          { color: #4a90e2; border-color: #2a5080; }
+.level-pill--info.level-pill--active   { color: #6ab0ff; border-color: #4a90e2; }
+
+.level-pill--warning       { color: #f0a500; border-color: #6a4800; }
+.level-pill--warning.level-pill--active { color: #f0a500; border-color: #f0a500; }
+
+.level-pill--error         { color: #e57373; border-color: #6a2020; }
+.level-pill--error.level-pill--active  { color: #e57373; border-color: #e57373; }
+
+.level-pill--critical      { color: #ff4444; border-color: #700000; }
+.level-pill--critical.level-pill--active { color: #ff4444; border-color: #ff4444; }
+
+/* =========================================================
+   File logging panel
+   ========================================================= */
+
+.file-logging-panel {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.file-logging-label {
+  color: #999;
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
+.file-logging-toggle {
+  padding: 0.2rem 0.6rem;
+  border-radius: 4px;
+  border: 1px solid #444;
+  background: #2a2a2a;
+  color: #888;
+  font-size: 0.8rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.file-logging-toggle--on {
+  background: #1a3a1a;
+  border-color: #4caf50;
+  color: #4caf50;
+}
+
+.file-logging-filename {
+  background: #2a2a2a;
+  border: 1px solid #444;
+  color: #e0e0e0;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-family: 'Courier New', Courier, monospace;
+  width: 12rem;
+}
+
+.file-logging-filename:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.file-logging-path {
   color: #666;
   font-size: 0.75rem;
-  cursor: pointer;
-  opacity: 0;
-  transition: opacity 0.15s, color 0.15s, border-color 0.15s;
-  line-height: 1.4;
+  font-family: 'Courier New', Courier, monospace;
+  max-width: 20rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.log-line:hover .log-copy-btn {
-  opacity: 1;
-}
-
-.log-copy-btn:hover {
+.file-logging-error {
   color: #e57373;
-  border-color: #e57373;
+  font-size: 0.78rem;
 }
 
-.log-line .log-copy-btn--copied {
-  color: #66bb6a;
-  border-color: #66bb6a;
-  opacity: 1;
-}
