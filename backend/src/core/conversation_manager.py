@@ -551,9 +551,12 @@ class ConversationManager:
         """
         try:
             _turn_start = time.monotonic()
-            # Generate correlation IDs for this turn
+            # Generate correlation IDs for this turn.
+            # Use the existing conversation_id if set (e.g. by the WebSocket handler),
+            # otherwise fall back to session_id so all turns in a session share one group.
             turn_id = generate_id()
-            set_correlation_ids(conversation_id_var.get(), turn_id)
+            conversation_id = conversation_id_var.get() or session_id
+            set_correlation_ids(conversation_id, turn_id)
             logger.info("Turn start", extra={"turn_type": "handle_user_message", "coordination_mode": "idle"})
 
             # Get or create conversation
