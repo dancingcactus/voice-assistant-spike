@@ -123,6 +123,11 @@ def install(level: int = logging.DEBUG) -> ObservabilityLogHandler:
     root = logging.getLogger()
     if handler not in root.handlers:
         handler.setLevel(level)
+        # Ensure the root logger itself passes records at the requested level.
+        # The default root level is WARNING, which would silently drop DEBUG and
+        # INFO records before they ever reach our handler.
+        if root.level == logging.NOTSET or root.level > level:
+            root.setLevel(level)
         root.addHandler(handler)
         # Attach correlation filter to root so all handlers see the IDs
         root.addFilter(CorrelationFilter())
