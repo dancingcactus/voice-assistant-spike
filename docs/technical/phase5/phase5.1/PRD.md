@@ -251,7 +251,7 @@ Router returns `NEW_REQUEST`. Coordination state clears. Rex (or general charact
 
 ## Decisions
 
-1. **Router model:** Use the same Claude model as character turns. LLM call overhead is kept minimal via `max_tokens=150` and `temperature=0.1`.
+1. **Router model:** Use the same Claude model as character turns. LLM call overhead is kept minimal via `max_tokens=400` and `temperature=0.1`.
 2. **Proposed content extraction:** Start with a free-text summary; evaluate whether structured extraction is needed based on how reliably Hank can act on it in practice.
 3. **Handoff tool visibility:** `request_handoff` is only surfaced to characters in registered pairs for the current chapter (e.g., Delilah↔Hank in chapter 2). Characters without a registered secondary do not receive the tool definition.
 4. **Router fallback:** If the `ConversationRouter` LLM call fails, default to Delilah and log an ERROR. Do not fall back to rule-based assignment — prefer a predictable no-op over unpredictable routing.

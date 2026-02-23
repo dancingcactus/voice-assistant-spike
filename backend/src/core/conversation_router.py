@@ -29,7 +29,7 @@ logger = logging.getLogger(__name__)
 
 # LLM parameters
 _TEMPERATURE = 0.1
-_MAX_TOKENS = 150
+_MAX_TOKENS = 400
 
 # Default fallback character
 _FALLBACK_CHARACTER = "delilah"

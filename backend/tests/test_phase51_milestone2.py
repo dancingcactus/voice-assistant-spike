@@ -363,7 +363,7 @@ class TestConversationRouterBasic:
         router.route("hello", [], ["delilah"], chapter_id=1)
         call_kwargs = llm.generate_response.call_args[1]
         assert call_kwargs.get("temperature") == 0.1
-        assert call_kwargs.get("max_tokens") == 150
+        assert call_kwargs.get("max_tokens") == 400
 
 
 class TestConversationRouterFallback:
