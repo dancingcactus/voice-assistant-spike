@@ -1,5 +1,6 @@
 """Tool System - manages tool registration and execution."""
 import logging
+import time
 from typing import Dict, List, Optional, Any
 
 from tools.tool_base import Tool, ToolContext, ToolResult, ToolResultStatus
@@ -87,13 +88,14 @@ class ToolSystem:
         tool = self.get_tool(tool_name)
 
         if not tool:
-            logger.error(f"Tool not found: {tool_name}")
+            logger.warning(f"Tool execution failed: {tool_name} — not found", extra={"tool_name": tool_name})
             return ToolResult(
                 status=ToolResultStatus.ERROR,
                 message=f"Tool not found: {tool_name}",
                 error="TOOL_NOT_FOUND"
             )
 
+        _tool_start = time.monotonic()
         try:
             logger.info(
                 f"Executing tool: {tool_name} with arguments: {arguments}"
@@ -102,15 +104,21 @@ class ToolSystem:
             # Execute the tool
             result = await tool.execute(context, **arguments)
 
+            _elapsed_ms = (time.monotonic() - _tool_start) * 1000
             logger.info(
-                f"Tool {tool_name} completed with status: {result.status}"
+                f"Tool {tool_name} completed with status: {result.status}",
+                extra={"tool_name": tool_name, "latency_ms": _elapsed_ms},
             )
 
             return result
 
         except TypeError as e:
             # Parameter mismatch
-            logger.error(f"Invalid parameters for tool {tool_name}: {e}")
+            _elapsed_ms = (time.monotonic() - _tool_start) * 1000
+            logger.warning(
+                f"Tool execution failed: {tool_name} — invalid parameters: {e}",
+                extra={"tool_name": tool_name, "latency_ms": _elapsed_ms},
+            )
             return ToolResult(
                 status=ToolResultStatus.ERROR,
                 message=f"Invalid parameters for {tool_name}",
@@ -119,9 +127,10 @@ class ToolSystem:
 
         except Exception as e:
             # Unexpected error
-            logger.error(
-                f"Error executing tool {tool_name}: {e}",
-                exc_info=True
+            _elapsed_ms = (time.monotonic() - _tool_start) * 1000
+            logger.warning(
+                f"Tool execution failed: {tool_name} — {e}",
+                extra={"tool_name": tool_name, "latency_ms": _elapsed_ms},
             )
             return ToolResult(
                 status=ToolResultStatus.ERROR,

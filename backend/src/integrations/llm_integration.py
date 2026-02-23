@@ -119,7 +119,12 @@ class LLMIntegration:
                 # Log success
                 logger.info(
                     f"LLM response generated in {elapsed_time:.2f}s "
-                    f"(tokens: {response.usage.total_tokens})"
+                    f"(tokens: {response.usage.total_tokens})",
+                    extra={
+                        "model": self.model,
+                        "token_count": response.usage.total_tokens,
+                        "latency_ms": elapsed_time * 1000,
+                    },
                 )
 
                 # Build result
