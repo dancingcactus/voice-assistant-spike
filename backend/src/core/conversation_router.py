@@ -208,6 +208,11 @@ class ConversationRouter:
         )
 
         raw = response.get("content", "") or ""
+        if not raw:
+            raise ValueError(
+                "Router LLM returned empty content — check that OPENAI_MODEL is set to a "
+                "supported chat model (e.g. gpt-4o-mini) and that max_tokens is sufficient."
+            )
         logger.info("ConversationRouter: LLM raw response: %r", raw[:500])
         decision = self._parse_llm_response(raw, available_characters)
         logger.info(
