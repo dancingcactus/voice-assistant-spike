@@ -23,7 +23,7 @@ class LLMIntegration:
     def __init__(
         self,
         api_key: Optional[str] = None,
-        model: str = "gpt-4o-mini",
+        model: Optional[str] = None,
         max_retries: int = 3,
         timeout: int = 30
     ):
@@ -32,7 +32,7 @@ class LLMIntegration:
 
         Args:
             api_key: OpenAI API key (defaults to env var OPENAI_API_KEY)
-            model: Model to use (default: gpt-4o-mini)
+            model: Model to use (defaults to env var OPENAI_MODEL, then gpt-4o-mini)
             max_retries: Maximum number of retry attempts on failure
             timeout: Request timeout in seconds
         """
@@ -40,7 +40,7 @@ class LLMIntegration:
         if not self.api_key:
             raise ValueError("OpenAI API key not found. Set OPENAI_API_KEY environment variable.")
 
-        self.model = model
+        self.model = model or os.getenv("OPENAI_MODEL", "gpt-4o-mini")
         self.max_retries = max_retries
         self.timeout = timeout
 
