@@ -16,6 +16,17 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+# Models that require 'max_completion_tokens' instead of the legacy 'max_tokens'.
+# Includes the o1/o3 reasoning series and GPT-5+.
+_MAX_COMPLETION_TOKENS_PREFIXES = ("o1", "o3", "gpt-5")
+
+
+def _max_tokens_param(model: str) -> str:
+    """Return the correct token-limit parameter name for *model*."""
+    if any(model.startswith(p) for p in _MAX_COMPLETION_TOKENS_PREFIXES):
+        return "max_completion_tokens"
+    return "max_tokens"
+
 
 class LLMIntegration:
     """Manages communication with OpenAI's API."""
@@ -96,7 +107,7 @@ class LLMIntegration:
                 }
 
                 if max_tokens:
-                    request_params["max_tokens"] = max_tokens
+                    request_params[_max_tokens_param(self.model)] = max_tokens
 
                 if tools:
                     request_params["tools"] = tools
