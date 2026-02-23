@@ -196,6 +196,11 @@ class ConversationRouter:
 
         messages.append({"role": "user", "content": user_message})
 
+        logger.debug(
+            "ConversationRouter: calling LLM (messages=%d, user_message=%r)",
+            len(messages),
+            user_message[:60],
+        )
         response = self.llm.generate_response(
             messages=messages,
             temperature=_TEMPERATURE,

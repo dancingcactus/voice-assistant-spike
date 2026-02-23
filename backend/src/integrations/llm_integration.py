@@ -104,6 +104,13 @@ class LLMIntegration:
                         request_params["tool_choice"] = tool_choice
 
                 # Make API request
+                logger.debug(
+                    "LLM call starting (model=%s, messages=%d, tools=%s, attempt=%d)",
+                    self.model,
+                    len(messages),
+                    tools is not None,
+                    attempt + 1,
+                )
                 start_time = time.time()
                 response = self.client.chat.completions.create(**request_params)
                 elapsed_time = time.time() - start_time

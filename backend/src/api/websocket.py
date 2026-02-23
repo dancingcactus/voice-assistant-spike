@@ -178,6 +178,11 @@ async def websocket_endpoint(websocket: WebSocket):
                             data=response.model_dump(mode='json')
                         )
                     )
+                    logger.info(
+                        "📤 Sent primary response to %s: %s...",
+                        session_id,
+                        result["text"][:50],
+                    )
 
                     # Send secondary character response as a separate message if present
                     coordination = result.get("coordination")
