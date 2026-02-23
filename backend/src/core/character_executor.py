@@ -139,6 +139,14 @@ class CharacterExecutor:
         if voice_mode_selection:
             voice_mode = voice_mode_selection.mode.name.lower()
 
+        logger.info(
+            "CharacterExecutor: starting execution for '%s' (session=%s, task=%r, voice_mode=%s)",
+            character,
+            session_id,
+            task_description[:60],
+            voice_mode,
+        )
+
         # --- 2. Build system prompt ---
         if system_prompt_override is not None:
             system_prompt = system_prompt_override
