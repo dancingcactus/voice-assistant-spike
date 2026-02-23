@@ -139,7 +139,15 @@ class TurnClassifier:
         )
 
         raw = response.get("content", "") or ""
-        return self._parse_llm_response(raw)
+        logger.debug("TurnClassifier: LLM raw response: %r", raw[:500])
+        classification = self._parse_llm_response(raw)
+        logger.info(
+            "TurnClassifier: classification — type=%r, confidence=%.2f, reasoning=%r",
+            classification.turn_type,
+            classification.confidence,
+            classification.reasoning,
+        )
+        return classification
 
     def _parse_llm_response(self, raw: str) -> TurnClassification:
         """Parse the JSON response from the LLM into a TurnClassification."""
