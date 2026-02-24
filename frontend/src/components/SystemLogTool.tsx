@@ -252,6 +252,73 @@ interface TurnGroupState {
   entries: LogEntry[] | null;
 }
 
+// ===========================================================================
+// ConversationGroupSection
+// ===========================================================================
+
+function ConversationGroupSection({
+  conversationId,
+  turns,
+  expanded,
+  onToggle,
+  activeLevels,
+  onExpandTurn,
+}: {
+  conversationId: string;
+  turns: TurnGroupState[];
+  expanded: boolean;
+  onToggle: (id: string) => void;
+  activeLevels: Set<Level>;
+  onExpandTurn: (turnId: string | null) => void;
+}) {
+  const shortId = conversationId.slice(0, 8);
+  const startTime = turns[0]?.group.start_timestamp ?? '';
+  const totalEntries = turns.reduce((acc, s) => acc + s.group.entry_count, 0);
+
+  const levelCounts: Record<string, number> = {};
+  for (const s of turns) {
+    for (const [k, v] of Object.entries(s.group.level_counts)) {
+      levelCounts[k] = (levelCounts[k] ?? 0) + v;
+    }
+  }
+
+  const badges = levelCountBadges(levelCounts);
+  const hasError = turns.some((s) => groupSeverityClass(s.group) === 'log-group--error');
+  const hasWarning = turns.some((s) => groupSeverityClass(s.group) === 'log-group--warning');
+  const severityClass = hasError ? 'log-group--error' : hasWarning ? 'log-group--warning' : '';
+
+  return (
+    <div className={`log-conversation ${severityClass}`}>
+      <div
+        className="log-conversation__header"
+        onClick={() => onToggle(conversationId)}
+        role="button"
+        aria-expanded={expanded}
+        tabIndex={0}
+        onKeyDown={(e) => e.key === 'Enter' && onToggle(conversationId)}
+      >
+        <span className="log-group__chevron">{expanded ? '▼' : '▶'}</span>
+        <span className="log-conversation__id">Chat {shortId}…</span>
+        <span className="log-group__timestamp">{formatTime(startTime)}</span>
+        {badges && <span className="log-group__level-counts">{badges}</span>}
+        <span className="log-group__entry-count">{totalEntries}</span>
+      </div>
+      {expanded && (
+        <div className="log-conversation__turns">
+          {turns.map((s) => (
+            <TurnGroupRow
+              key={s.group.turn_id ?? '__system__'}
+              state={s}
+              activeLevels={activeLevels}
+              onExpand={onExpandTurn}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function TurnGroupRow({
   state,
   activeLevels,
@@ -324,6 +391,7 @@ function TurnGroupRow({
 export function SystemLogTool() {
   const [activeLevels, setActiveLevels] = useState<Set<Level>>(new Set(ALL_LEVELS));
   const [groupStates, setGroupStates] = useState<TurnGroupState[]>([]);
+  const [expandedConversations, setExpandedConversations] = useState<Set<string>>(new Set());
   const prevGroupTurnIds = useRef<Set<string | null>>(new Set());
 
   // Poll group summaries every 3 s
@@ -361,6 +429,14 @@ export function SystemLogTool() {
           const idx = next.indexOf(firstNew);
           if (idx !== -1) {
             next[idx] = { ...next[idx], expanded: true, loading: true };
+          }
+          // Auto-expand the conversation containing this new turn
+          const newConvId = firstNew.group.conversation_id;
+          if (newConvId) {
+            setExpandedConversations((prev) => {
+              if (prev.has(newConvId)) return prev;
+              return new Set([...prev, newConvId]);
+            });
           }
         }
       }
@@ -411,6 +487,18 @@ export function SystemLogTool() {
     );
   }, []);
 
+  const handleConversationToggle = useCallback((conversationId: string) => {
+    setExpandedConversations((prev) => {
+      const next = new Set(prev);
+      if (next.has(conversationId)) {
+        next.delete(conversationId);
+      } else {
+        next.add(conversationId);
+      }
+      return next;
+    });
+  }, []);
+
   function toggleLevel(level: Level) {
     setActiveLevels((prev) => {
       const next = new Set(prev);
@@ -423,6 +511,26 @@ export function SystemLogTool() {
     () => groupStates.reduce((acc, s) => acc + s.group.entry_count, 0),
     [groupStates]
   );
+
+  // Group turn states by conversation_id for display
+  const { systemStates, conversationGroups } = useMemo(() => {
+    const systemStates = groupStates.filter((s) => !s.group.turn_id);
+    const convMap = new Map<string, TurnGroupState[]>();
+    for (const s of groupStates) {
+      if (s.group.turn_id) {
+        const cid = s.group.conversation_id || '__unknown__';
+        if (!convMap.has(cid)) convMap.set(cid, []);
+        convMap.get(cid)!.push(s);
+      }
+    }
+    // Sort conversations newest-first by the start time of their most recent turn
+    const sorted = [...convMap.entries()].sort((a, b) => {
+      const aStart = a[1][0]?.group.start_timestamp ?? '';
+      const bStart = b[1][0]?.group.start_timestamp ?? '';
+      return bStart.localeCompare(aStart);
+    });
+    return { systemStates, conversationGroups: sorted };
+  }, [groupStates]);
 
   return (
     <div className="system-log-tool">
@@ -440,12 +548,23 @@ export function SystemLogTool() {
         {groupStates.length === 0 && (
           <div className="log-status">No log entries yet. Activity will appear here automatically.</div>
         )}
-        {groupStates.map((s) => (
+        {systemStates.map((s) => (
           <TurnGroupRow
             key={s.group.turn_id ?? '__system__'}
             state={s}
             activeLevels={activeLevels}
             onExpand={handleExpand}
+          />
+        ))}
+        {conversationGroups.map(([cid, turns]) => (
+          <ConversationGroupSection
+            key={cid}
+            conversationId={cid}
+            turns={turns}
+            expanded={expandedConversations.has(cid)}
+            onToggle={handleConversationToggle}
+            activeLevels={activeLevels}
+            onExpandTurn={handleExpand}
           />
         ))}
       </div>

@@ -74,6 +74,54 @@
 }
 
 /* =========================================================
+   Conversation group container (wraps turn groups)
+   ========================================================= */
+
+.log-conversation {
+  border-left: 3px solid transparent;
+  border-bottom: 1px solid #1a1a1a;
+  margin: 0;
+}
+
+.log-conversation.log-group--error {
+  border-left: 3px solid #ef4444;
+}
+
+.log-conversation.log-group--warning {
+  border-left: 3px solid #f59e0b;
+}
+
+.log-conversation__header {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+  background: #111;
+  border-bottom: 1px solid #222;
+  user-select: none;
+}
+
+.log-conversation__header:hover {
+  background: #181818;
+}
+
+.log-conversation__id {
+  color: #8ab4f8;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: bold;
+  font-size: 0.82rem;
+}
+
+.log-conversation__turns {
+  padding-left: 0.75rem;
+  border-top: 1px solid #1a1a1a;
+}
+
+/* =========================================================
    Turn group container
    ========================================================= */
 

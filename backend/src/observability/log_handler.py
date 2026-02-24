@@ -129,6 +129,10 @@ def install(level: int = logging.DEBUG) -> ObservabilityLogHandler:
         if root.level == logging.NOTSET or root.level > level:
             root.setLevel(level)
         root.addHandler(handler)
-        # Attach correlation filter to root so all handlers see the IDs
-        root.addFilter(CorrelationFilter())
+        # Attach correlation filter directly to the handler so every record
+        # that reaches it is stamped with conversation_id/turn_id regardless
+        # of which child logger emitted it. (Logger-level filters are NOT
+        # applied to records that propagate through parent loggers, so adding
+        # the filter to the root logger would be a no-op for most records.)
+        handler.addFilter(CorrelationFilter())
     return handler
