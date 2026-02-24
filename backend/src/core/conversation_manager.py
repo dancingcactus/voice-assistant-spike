@@ -46,7 +46,7 @@ class ConversationManager:
         turn_classifier: Optional[TurnClassifier] = None,
         conversation_router: Optional[ConversationRouter] = None,
         character_executor: Optional[CharacterExecutor] = None,
-        max_history: int = 10,
+        max_history: int = 2,
         default_character: str = "delilah",
         max_tool_calls: int = 5,
     ):

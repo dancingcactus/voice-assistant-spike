@@ -410,3 +410,110 @@ class TestConversationRouterFallback:
         decision = router.route("How many teaspoons in a tablespoon?", [], ["delilah", "hank"], chapter_id=2)
         assert decision.primary_character == "delilah"
         assert decision.pending_followup is None
+
+
+# ===========================================================================
+# conversation_router.py — message truncation and deduplication
+# ===========================================================================
+
+
+class TestConversationRouterTruncation:
+    def test_long_history_content_truncated_to_200(self):
+        """History messages longer than 200 chars are capped before reaching the LLM."""
+        llm = MagicMock()
+        llm.generate_response.return_value = {"content": _routing_json("delilah")}
+        router = ConversationRouter(llm=llm)
+        history = [{"role": "assistant", "content": "A" * 500}]
+        router.route("hi", history, ["delilah", "hank"], chapter_id=2)
+        messages = _extract_messages_from_call(llm)
+        assistant_msgs = [m for m in messages if m["role"] == "assistant"]
+        assert all(len(m["content"]) <= 200 for m in assistant_msgs)
+
+    def test_user_message_truncated_to_200(self):
+        """The appended user_message itself is also capped at 200 chars."""
+        llm = MagicMock()
+        llm.generate_response.return_value = {"content": _routing_json("delilah")}
+        router = ConversationRouter(llm=llm)
+        long_user_msg = "B" * 500
+        router.route(long_user_msg, [], ["delilah", "hank"], chapter_id=2)
+        messages = _extract_messages_from_call(llm)
+        user_msgs = [m for m in messages if m["role"] == "user"]
+        assert all(len(m["content"]) <= 200 for m in user_msgs)
+
+    def test_duplicate_user_message_deduplicated(self):
+        """If the current user_message already appears in history, it is not sent twice."""
+        llm = MagicMock()
+        llm.generate_response.return_value = {"content": _routing_json("delilah")}
+        router = ConversationRouter(llm=llm)
+        user_message = "Hi"
+        # Simulate: user message was appended to history before the router was called
+        history = [{"role": "user", "content": user_message}]
+        router.route(user_message, history, ["delilah", "hank"], chapter_id=2)
+        messages = _extract_messages_from_call(llm)
+        user_msgs = [m for m in messages if m["role"] == "user"]
+        assert len(user_msgs) == 1
+
+    def test_duplicate_detection_uses_truncated_comparison(self):
+        """Deduplication compares truncated content so long messages still deduplicate."""
+        llm = MagicMock()
+        llm.generate_response.return_value = {"content": _routing_json("delilah")}
+        router = ConversationRouter(llm=llm)
+        long_user_msg = "C" * 500
+        history = [{"role": "user", "content": long_user_msg}]
+        router.route(long_user_msg, history, ["delilah", "hank"], chapter_id=2)
+        messages = _extract_messages_from_call(llm)
+        user_msgs = [m for m in messages if m["role"] == "user"]
+        assert len(user_msgs) == 1
+
+
+# ===========================================================================
+# turn_classifier.py — message truncation and deduplication
+# ===========================================================================
+
+
+class TestTurnClassifierTruncation:
+    def test_long_history_content_truncated_to_200(self):
+        """History messages longer than 200 chars are capped before reaching the LLM."""
+        llm = MagicMock()
+        llm.generate_response.return_value = {"content": _llm_json("new_request")}
+        classifier = TurnClassifier(llm=llm)
+        history = [{"role": "assistant", "content": "A" * 500}]
+        classifier.classify("hi", history, None)
+        messages = _extract_messages_from_call(llm)
+        assistant_msgs = [m for m in messages if m["role"] == "assistant"]
+        assert all(len(m["content"]) <= 200 for m in assistant_msgs)
+
+    def test_user_message_truncated_to_200(self):
+        """The appended user_message itself is also capped at 200 chars."""
+        llm = MagicMock()
+        llm.generate_response.return_value = {"content": _llm_json("new_request")}
+        classifier = TurnClassifier(llm=llm)
+        long_user_msg = "B" * 500
+        classifier.classify(long_user_msg, [], None)
+        messages = _extract_messages_from_call(llm)
+        user_msgs = [m for m in messages if m["role"] == "user"]
+        assert all(len(m["content"]) <= 200 for m in user_msgs)
+
+    def test_duplicate_user_message_deduplicated(self):
+        """If the current user_message already appears in history, it is not sent twice."""
+        llm = MagicMock()
+        llm.generate_response.return_value = {"content": _llm_json("affirmation")}
+        classifier = TurnClassifier(llm=llm)
+        user_message = "Hi"
+        history = [{"role": "user", "content": user_message}]
+        classifier.classify(user_message, history, None)
+        messages = _extract_messages_from_call(llm)
+        user_msgs = [m for m in messages if m["role"] == "user"]
+        assert len(user_msgs) == 1
+
+    def test_duplicate_detection_uses_truncated_comparison(self):
+        """Deduplication compares truncated content so long messages still deduplicate."""
+        llm = MagicMock()
+        llm.generate_response.return_value = {"content": _llm_json("new_request")}
+        classifier = TurnClassifier(llm=llm)
+        long_user_msg = "D" * 500
+        history = [{"role": "user", "content": long_user_msg}]
+        classifier.classify(long_user_msg, history, None)
+        messages = _extract_messages_from_call(llm)
+        user_msgs = [m for m in messages if m["role"] == "user"]
+        assert len(user_msgs) == 1
