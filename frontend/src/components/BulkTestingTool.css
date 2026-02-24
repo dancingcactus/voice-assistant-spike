@@ -1,0 +1,446 @@
+/* BulkTestingTool.css — Phase 8 Milestone 3 */
+
+/* ── Root layout ─────────────────────────────────────────────────────────── */
+
+.btt-root {
+  padding: 24px 30px;
+  max-width: 1400px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-height: 0;
+}
+
+.btt-header {
+  margin-bottom: 4px;
+}
+
+.btt-title {
+  font-size: 1.5em;
+  font-weight: 600;
+  color: hsl(var(--foreground));
+  margin: 0 0 4px 0;
+}
+
+.btt-subtitle {
+  font-size: 0.9em;
+  color: hsl(var(--muted-foreground));
+  margin: 0;
+}
+
+/* ── Suite two-column layout ─────────────────────────────────────────────── */
+
+.btt-suite-layout {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 20px;
+  align-items: start;
+}
+
+.btt-left-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+.btt-right-panel {
+  border: 1px solid hsl(var(--border));
+  border-radius: 8px;
+  padding: 16px;
+  background: hsl(var(--card));
+}
+
+/* ── Section titles ──────────────────────────────────────────────────────── */
+
+.btt-section-title {
+  font-size: 0.85em;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: hsl(var(--muted-foreground));
+  margin: 0 0 10px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btt-scenario-count {
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+/* ── Tag filter chips ────────────────────────────────────────────────────── */
+
+.btt-tag-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.btt-tag-chip {
+  padding: 3px 10px;
+  border-radius: 12px;
+  border: 1px solid hsl(var(--border));
+  background: transparent;
+  color: hsl(var(--muted-foreground));
+  font-size: 0.78em;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+.btt-tag-chip:hover {
+  border-color: hsl(var(--primary));
+  color: hsl(var(--primary));
+}
+
+.btt-tag-chip-active {
+  background: hsl(var(--primary));
+  border-color: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+}
+
+/* ── Select All row ──────────────────────────────────────────────────────── */
+
+.btt-select-all-row {
+  padding: 6px 0;
+  border-bottom: 1px solid hsl(var(--border));
+  margin-bottom: 4px;
+}
+
+.btt-select-all-label {
+  font-size: 0.82em;
+  color: hsl(var(--muted-foreground));
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  user-select: none;
+}
+
+/* ── Scenario list ───────────────────────────────────────────────────────── */
+
+.btt-scenario-list {
+  border: 1px solid hsl(var(--border));
+  border-radius: 8px;
+  overflow: hidden;
+  background: hsl(var(--card));
+}
+
+.btt-scenario-list .btt-tag-filters,
+.btt-scenario-list .btt-select-all-row {
+  padding: 8px 12px;
+  border-bottom: 1px solid hsl(var(--border));
+  margin: 0;
+}
+
+.btt-scenario-list .btt-tag-filters {
+  background: hsl(var(--muted) / 0.4);
+}
+
+.btt-scenario-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  border-bottom: 1px solid hsl(var(--border) / 0.5);
+  cursor: pointer;
+  transition: background 0.12s;
+}
+
+.btt-scenario-row:last-child {
+  border-bottom: none;
+}
+
+.btt-scenario-row:hover {
+  background: hsl(var(--accent));
+}
+
+.btt-scenario-row-selected {
+  background: hsl(var(--primary) / 0.08);
+}
+
+.btt-scenario-row-selected:hover {
+  background: hsl(var(--primary) / 0.14);
+}
+
+.btt-scenario-checkbox {
+  margin-top: 2px;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.btt-scenario-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.btt-scenario-name {
+  font-size: 0.9em;
+  font-weight: 500;
+  color: hsl(var(--foreground));
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.btt-chapter-badge {
+  font-size: 0.72em;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: hsl(var(--muted));
+  color: hsl(var(--muted-foreground));
+  flex-shrink: 0;
+}
+
+.btt-scenario-meta {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 4px;
+  flex-wrap: wrap;
+}
+
+/* ── Character badges ────────────────────────────────────────────────────── */
+
+.btt-character-badge {
+  font-size: 0.7em;
+  font-weight: 600;
+  padding: 1px 7px;
+  border-radius: 10px;
+  text-transform: capitalize;
+  flex-shrink: 0;
+}
+
+.btt-char-delilah {
+  background: #f59e0b22;
+  color: #f59e0b;
+  border: 1px solid #f59e0b44;
+}
+
+.btt-char-hank {
+  background: #3b82f622;
+  color: #3b82f6;
+  border: 1px solid #3b82f644;
+}
+
+.btt-char-rex {
+  background: #f9731622;
+  color: #f97316;
+  border: 1px solid #f9731644;
+}
+
+.btt-char-dimitria {
+  background: #8b5cf622;
+  color: #8b5cf6;
+  border: 1px solid #8b5cf644;
+}
+
+/* ── Inline tags ─────────────────────────────────────────────────────────── */
+
+.btt-tag {
+  font-size: 0.7em;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: hsl(var(--muted));
+  color: hsl(var(--muted-foreground));
+}
+
+.btt-turn-count {
+  font-size: 0.72em;
+  color: hsl(var(--muted-foreground));
+  margin-left: auto;
+}
+
+/* ── Run controls ────────────────────────────────────────────────────────── */
+
+.btt-run-controls {
+  border: 1px solid hsl(var(--border));
+  border-radius: 8px;
+  padding: 16px;
+  background: hsl(var(--card));
+}
+
+.btt-form-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+
+.btt-form-row-inline {
+  flex-direction: row;
+  align-items: center;
+}
+
+.btt-form-label {
+  font-size: 0.78em;
+  font-weight: 500;
+  color: hsl(var(--muted-foreground));
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.btt-input,
+.btt-select {
+  padding: 6px 10px;
+  border: 1px solid hsl(var(--border));
+  border-radius: 6px;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-size: 0.88em;
+  outline: none;
+  transition: border-color 0.15s;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.btt-input:focus,
+.btt-select:focus {
+  border-color: hsl(var(--primary));
+}
+
+/* ── Buttons ─────────────────────────────────────────────────────────────── */
+
+.btt-btn {
+  padding: 8px 16px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  font-size: 0.88em;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+.btt-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.btt-btn-primary {
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  border-color: hsl(var(--primary));
+}
+
+.btt-btn-primary:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.btt-btn-secondary {
+  background: hsl(var(--secondary));
+  color: hsl(var(--secondary-foreground));
+  border-color: hsl(var(--border));
+}
+
+.btt-btn-secondary:hover:not(:disabled) {
+  background: hsl(var(--accent));
+  border-color: hsl(var(--primary));
+}
+
+.btt-run-buttons {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* ── Inline create user form ─────────────────────────────────────────────── */
+
+.btt-create-user-form {
+  border: 1px solid hsl(var(--border));
+  border-radius: 6px;
+  padding: 12px;
+  margin-bottom: 12px;
+  background: hsl(var(--muted) / 0.3);
+}
+
+.btt-form-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+
+/* ── Placeholders ────────────────────────────────────────────────────────── */
+
+.btt-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  text-align: center;
+  color: hsl(var(--muted-foreground));
+  gap: 8px;
+}
+
+.btt-placeholder-icon {
+  opacity: 0.3;
+  margin-bottom: 8px;
+}
+
+.btt-placeholder p {
+  margin: 0;
+  font-size: 0.9em;
+}
+
+.btt-placeholder-sub {
+  font-size: 0.8em !important;
+  opacity: 0.7;
+}
+
+.btt-running-placeholder {
+  border: 1px solid hsl(var(--border));
+  border-radius: 8px;
+  background: hsl(var(--card));
+  min-height: 200px;
+}
+
+/* ── Spinner ─────────────────────────────────────────────────────────────── */
+
+.btt-spinner {
+  width: 28px;
+  height: 28px;
+  border: 3px solid hsl(var(--muted));
+  border-top-color: hsl(var(--primary));
+  border-radius: 50%;
+  animation: btt-spin 0.8s linear infinite;
+  margin-bottom: 8px;
+}
+
+@keyframes btt-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Loading / error states ──────────────────────────────────────────────── */
+
+.btt-loading {
+  padding: 40px;
+  text-align: center;
+  color: hsl(var(--muted-foreground));
+}
+
+.btt-error {
+  padding: 10px 12px;
+  border-radius: 6px;
+  background: hsl(var(--destructive) / 0.12);
+  border: 1px solid hsl(var(--destructive) / 0.4);
+  color: hsl(var(--destructive));
+  font-size: 0.85em;
+  margin-bottom: 8px;
+}
+
+/* ── Responsive ──────────────────────────────────────────────────────────── */
+
+@media (max-width: 900px) {
+  .btt-suite-layout {
+    grid-template-columns: 1fr;
+  }
+}

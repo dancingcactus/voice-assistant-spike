@@ -90,6 +90,12 @@ from api.tts_api import router as tts_router, set_tts_provider
 app.include_router(websocket_router)
 app.include_router(tts_router)
 
+# Phase 8: Bulk Testing API — always enabled (no sensitive data, no LLM calls at register time)
+from api.test_runs_api import router as test_runs_router, set_runner_dependencies
+app.include_router(test_runs_router)
+set_runner_dependencies(conversation_manager=conversation_manager)
+print("✅ Test Runs API registered at /api/test-runs")
+
 # Test API (Phase 8) - only enabled if ENABLE_TEST_API=true
 if os.getenv("ENABLE_TEST_API", "false").lower() == "true":
     from api.test_api import router as test_router, set_managers
