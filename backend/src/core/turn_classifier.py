@@ -23,6 +23,9 @@ logger = logging.getLogger(__name__)
 _TEMPERATURE = 0.0
 _MAX_TOKENS = 80
 
+# Maximum character length for any single message content sent to the LLM.
+_MAX_MSG_LEN = 200
+
 # System prompt template for the turn classifier.
 _SYSTEM_PROMPT_TEMPLATE = """\
 You are a turn-classifier for a voice assistant multi-character system.
@@ -120,12 +123,19 @@ class TurnClassifier:
 
         messages = [{"role": "system", "content": system_prompt}]
 
-        # Include last 2 turns of history for context (up to 4 messages)
+        # Include last 2 turns of history for context (up to 4 messages),
+        # truncated to avoid token bloat from long assistant responses.
+        # Also deduplicate: the user message is added to history before this
+        # method is called, so without this guard it would appear twice.
         for msg in recent_history[-4:]:
-            messages.append({"role": msg.get("role", "user"), "content": msg.get("content", "")})
+            content = msg.get("content", "")[:_MAX_MSG_LEN]
+            role = msg.get("role", "user")
+            if role == "user" and content == user_message[:_MAX_MSG_LEN]:
+                continue
+            messages.append({"role": role, "content": content})
 
         # Append the current user message
-        messages.append({"role": "user", "content": user_message})
+        messages.append({"role": "user", "content": user_message[:_MAX_MSG_LEN]})
 
         logger.debug(
             "TurnClassifier: calling LLM (messages=%d, user_message=%r)",

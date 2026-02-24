@@ -31,6 +31,11 @@ logger = logging.getLogger(__name__)
 _TEMPERATURE = 0.1
 _MAX_TOKENS = 400
 
+# Maximum character length for any single message content sent to the LLM.
+# Prevents very long assistant responses (recipes, shopping lists, etc.) from
+# bloating the router's context window.
+_MAX_MSG_LEN = 200
+
 # Default fallback character
 _FALLBACK_CHARACTER = "delilah"
 
@@ -188,13 +193,18 @@ class ConversationRouter:
 
         messages = [{"role": "system", "content": system_prompt}]
 
-        # Include up to 6 recent turns for context
+        # Include up to 6 recent turns for context, truncated to avoid token bloat.
+        # Also skip any history entry that duplicates the current user_message (the
+        # user message is added to context.history before this method is called, so
+        # without this guard it would appear twice in the LLM messages list).
         for msg in recent_history[-6:]:
-            messages.append(
-                {"role": msg.get("role", "user"), "content": msg.get("content", "")}
-            )
+            content = msg.get("content", "")[:_MAX_MSG_LEN]
+            role = msg.get("role", "user")
+            if role == "user" and content == user_message[:_MAX_MSG_LEN]:
+                continue
+            messages.append({"role": role, "content": content})
 
-        messages.append({"role": "user", "content": user_message})
+        messages.append({"role": "user", "content": user_message[:_MAX_MSG_LEN]})
 
         logger.debug(
             "ConversationRouter: calling LLM (messages=%d, user_message=%r)",
