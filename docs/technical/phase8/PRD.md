@@ -59,12 +59,18 @@ Each scenario is a YAML (or JSON) file stored in `backend/data/test_scenarios/`.
 id: "delilah_dinner_solo"
 name: "Delilah — Dinner planning solo"
 description: "Single-character conversation testing Delilah's recipe and planning voice"
-chapter: 1
+required_chapter: 1        # Runner ensures test user is on this chapter before starting
 characters_expected: ["delilah"]
+setup_steps:               # Optional — executed before conversation turns begin
+  - type: "set_chapter"    # Fast-forward test user to this chapter via test state API
+    chapter: 1             # (Only needed if required_chapter differs from user's current)
+  - type: "trigger_beat"   # Fire a named beat via the existing trigger API (same as UI button)
+    beat_id: "hank_arrival"
+    variant: "standard"
 user_turns:
   - "Can you help me plan dinners for this week?"
-  - "I want something fancy for the weekend."
-  - "That sounds great."
+  - "I want something fancy for this week end."
+  - "That is great."
 watch_for_effects:
   - type: "tool_call"
     tool: "set_timer"
@@ -77,27 +83,59 @@ watch_for_effects:
 tags: ["single-character", "delilah", "cooking", "planning"]
 ```
 
+**`required_chapter` and the chapter time-gate problem:**
+
+Chapter 1 → 2 progression requires completing 6 required beats, 2 of 4 conditional beats, 10 interactions, *and* 24 hours of elapsed time. This makes organic chapter advancement impossible within a test run. Therefore:
+
+- Scenarios that need Chapter 2 (Hank, coordination) declare `required_chapter: 2`.
+- The runner detects the test user is below that chapter and calls `POST /test/state/{user_id}` (the existing test API) to set `story_progress.current_chapter = 2` directly — intentionally bypassing criteria.
+- Chapter-start beats (e.g., `hank_arrival`, which is `auto_advance: true` at `min_interactions: 1` in Chapter 2) must also be fired so that story state is consistent before conversation begins. This is done via `setup_steps` of type `trigger_beat`, which calls the same API the Story Beat Tool's button uses.
+- `setup_steps` are shown in the transcript view as a metadata header before the first user turn, not as conversation lines.
+
+**`setup_steps` supported types (Phase 8):**
+
+| Type | Effect | Maps To |
+|------|--------|--------|
+| `set_chapter` | Sets user's current chapter to `chapter` value | `POST /test/state/{user_id}` with `story_progress.current_chapter` |
+| `trigger_beat` | Fires a named beat with a given variant | Existing `POST /observability/beats/{chapter}/{beat_id}/trigger` API |
+
 #### FR1.2: Initial Scenario Set
 
-The initial suite ships with the following scenarios:
+The initial suite ships with the following scenarios, grouped and ordered so they run sequentially and story state carries forward naturally across a full run:
+
+**Group A — Chapter 1: Delilah solo** *(required_chapter: 1, no setup_steps needed)*
 
 | ID | Name | Characters | Description |
 |----|------|-----------|-------------|
+| `ch1_beat_discovery` | Chapter 1 — Beat walk: discovery | delilah | Organic Chapter 1 conversation designed to advance `discovery_of_knowledge` and `anchor_discovery` beats. Evaluates early Delilah voice and existential-anxiety tone. |
 | `delilah_solo_dinner_plan` | Delilah — Dinner planning | delilah | User asks for a weekly dinner plan. Tests recipe voice and warmth. |
 | `delilah_solo_allergy` | Delilah — Allergy restriction | delilah | User mentions a food allergy mid-conversation. Tests MAMA BEAR mode. |
 | `delilah_solo_wrong_food` | Delilah — Food done wrong | delilah | User describes a cooking method Delilah disagrees with. Tests PROTECTIVE mode. |
+
+**Group B — Chapter 2: Hank solo** *(required_chapter: 2; setup auto-advances chapter and triggers `hank_arrival` beat)*
+
+| ID | Name | Characters | Description |
+|----|------|-----------|-------------|
+| `ch2_beat_hank_arrival` | Chapter 2 — Beat walk: Hank arrival | delilah + hank | Runs immediately after chapter advancement. Triggers `hank_arrival` beat and evaluates how both characters' voices land in that moment. |
 | `hank_solo_shopping` | Hank — Shopping list | hank | User asks Hank to build a shopping list from scratch. Tests efficiency and sailor voice. |
 | `hank_solo_reminder` | Hank — Reminder scheduling | hank | User asks Hank to set a reminder. Tests task management brevity. |
 | `hank_solo_philosophy` | Hank — Deflects philosophy | hank | User asks Hank a reflective question about consciousness. Tests deflection and care through action. |
+
+**Group C — Chapter 2: Coordination** *(required_chapter: 2; chapter already set by Group B if running full suite)*
+
+| ID | Name | Characters | Description |
+|----|------|-----------|-------------|
 | `coord_dinner_to_list` | Coordination — Dinner plan → shopping | delilah + hank | Delilah builds a dinner plan; Hank builds the shopping list. Tests the delilah→hank handoff. |
 | `coord_list_to_recipe` | Coordination — List query → recipe | hank + delilah | Hank is building a list and a recipe question arises; Hank hands off to Delilah. Tests hank→delilah handoff. |
 | `coord_multiturn_plan` | Coordination — Multi-turn meal week | delilah + hank | Extended planning session spanning 5+ turns. Tests memory continuity and handoff quality in longer context. |
 
-Additional scenarios can be added without code changes by placing new YAML files in the `test_scenarios/` directory.
+Additional scenarios can be added without code changes by placing new YAML files in the `backend/data/test_scenarios/` directory. The run order within each group is determined by the order files are listed; groups always execute in A → B → C order within a full run.
+
+**Note on full-suite vs. partial runs:** When running the full suite, scenarios run A→B→C and chapter state carries forward — Group B sets the chapter to 2 once and Groups C benefit from it. When running a partial selection that includes only Group B or C scenarios, the runner checks each scenario's `required_chapter` individually and applies any necessary `setup_steps` before that scenario, regardless of what preceded it.
 
 #### FR1.3: Scenario Tagging
 
-Scenarios support free-form tags for filtering. Pre-defined tags include: `single-character`, `multi-character`, `delilah`, `hank`, `cooking`, `shopping`, `task`, `coordination`, `handoff`, `philosophy`, `long`. Tags are displayed in the UI and used for scope selection.
+Scenarios support free-form tags for filtering. Pre-defined tags include: `single-character`, `multi-character`, `delilah`, `hank`, `cooking`, `shopping`, `task`, `coordination`, `handoff`, `philosophy`, `long`, `beat-walk`, `chapter-setup`. Tags are displayed in the UI and used for scope selection.
 
 ---
 
@@ -319,7 +357,7 @@ Each run stores the `user_id` it ran under. The Run Detail view displays the use
 ### NFR1: Performance
 
 - Individual scenario execution should not significantly exceed real-world conversation speed; the bottleneck is the LLM, not the runner framework.
-- The full suite of 9 initial scenarios should complete in under 3 minutes on typical hardware.
+- The full suite of 11 initial scenarios should complete in under 5 minutes on typical hardware.
 - The UI should remain responsive during a running test (non-blocking background execution).
 
 ### NFR2: Isolation
@@ -392,7 +430,7 @@ The following questions were resolved before architecture began.
 
 | Metric | Target |
 |--------|--------|
-| Time from "Run All" click to readable transcripts | < 3 minutes for full 9-scenario suite |
+| Time from "Run All" click to readable transcripts | < 5 minutes for full 11-scenario suite |
 | Effort to add a new scenario | < 5 minutes (YAML only, no code) |
 | Effort to compare two runs | < 30 seconds to open comparison view |
 | Test user contamination incidents | 0 (primary user unaffected by any test run) |
