@@ -581,6 +581,18 @@
   color: hsl(var(--foreground));
 }
 
+.btt-detail-user-id {
+  font-size: 0.8em;
+  color: hsl(var(--muted-foreground));
+  font-family: monospace;
+}
+
+.btt-user-deleted {
+  color: #f97316;
+  font-style: italic;
+  font-family: inherit;
+}
+
 /* ── Status badges ───────────────────────────────────────────────────────── */
 
 .btt-status-badge {

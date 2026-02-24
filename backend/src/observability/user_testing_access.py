@@ -295,7 +295,8 @@ class UserTestingAccessor:
                 "current_chapter": story_progress.get("current_chapter", 1),
                 "interaction_count": story_progress.get("interaction_count", 0),
                 "created_at": user_data.get("created_at"),
-                "tags": user_data.get("metadata", {}).get("tags", [])
+                "tags": user_data.get("metadata", {}).get("tags", []),
+                "metadata": user_data.get("metadata", {}),
             })
 
         # Sort: production users first, then by creation date

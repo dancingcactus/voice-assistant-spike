@@ -102,6 +102,30 @@
   color: #fff;
 }
 
+.user-testing-tool .user-card-badges {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.user-testing-tool .user-card-badges .user-type-badge {
+  position: static;
+}
+
+.badge-bulk-test {
+  background-color: #7c3aed;
+  color: white;
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 3px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
 .user-testing-tool .user-card h3 {
   font-size: 1.2em;
   margin: 0 0 12px 0;

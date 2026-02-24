@@ -134,7 +134,12 @@ export default function UserTestingTool() {
       <div className="users-grid">
         {users.map(user => (
           <div key={user.user_id} className={`user-card ${user.type}`}>
-            <div className={`user-type-badge ${user.type}`}>{user.type}</div>
+            <div className="user-card-badges">
+              <div className={`user-type-badge ${user.type}`}>{user.type}</div>
+              {user.metadata?.source === 'bulk_testing' && (
+                <span className="badge badge-bulk-test">BULK TEST</span>
+              )}
+            </div>
 
             <h3>{user.user_id}</h3>
 

@@ -875,6 +875,13 @@ export function BulkTestingTool() {
     staleTime: 30_000,
   });
 
+  // Known users — used to show "(user deleted)" note in detail header
+  const { data: knownUsers, isSuccess: usersLoaded } = useQuery({
+    queryKey: ['users-with-type'],
+    queryFn: () => apiClient.listUsersWithType(),
+    staleTime: 30_000,
+  });
+
   const { data: scenariosData, isLoading, error } = useQuery({
     queryKey: ['scenarios'],
     queryFn: () => apiClient.getScenarios(),
@@ -912,6 +919,18 @@ export function BulkTestingTool() {
     setComparisonRunId(null);
     setView('detail');
   };
+
+  // Helper: render user_id in detail header with "(user deleted)" when the
+  // users query has completed and the user is no longer present.
+  function DetailUserId({ userId }: { userId: string }) {
+    const isDeleted = usersLoaded && !knownUsers?.some(u => u.user_id === userId);
+    return (
+      <span className="btt-detail-user-id" title="User who ran this test">
+        {userId}
+        {isDeleted && <span className="btt-user-deleted"> (user deleted)</span>}
+      </span>
+    );
+  }
 
   if (isLoading) {
     return <div className="btt-root"><div className="btt-loading">Loading scenarios…</div></div>;
@@ -994,6 +1013,7 @@ export function BulkTestingTool() {
                 {detailRun.status}
               </span>
             )}
+            {detailRun?.user_id && <DetailUserId userId={detailRun.user_id} />}
             <button
               className="btt-btn btt-btn-secondary btt-compare-btn"
               onClick={() => setShowRunPicker(true)}
