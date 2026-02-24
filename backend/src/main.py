@@ -153,6 +153,12 @@ from observability.api import app as observability_app
 app.mount("/api/v1", observability_app)
 print("✅ Observability API mounted at /api/v1")
 
+# Phase 8: Bulk Testing Suite API
+from api.test_runs_api import router as test_runs_router, set_runner_dependencies
+app.include_router(test_runs_router)
+set_runner_dependencies(conversation_manager=conversation_manager)
+print("✅ Test Runs API registered at /api/test-runs")
+
 if __name__ == "__main__":
     import uvicorn
     port = int(os.getenv("PORT", 8000))

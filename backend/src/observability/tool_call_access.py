@@ -281,6 +281,40 @@ class ToolCallDataAccess:
         stats.sort(key=lambda x: x.total_calls, reverse=True)
         return stats
 
+    def get_tool_calls_for_turn(self, turn_id: str, user_id: Optional[str] = None) -> List[ToolCallLog]:
+        """
+        Get all tool calls associated with a specific turn_id.
+
+        Args:
+            turn_id: The turn correlation ID to filter by.
+            user_id: Optional user to scope the search. If omitted, all JSONL
+                     files in the tool_logs directory are searched.
+
+        Returns:
+            List of ToolCallLog entries for that turn, in file order.
+        """
+        if user_id:
+            files = [self._get_log_file_path(user_id)]
+        else:
+            files = list(self.tool_logs_dir.glob("*_tool_calls.jsonl"))
+
+        results: List[ToolCallLog] = []
+        for log_file in files:
+            if not log_file.exists():
+                continue
+            with open(log_file, "r", encoding="utf-8") as f:
+                for line in f:
+                    line = line.strip()
+                    if not line:
+                        continue
+                    try:
+                        data = json.loads(line)
+                        if data.get("turn_id") == turn_id:
+                            results.append(ToolCallLog(**data))
+                    except (json.JSONDecodeError, ValueError):
+                        continue
+        return results
+
     def get_all_tool_names(self, user_id: str) -> List[str]:
         """Get list of all unique tool names for a user"""
         log_file = self._get_log_file_path(user_id)
