@@ -284,10 +284,8 @@ From the Run Detail view, a **"Compare with..."** button opens a run picker. The
 - Left panel: the original run
 - Right panel: the comparison run
 - Panels are scroll-linked — scrolling one scrolls the other
-- Differences in character responses are highlighted:
-  - Lines that are new or meaningfully different are highlighted in yellow
-  - Effect differences (an effect fired in one run but not the other) are highlighted in orange
-  - Identical effects pass without highlighting
+- No automated diff highlighting — character responses can differ enough that character-level diffing creates more noise than signal; the developer reads both sides and judges qualitatively
+- Effects are rendered identically on each side so differences are apparent by reading, not by automated marking
 
 Comparison is per-turn and per-scenario (matched by `scenario_id` and `turn_index`). Scenarios that appear in one run but not the other are shown as blank on the missing side.
 
@@ -341,6 +339,10 @@ Each run stores the `user_id` it ran under. The Run Detail view displays the use
 - New effect types can be registered by extending the runner's effect capture registry.
 - The comparison feature must not hard-code scenario structure; it must work with any scenario set present in both runs.
 
+### NFR5: Run Storage Cap
+
+- A maximum of **50 runs** are retained on disk. When a new run is saved and the count exceeds 50, the oldest run by `started_at` timestamp is deleted automatically. The 50-run limit applies per installation and is not configurable in Phase 8.
+
 ---
 
 ## Out of Scope
@@ -351,8 +353,10 @@ The following are explicitly not part of Phase 8:
 - **Audio playback in the UI** — transcripts are text only; TTS-generated audio is not stored or replayed.
 - **Regression alert automation** — there is no CI hook that fails a build when transcripts differ. This is a deliberate read-and-judge workflow.
 - **Rex or Dimitria scenarios** — Rex (Chapter 3+) and Dimitria (Chapter 4+) are out of scope for the initial suite. Their scenarios can be added via YAML after Phase 8 ships.
-- **Parallel scenario execution** — scenarios run sequentially to avoid LLM rate-limit pressure and to keep run logs clean.
+- **Parallel scenario execution** — scenarios run sequentially to avoid LLM rate-limit pressure, keep run logs clean, and allow story beat progression to carry forward across scenarios within a run.
 - **Real-time streaming display** — character responses are shown in full after turn completion, not streamed word-by-word in the transcript.
+- **Conditional/branching scenario scripts** — scenarios are linear turn sequences only; branching logic ("if character says X, respond Y") is deferred to a future phase.
+- **Git-committed run artefacts** — run result JSON files live on disk only and are not version-controlled.
 
 ---
 
@@ -370,15 +374,17 @@ The following are explicitly not part of Phase 8:
 
 ---
 
-## Open Questions
+## Decisions Log
 
-| # | Question | Impact | Priority |
-|---|----------|--------|----------|
-| Q1 | Should scenarios be able to include conditional branches (e.g., "if Delilah mentions X, user responds Y")? | Adds richness but complexity | Low — defer to Phase 8.5 |
-| Q2 | Should the comparison view diff at the word level (like a git diff) or at the turn level? | Word-level diffs can be noisy for long responses | Medium — decide during architecture |
-| Q3 | Should test runs be committable to git as artefacts for team-level comparison? | Useful for multi-developer teams | Low — out of scope for now |
-| Q4 | Should the scenario runner re-use an existing conversation session ID across turns in a scenario, or start a new one per turn? | Affects multi-turn memory coherence in scenarios | High — must decide in architecture; current assumption is one session per scenario |
-| Q5 | How many runs should be stored before auto-pruning? | Storage and discoverability | Medium — default suggestion: 50 runs |
+The following questions were resolved before architecture began.
+
+| # | Question | Decision |
+|---|----------|----------|
+| Q1 | Should scenarios support conditional branches? | **No.** Keep scenarios as simple linear turn sequences. Branching deferred to a future phase. |
+| Q2 | Should the comparison view highlight textual differences between runs? | **No.** Character responses differ too much for automated diffing to be useful. The comparison view is plain side-by-side; the developer reads and judges qualitatively. |
+| Q3 | Should run result files be committed to git as team artefacts? | **No.** Out of scope. Run files live on disk only. |
+| Q4 | Should the runner share one conversation session across all turns in a scenario? | **Yes — one `conversation_id` per scenario.** Turns within a scenario are sent as part of the same session so multi-turn memory and story beat progression work correctly. Scenarios run sequentially within a run so story beats carry forward across scenarios. |
+| Q5 | How many runs to retain before auto-pruning? | **50 runs.** Oldest run by `started_at` is deleted when the limit is exceeded. |
 
 ---
 
