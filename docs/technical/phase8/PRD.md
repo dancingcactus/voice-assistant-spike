@@ -231,11 +231,22 @@ Results are stored as JSON files in `backend/data/test_runs/`. Each file is name
 
 #### FR2.5: Run Status Polling
 
-`GET /api/test-runs/{run_id}` returns the current status (`pending`, `running`, `complete`, `failed`) and progress (e.g., 3 of 9 scenarios complete). The frontend polls this endpoint while a run is in progress to show a live progress indicator.
+`GET /api/test-runs/{run_id}` returns the current status (`pending`, `running`, `complete`, `failed`, `cancelled`) and progress (e.g., 3 of 9 scenarios complete). The frontend polls this endpoint while a run is in progress to show a live progress indicator.
 
 #### FR2.6: Run List Endpoint
 
 `GET /api/test-runs` returns a paginated list of all stored runs, sorted newest-first, with `run_id`, `run_label`, `started_at`, `status`, and scenario count.
+
+#### FR2.7: Cancel a Running Test
+
+`POST /api/test-runs/{run_id}/cancel` sets a cancellation flag on the in-progress run. The runner checks this flag **between scenarios** — it completes the scenario currently executing, then stops before starting the next one. This avoids leaving a scenario in a partially-executed state.
+
+- Returns `202 Accepted` immediately; the run does not stop until the current scenario finishes.
+- The run's status transitions to `cancelled` once the runner exits cleanly.
+- Already-completed scenario results are preserved in the result JSON.
+- Remaining (unstarted) scenarios are recorded in the result as `status: "skipped"`.
+- Calling cancel on a run that is already `complete`, `failed`, or `cancelled` returns `409 Conflict` with a descriptive message.
+- Only one run can be active at a time per server instance, so the UI only ever shows one active cancel target.
 
 ---
 
@@ -269,10 +280,12 @@ The main Bulk Testing view has two columns:
 While a run is executing, the right column switches to a live progress view:
 - Run label and user shown at top
 - Progress bar (N of M scenarios complete)
-- Live list of scenario statuses: queued / running (spinner) / complete (checkmark) / failed (X)
+- Live list of scenario statuses: queued / running (spinner) / complete (checkmark) / failed (X) / skipped (dash)
 - Scenarios complete show their turn count
+- A **"Stop after this scenario"** button appears while the run is active. Clicking it calls `POST /api/test-runs/{run_id}/cancel` and immediately changes the button to a disabled **"Stopping..."** state so the user cannot double-click it. The button disappears once the run reaches `cancelled` status.
+- When the run finishes or is cancelled, the view transitions to the Run Detail view automatically. Cancelled runs show a banner: *"Run cancelled — results below are from completed scenarios only."*
 
-The view auto-updates via polling every 2 seconds. On run completion the view transitions to the Run Detail view automatically.
+The view auto-updates via polling every 2 seconds.
 
 #### FR3.4: Run Detail View — Conversation Transcript
 
