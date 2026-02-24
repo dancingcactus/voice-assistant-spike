@@ -167,9 +167,11 @@ The endpoint responds with a `run_id` immediately and executes scenarios sequent
 
 Each user turn in a scenario is sent to the existing `POST /api/chat` endpoint under the specified user context. The runner waits for the full response before sending the next turn. Streaming responses are consumed but stored as complete text.
 
-#### FR2.3: Effect Capture
+#### FR2.3: Effect and Log Capture
 
-After each turn, the runner queries the tool call log for that `turn_id` and records any tool calls that fired. Recognized effect types:
+After each turn, the runner reads the `turn_id` from `response.metadata.turn_id` (already injected by `ConversationManager`) and makes two queries:
+
+1. **Effects** — queries the tool call log for that `turn_id` and records any tool calls that fired. Recognized effect types:
 
 | Effect Type | Source | Display Label |
 |-------------|--------|---------------|
@@ -180,6 +182,8 @@ After each turn, the runner queries the tool call log for that `turn_id` and rec
 | `timer_set` | Timer tool | "Timer set: [duration]" |
 
 The runner captures *all* tool calls, not just those in `watch_for_effects`. The `watch_for_effects` list is used only to flag expected effects that did *not* fire (shown as "Expected but not seen" in the UI).
+
+2. **Logs** — calls `GET /observability/logs?turn_id={turn_id}` immediately after the turn response is received, while the in-memory log buffer still holds the records. The full list of log entries for that `turn_id` is stored verbatim in the result JSON. These are the same structured records shown in the Observability Logs tab, including `level`, `logger`, `message`, `timestamp`, and any extra fields (e.g., `character`, `tool_name`, `latency_ms`).
 
 #### FR2.4: Run Result Storage
 
@@ -313,6 +317,7 @@ Visual design notes:
 - Character name is bolded/coloured matching their character theme
 - `► Effect:` lines use a distinct muted-accent colour and a right-pointing indicator to visually break up the flow without overwhelming the dialogue
 - Expected effects that did **not** fire are shown as: `✗ Expected but not seen: [label]` in a warning colour
+- Each turn ends with a collapsed **`▶ Logs (N entries)`** disclosure row. Clicking it expands inline to show the full structured log records for that turn, rendered with the same level badges and field display as the existing Logs tab. Collapsing/expanding a log row does not affect the scroll position of the surrounding transcript. The log rows are collapsed by default.
 - Scenarios are separated by a visible divider with the scenario name and metadata
 
 #### FR3.5: Run Comparison View
