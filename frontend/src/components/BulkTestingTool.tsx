@@ -1,17 +1,17 @@
 /**
- * BulkTestingTool — Phase 8 Milestones 3 & 4
+ * BulkTestingTool — Phase 8 Milestones 3, 4 & 5
  *
  * Manages three view states:
- *  - "suite"   → Scenario picker + run controls
+ *  - "suite"   → Scenario picker + run controls + run history sidebar
  *  - "running" → Live progress view with polling, cancel, auto-transition
- *  - "detail"  → Transcript view with effects, missed effects, log disclosure
+ *  - "detail"  → Transcript view (single or side-by-side comparison)
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { FlaskConical } from 'lucide-react';
 import { apiClient } from '../services/api';
-import type { ScenarioSummary, ScenarioResult, TurnResult, LogEntry } from '../services/api';
+import type { ScenarioSummary, ScenarioResult, TurnResult, LogEntry, TestRunResult } from '../services/api';
 import './BulkTestingTool.css';
 
 // ── Types ──────────────────────────────────────────────────────────────────
@@ -610,17 +610,237 @@ function RunProgressView({ runId, totalExpected, onCompleted }: RunProgressViewP
   );
 }
 
-// ── RunHistoryPlaceholder ──────────────────────────────────────────────────
+// ── Helpers ────────────────────────────────────────────────────────────────
 
-function RunHistoryPlaceholder() {
+function formatRunDate(iso: string): string {
+  try {
+    return new Date(iso).toLocaleString(undefined, {
+      month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false,
+    });
+  } catch { return iso; }
+}
+
+// ── RunHistoryList ─────────────────────────────────────────────────────────
+
+interface RunHistoryListProps {
+  onSelectRun: (runId: string) => void;
+  currentRunId?: string | null;
+  refetchKey?: number;
+}
+
+function RunHistoryList({ onSelectRun, currentRunId, refetchKey }: RunHistoryListProps) {
+  const { data, isLoading, refetch } = useQuery({
+    queryKey: ['test-runs', refetchKey],
+    queryFn: () => apiClient.listTestRuns(),
+    staleTime: 5_000,
+  });
+
+  // Refetch whenever refetchKey changes (e.g. a run just completed)
+  useEffect(() => { refetch(); }, [refetchKey, refetch]);
+
+  const runs = data?.runs ?? [];
+
+  if (isLoading) {
+    return (
+      <div className="btt-right-panel">
+        <h3 className="btt-section-title">Run History</h3>
+        <div className="btt-placeholder"><div className="btt-spinner" /></div>
+      </div>
+    );
+  }
+
+  if (runs.length === 0) {
+    return (
+      <div className="btt-right-panel">
+        <h3 className="btt-section-title">Run History</h3>
+        <div className="btt-placeholder">
+          <FlaskConical className="btt-placeholder-icon" size={32} />
+          <p>Run history will appear here once you complete a run.</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="btt-right-panel">
-      <h3 className="btt-section-title">Run History</h3>
-      <div className="btt-placeholder">
-        <FlaskConical className="btt-placeholder-icon" size={32} />
-        <p>Run history will appear here once you complete a run.</p>
-        <p className="btt-placeholder-sub">Full history and comparison coming in the next milestone.</p>
+      <h3 className="btt-section-title">
+        Run History
+        <span className="btt-scenario-count">{runs.length} runs</span>
+      </h3>
+      <div className="btt-run-history-list">
+        {runs.map(run => (
+          <button
+            key={run.run_id}
+            className={`btt-run-card ${currentRunId === run.run_id ? 'btt-run-card-active' : ''}`}
+            onClick={() => onSelectRun(run.run_id)}
+          >
+            <div className="btt-run-card-label">{run.run_label}</div>
+            <div className="btt-run-card-meta">
+              <span className="btt-run-card-date">{formatRunDate(run.started_at)}</span>
+              <span className="btt-run-card-user">{run.user_id}</span>
+              <span className="btt-run-card-count">{run.completed_count}/{run.scenario_count} scenarios</span>
+              <span className={`btt-status-badge btt-scenario-status-${run.status}`}>{run.status}</span>
+            </div>
+          </button>
+        ))}
       </div>
+    </div>
+  );
+}
+
+// ── RunPickerModal ─────────────────────────────────────────────────────────
+
+interface RunPickerModalProps {
+  excludeRunId: string;
+  onSelect: (runId: string) => void;
+  onClose: () => void;
+}
+
+function RunPickerModal({ excludeRunId, onSelect, onClose }: RunPickerModalProps) {
+  const { data } = useQuery({
+    queryKey: ['test-runs-picker'],
+    queryFn: () => apiClient.listTestRuns(),
+    staleTime: 5_000,
+  });
+
+  const runs = (data?.runs ?? []).filter(r => r.run_id !== excludeRunId);
+
+  return (
+    <div className="btt-modal-backdrop" onClick={onClose}>
+      <div className="btt-modal" onClick={e => e.stopPropagation()}>
+        <div className="btt-modal-header">
+          <span className="btt-modal-title">Compare with…</span>
+          <button className="btt-modal-close" onClick={onClose}>✕</button>
+        </div>
+        {runs.length === 0 ? (
+          <div className="btt-placeholder" style={{ padding: '24px 16px' }}>
+            <p>No other runs available to compare.</p>
+          </div>
+        ) : (
+          <div className="btt-run-history-list btt-run-picker-list">
+            {runs.map(run => (
+              <button
+                key={run.run_id}
+                className="btt-run-card"
+                onClick={() => { onSelect(run.run_id); onClose(); }}
+              >
+                <div className="btt-run-card-label">{run.run_label}</div>
+                <div className="btt-run-card-meta">
+                  <span className="btt-run-card-date">{formatRunDate(run.started_at)}</span>
+                  <span className={`btt-status-badge btt-scenario-status-${run.status}`}>{run.status}</span>
+                </div>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ── ComparisonView ─────────────────────────────────────────────────────────
+
+interface ComparisonViewProps {
+  primaryRun: TestRunResult;
+  comparisonRun: TestRunResult;
+}
+
+function ComparisonView({ primaryRun, comparisonRun }: ComparisonViewProps) {
+  const leftRef  = useRef<HTMLDivElement>(null);
+  const rightRef = useRef<HTMLDivElement>(null);
+  const lockScroll = useRef(false);
+
+  function handleLeftScroll() {
+    if (lockScroll.current || !rightRef.current || !leftRef.current) return;
+    lockScroll.current = true;
+    rightRef.current.scrollTop = leftRef.current.scrollTop;
+    requestAnimationFrame(() => { lockScroll.current = false; });
+  }
+
+  function handleRightScroll() {
+    if (lockScroll.current || !leftRef.current || !rightRef.current) return;
+    lockScroll.current = true;
+    leftRef.current.scrollTop = rightRef.current.scrollTop;
+    requestAnimationFrame(() => { lockScroll.current = false; });
+  }
+
+  // Build ordered scenario list across both runs (union, in primary order first)
+  const primaryIds = primaryRun.scenario_results.map(r => r.scenario_id);
+  const extraIds   = comparisonRun.scenario_results
+    .filter(r => !primaryIds.includes(r.scenario_id))
+    .map(r => r.scenario_id);
+  const allIds = [...primaryIds, ...extraIds];
+
+  const primaryMap  = Object.fromEntries(primaryRun.scenario_results.map(r => [r.scenario_id, r]));
+  const compareMap  = Object.fromEntries(comparisonRun.scenario_results.map(r => [r.scenario_id, r]));
+
+  return (
+    <div className="btt-comparison-layout">
+      {/* Column headers */}
+      <div className="btt-comparison-header">
+        <div className="btt-comparison-col-header">
+          <span className="btt-comparison-run-label">{primaryRun.run_label}</span>
+          <span className={`btt-status-badge btt-scenario-status-${primaryRun.status}`}>{primaryRun.status}</span>
+        </div>
+        <div className="btt-comparison-col-header">
+          <span className="btt-comparison-run-label">{comparisonRun.run_label}</span>
+          <span className={`btt-status-badge btt-scenario-status-${comparisonRun.status}`}>{comparisonRun.status}</span>
+        </div>
+      </div>
+
+      {/* Side-by-side scroll panels */}
+      <div className="btt-comparison-panels">
+        <div
+          ref={leftRef}
+          className="btt-comparison-panel"
+          onScroll={handleLeftScroll}
+        >
+          <ComparisonColumn runResults={allIds.map(id => primaryMap[id] ?? null)} scenarioIds={allIds} />
+        </div>
+        <div
+          ref={rightRef}
+          className="btt-comparison-panel"
+          onScroll={handleRightScroll}
+        >
+          <ComparisonColumn runResults={allIds.map(id => compareMap[id] ?? null)} scenarioIds={allIds} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+interface ComparisonColumnProps {
+  runResults: (ScenarioResult | null)[];
+  scenarioIds: string[];
+}
+
+function ComparisonColumn({ runResults, scenarioIds }: ComparisonColumnProps) {
+  const [openMap, setOpenMap] = useState<Map<string, boolean>>(new Map());
+
+  const handleLogToggle = (id: string) => {
+    setOpenMap(prev => {
+      const next = new Map(prev);
+      next.set(id, !(next.get(id) ?? false));
+      return next;
+    });
+  };
+
+  return (
+    <div className="btt-comparison-column">
+      {runResults.map((result, idx) =>
+        result ? (
+          <ScenarioBlock
+            key={result.scenario_id}
+            result={result}
+            openMap={openMap}
+            onLogToggle={handleLogToggle}
+          />
+        ) : (
+          <div key={scenarioIds[idx]} className="btt-missing-scenario">
+            <span>Scenario "{scenarioIds[idx]}" not present in this run</span>
+          </div>
+        )
+      )}
     </div>
   );
 }
@@ -632,14 +852,26 @@ export function BulkTestingTool() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [activeRunId, setActiveRunId] = useState<string | null>(null);
   const [selectedRunId, setSelectedRunId] = useState<string | null>(null);
+  const [comparisonRunId, setComparisonRunId] = useState<string | null>(null);
+  const [showRunPicker, setShowRunPicker] = useState(false);
   const [totalExpected, setTotalExpected] = useState(0);
   const [tagFilter, setTagFilter] = useState<string | null>(null);
+  // Incremented after a run completes to trigger history list refetch
+  const [historyRefetchKey, setHistoryRefetchKey] = useState(0);
 
-  // Keep the last fetched run result for the transcript after completion
+  // Primary run data for detail/comparison view
   const { data: detailRun } = useQuery({
     queryKey: ['test-run', selectedRunId],
     queryFn: () => apiClient.getTestRun(selectedRunId!),
     enabled: !!selectedRunId && view === 'detail',
+    staleTime: 30_000,
+  });
+
+  // Comparison run data
+  const { data: comparisonRun } = useQuery({
+    queryKey: ['test-run', comparisonRunId],
+    queryFn: () => apiClient.getTestRun(comparisonRunId!),
+    enabled: !!comparisonRunId,
     staleTime: 30_000,
   });
 
@@ -669,7 +901,15 @@ export function BulkTestingTool() {
 
   const handleRunCompleted = (runId: string) => {
     setSelectedRunId(runId);
+    setComparisonRunId(null);
     setActiveRunId(null);
+    setHistoryRefetchKey(k => k + 1);
+    setView('detail');
+  };
+
+  const openDetail = (runId: string) => {
+    setSelectedRunId(runId);
+    setComparisonRunId(null);
     setView('detail');
   };
 
@@ -690,13 +930,12 @@ export function BulkTestingTool() {
           {import.meta.env.DEV && (
             <button
               className="btt-dev-preview-btn"
-              title="Dev mode: preview transcript view with latest run"
+              title="Dev mode: preview transcript view with latest completed run"
               onClick={async () => {
                 try {
                   const res = await apiClient.listTestRuns();
-                  // prefer a completed run for richer transcript preview
                   const run = res.runs.find(r => r.status === 'complete') ?? res.runs[0];
-                  if (run) { setSelectedRunId(run.run_id); setView('detail'); }
+                  if (run) { openDetail(run.run_id); }
                 } catch { /* ignore */ }
               }}
             >
@@ -727,7 +966,11 @@ export function BulkTestingTool() {
               onRunStarted={handleRunStarted}
             />
           </div>
-          <RunHistoryPlaceholder />
+          <RunHistoryList
+            onSelectRun={openDetail}
+            currentRunId={selectedRunId}
+            refetchKey={historyRefetchKey}
+          />
         </div>
       )}
 
@@ -751,8 +994,30 @@ export function BulkTestingTool() {
                 {detailRun.status}
               </span>
             )}
+            <button
+              className="btt-btn btt-btn-secondary btt-compare-btn"
+              onClick={() => setShowRunPicker(true)}
+              disabled={!detailRun}
+            >
+              {comparisonRunId ? `Comparing: ${comparisonRun?.run_label ?? comparisonRunId}` : 'Compare with…'}
+            </button>
+            {comparisonRunId && (
+              <button
+                className="btt-btn btt-btn-secondary"
+                onClick={() => setComparisonRunId(null)}
+                title="Close comparison"
+              >
+                ✕ Close comparison
+              </button>
+            )}
           </div>
-          {detailRun ? (
+
+          {/* Transcript or comparison */}
+          {comparisonRunId && detailRun && comparisonRun ? (
+            <ComparisonView primaryRun={detailRun} comparisonRun={comparisonRun} />
+          ) : comparisonRunId && (!detailRun || !comparisonRun) ? (
+            <div className="btt-placeholder"><div className="btt-spinner" /><p>Loading comparison…</p></div>
+          ) : detailRun ? (
             <TranscriptView
               results={detailRun.scenario_results}
               wasCancelled={detailRun.status === 'cancelled'}
@@ -761,6 +1026,15 @@ export function BulkTestingTool() {
             <div className="btt-placeholder"><div className="btt-spinner" /><p>Loading transcript…</p></div>
           )}
         </div>
+      )}
+
+      {/* Run picker modal */}
+      {showRunPicker && selectedRunId && (
+        <RunPickerModal
+          excludeRunId={selectedRunId}
+          onSelect={id => { setComparisonRunId(id); }}
+          onClose={() => setShowRunPicker(false)}
+        />
       )}
     </div>
   );
