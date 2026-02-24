@@ -1,17 +1,17 @@
 /**
- * BulkTestingTool — Phase 8 Milestone 3: Suite Controls
+ * BulkTestingTool — Phase 8 Milestones 3 & 4
  *
  * Manages three view states:
- *  - "suite"   → Scenario picker + run controls (implemented here)
- *  - "running" → Live progress view (Milestone 4)
- *  - "detail"  → Transcript view   (Milestone 4 / 5)
+ *  - "suite"   → Scenario picker + run controls
+ *  - "running" → Live progress view with polling, cancel, auto-transition
+ *  - "detail"  → Transcript view with effects, missed effects, log disclosure
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { FlaskConical } from 'lucide-react';
 import { apiClient } from '../services/api';
-import type { ScenarioSummary } from '../services/api';
+import type { ScenarioSummary, ScenarioResult, TurnResult, LogEntry } from '../services/api';
 import './BulkTestingTool.css';
 
 // ── Types ──────────────────────────────────────────────────────────────────
@@ -309,6 +309,307 @@ function RunControls({ selectedIds, totalScenarioCount, onRunStarted }: RunContr
   );
 }
 
+// ── Character colours ──────────────────────────────────────────────────────
+
+const CHARACTER_COLORS: Record<string, string> = {
+  delilah:  '#f59e0b',
+  hank:     '#3b82f6',
+  rex:      '#f97316',
+  dimitria: '#8b5cf6',
+};
+
+// ── Helpers ────────────────────────────────────────────────────────────────
+
+function formatTimestamp(iso: string): string {
+  try { return new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }); }
+  catch { return iso; }
+}
+
+// ── LogDisclosureRow ───────────────────────────────────────────────────────
+
+const LEVEL_CLASS: Record<string, string> = {
+  DEBUG: 'log-debug', INFO: 'log-info', WARNING: 'log-warning',
+  ERROR: 'log-error', CRITICAL: 'log-critical',
+};
+
+interface LogDisclosureProps {
+  logs: LogEntry[];
+  turnId: string;
+  openMap: Map<string, boolean>;
+  onToggle: (id: string) => void;
+}
+
+function LogDisclosureRow({ logs, turnId, openMap, onToggle }: LogDisclosureProps) {
+  if (logs.length === 0) return null;
+  const open = openMap.get(turnId) ?? false;
+  return (
+    <div className="btt-log-disclosure">
+      <button className="btt-log-disclosure-toggle" onClick={() => onToggle(turnId)}>
+        {open ? '▼' : '▶'} Logs ({logs.length} {logs.length === 1 ? 'entry' : 'entries'})
+      </button>
+      {open && (
+        <div className="btt-log-entries">
+          {logs.map((entry, i) => (
+            <div key={i} className={`btt-log-entry ${LEVEL_CLASS[entry.level] ?? ''}`}>
+              <span className="btt-log-time">{formatTimestamp(entry.timestamp)}</span>
+              <span className={`btt-log-level-badge ${LEVEL_CLASS[entry.level] ?? ''}`}>{entry.level}</span>
+              <span className="btt-log-message">{entry.message}</span>
+              {entry.fields && Object.keys(entry.fields).length > 0 && (
+                <span className="btt-log-fields">{JSON.stringify(entry.fields)}</span>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── TurnBlock ──────────────────────────────────────────────────────────────
+
+interface TurnBlockProps {
+  turn: TurnResult;
+  openMap: Map<string, boolean>;
+  onLogToggle: (id: string) => void;
+}
+
+function TurnBlock({ turn, openMap, onLogToggle }: TurnBlockProps) {
+  const charColor = turn.character ? (CHARACTER_COLORS[turn.character.toLowerCase()] ?? '#888') : '#888';
+  const charName = turn.character
+    ? turn.character.charAt(0).toUpperCase() + turn.character.slice(1)
+    : 'Assistant';
+
+  return (
+    <div className="btt-turn-block">
+      {/* User message */}
+      <div className="btt-user-turn">
+        <span className="btt-turn-speaker btt-turn-speaker-user">You</span>
+        <span className="btt-turn-text">{turn.user_message}</span>
+      </div>
+
+      {/* Character response */}
+      <div className="btt-char-turn">
+        <span className="btt-turn-speaker" style={{ color: charColor }}>{charName}</span>
+        <span className="btt-turn-text">{turn.response}</span>
+      </div>
+
+      {/* Effects */}
+      {turn.effects.map((effect, i) => (
+        <div key={i} className="btt-effect-row">
+          <span className="btt-effect-indicator">►</span>
+          <span className="btt-effect-label">{effect.label}</span>
+        </div>
+      ))}
+
+      {/* Log disclosure */}
+      <LogDisclosureRow
+        logs={turn.logs}
+        turnId={turn.turn_id || `turn-${turn.turn_index}`}
+        openMap={openMap}
+        onToggle={onLogToggle}
+      />
+    </div>
+  );
+}
+
+// ── ScenarioBlock ──────────────────────────────────────────────────────────
+
+interface ScenarioBlockProps {
+  result: ScenarioResult;
+  openMap: Map<string, boolean>;
+  onLogToggle: (id: string) => void;
+}
+
+function ScenarioBlock({ result, openMap, onLogToggle }: ScenarioBlockProps) {
+  const durationStr = result.duration_seconds != null
+    ? `${result.duration_seconds.toFixed(1)}s`
+    : null;
+
+  const statusClass = result.status === 'complete' ? 'btt-scenario-status-complete'
+    : result.status === 'failed' ? 'btt-scenario-status-failed'
+    : 'btt-scenario-status-skipped';
+
+  return (
+    <div className="btt-scenario-block">
+      {/* Header */}
+      <div className={`btt-scenario-block-header ${statusClass}`}>
+        <span className="btt-scenario-block-name">{result.scenario_name}</span>
+        <span className="btt-scenario-block-meta">
+          {durationStr && <span>{durationStr}</span>}
+          <span className={`btt-status-badge ${statusClass}`}>
+            {result.status === 'complete' ? '✓' : result.status === 'failed' ? '✗' : '–'}
+            {' '}{result.status}
+          </span>
+        </span>
+      </div>
+
+      {/* Failed scenario error box */}
+      {result.status === 'failed' && result.error && (
+        <div className="btt-scenario-error-box">{result.error}</div>
+      )}
+
+      {/* Turns */}
+      {result.turns.map(turn => (
+        <TurnBlock
+          key={turn.turn_index}
+          turn={turn}
+          openMap={openMap}
+          onLogToggle={onLogToggle}
+        />
+      ))}
+
+      {/* Missed effects */}
+      {result.expected_effects_missed.length > 0 && (
+        <div className="btt-missed-effects">
+          {result.expected_effects_missed.map((e, i) => (
+            <div key={i} className="btt-missed-effect-row">
+              <span className="btt-missed-indicator">✗</span>
+              <span className="btt-missed-label">Expected but not seen: {e.label}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── TranscriptView ─────────────────────────────────────────────────────────
+
+interface TranscriptViewProps {
+  results: ScenarioResult[];
+  wasCancelled: boolean;
+}
+
+function TranscriptView({ results, wasCancelled }: TranscriptViewProps) {
+  const [openMap, setOpenMap] = useState<Map<string, boolean>>(new Map());
+
+  const handleLogToggle = (id: string) => {
+    setOpenMap(prev => {
+      const next = new Map(prev);
+      next.set(id, !(next.get(id) ?? false));
+      return next;
+    });
+  };
+
+  const rendered = results.filter(r => r.status !== 'skipped' || r.turns.length > 0);
+
+  return (
+    <div className="btt-transcript">
+      {wasCancelled && (
+        <div className="btt-cancelled-banner">
+          Run cancelled — results below are from completed scenarios only.
+        </div>
+      )}
+      {rendered.length === 0 && (
+        <div className="btt-placeholder">
+          <p>No completed scenarios to show yet.</p>
+        </div>
+      )}
+      {rendered.map(result => (
+        <ScenarioBlock
+          key={result.scenario_id}
+          result={result}
+          openMap={openMap}
+          onLogToggle={handleLogToggle}
+        />
+      ))}
+    </div>
+  );
+}
+
+// ── RunProgressView ────────────────────────────────────────────────────────
+
+interface RunProgressViewProps {
+  runId: string;
+  totalExpected: number;
+  onCompleted: (runId: string) => void;
+}
+
+function RunProgressView({ runId, totalExpected, onCompleted }: RunProgressViewProps) {
+  const [cancelState, setCancelState] = useState<'idle' | 'cancelling'>('idle');
+
+  const { data: runResult } = useQuery({
+    queryKey: ['test-run', runId],
+    queryFn: () => apiClient.getTestRun(runId),
+    refetchInterval: (query) => {
+      const status = query.state.data?.status;
+      return status === 'running' || status === 'pending' ? 2000 : false;
+    },
+    enabled: !!runId,
+  });
+
+  // Auto-transition to detail on completion / cancellation
+  useEffect(() => {
+    if (!runResult) return;
+    const terminal = ['complete', 'failed', 'cancelled'];
+    if (terminal.includes(runResult.status)) {
+      onCompleted(runId);
+    }
+  }, [runResult?.status, runId, onCompleted]);
+
+  const handleCancel = async () => {
+    setCancelState('cancelling');
+    try {
+      await apiClient.cancelTestRun(runId);
+    } catch {
+      // Best-effort; the status poll will pick up the cancel
+    }
+  };
+
+  const results = runResult?.scenario_results ?? [];
+  const completedCount = results.filter(r => r.status === 'complete' || r.status === 'failed').length;
+  const total = totalExpected > 0 ? totalExpected : results.length || 1;
+  const pct = Math.min(100, Math.round((completedCount / total) * 100));
+
+  return (
+    <div className="btt-progress-view">
+      <div className="btt-progress-header">
+        <span className="btt-progress-label">
+          {runResult?.run_label ?? runId}
+        </span>
+        <span className="btt-progress-fraction">{completedCount} / {total}</span>
+      </div>
+
+      {/* Progress bar */}
+      <div className="btt-progress-bar-track">
+        <div className="btt-progress-bar-fill" style={{ width: `${pct}%` }} />
+      </div>
+
+      {/* Scenario status list */}
+      <div className="btt-progress-scenario-list">
+        {results.map((r, idx) => {
+          const isFirst = r.status === 'skipped' && (idx === 0 || results[idx - 1]?.status !== 'skipped');
+          const statusClass = r.status === 'complete' ? 'btt-ps-complete'
+            : r.status === 'failed' ? 'btt-ps-failed'
+            : isFirst ? 'btt-ps-running'
+            : 'btt-ps-queued';
+          return (
+            <div key={r.scenario_id} className={`btt-progress-scenario ${statusClass}`}>
+              <span className="btt-ps-icon">
+                {r.status === 'complete' ? '✓'
+                  : r.status === 'failed' ? '✗'
+                  : isFirst ? <span className="btt-mini-spinner" /> : '–'}
+              </span>
+              <span className="btt-ps-name">{r.scenario_name}</span>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Cancel button */}
+      {cancelState !== 'cancelling' ? (
+        <button className="btt-btn btt-btn-secondary btt-cancel-btn" onClick={handleCancel}>
+          Stop after this scenario
+        </button>
+      ) : (
+        <button className="btt-btn btt-btn-secondary btt-cancel-btn" disabled>
+          Stopping…
+        </button>
+      )}
+    </div>
+  );
+}
+
 // ── RunHistoryPlaceholder ──────────────────────────────────────────────────
 
 function RunHistoryPlaceholder() {
@@ -318,20 +619,8 @@ function RunHistoryPlaceholder() {
       <div className="btt-placeholder">
         <FlaskConical className="btt-placeholder-icon" size={32} />
         <p>Run history will appear here once you complete a run.</p>
-        <p className="btt-placeholder-sub">Full history, transcript view, and comparison coming in the next milestone.</p>
+        <p className="btt-placeholder-sub">Full history and comparison coming in the next milestone.</p>
       </div>
-    </div>
-  );
-}
-
-// ── RunningPlaceholder ─────────────────────────────────────────────────────
-
-function RunningPlaceholder({ runId }: { runId: string }) {
-  return (
-    <div className="btt-placeholder btt-running-placeholder">
-      <div className="btt-spinner" />
-      <p>Run <code>{runId}</code> is in progress…</p>
-      <p className="btt-placeholder-sub">Live progress view coming in the next milestone.</p>
     </div>
   );
 }
@@ -342,7 +631,17 @@ export function BulkTestingTool() {
   const [view, setView] = useState<ViewState>('suite');
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [activeRunId, setActiveRunId] = useState<string | null>(null);
+  const [selectedRunId, setSelectedRunId] = useState<string | null>(null);
+  const [totalExpected, setTotalExpected] = useState(0);
   const [tagFilter, setTagFilter] = useState<string | null>(null);
+
+  // Keep the last fetched run result for the transcript after completion
+  const { data: detailRun } = useQuery({
+    queryKey: ['test-run', selectedRunId],
+    queryFn: () => apiClient.getTestRun(selectedRunId!),
+    enabled: !!selectedRunId && view === 'detail',
+    staleTime: 30_000,
+  });
 
   const { data: scenariosData, isLoading, error } = useQuery({
     queryKey: ['scenarios'],
@@ -355,38 +654,31 @@ export function BulkTestingTool() {
   const toggleScenario = (id: string) => {
     setSelectedIds(prev => {
       const next = new Set(prev);
-      if (next.has(id)) {
-        next.delete(id);
-      } else {
-        next.add(id);
-      }
+      if (next.has(id)) { next.delete(id); } else { next.add(id); }
       return next;
     });
   };
 
-  // select-all toggling is driven by ScenarioList; we expose a no-op
-  // because the child handles the actual toggle calls via onToggle
   const handleSelectAll = () => {};
 
-  const handleRunStarted = (runId: string, _totalCount: number) => {
+  const handleRunStarted = (runId: string, count: number) => {
     setActiveRunId(runId);
+    setTotalExpected(count);
     setView('running');
   };
 
+  const handleRunCompleted = (runId: string) => {
+    setSelectedRunId(runId);
+    setActiveRunId(null);
+    setView('detail');
+  };
+
   if (isLoading) {
-    return (
-      <div className="btt-root">
-        <div className="btt-loading">Loading scenarios…</div>
-      </div>
-    );
+    return <div className="btt-root"><div className="btt-loading">Loading scenarios…</div></div>;
   }
 
   if (error) {
-    return (
-      <div className="btt-root">
-        <div className="btt-error">Failed to load scenarios: {String(error)}</div>
-      </div>
-    );
+    return <div className="btt-root"><div className="btt-error">Failed to load scenarios: {String(error)}</div></div>;
   }
 
   return (
@@ -395,12 +687,27 @@ export function BulkTestingTool() {
         <h2 className="btt-title">Bulk Testing</h2>
         <p className="btt-subtitle">
           Run scripted scenarios against the live system and review conversation transcripts.
+          {import.meta.env.DEV && (
+            <button
+              className="btt-dev-preview-btn"
+              title="Dev mode: preview transcript view with latest run"
+              onClick={async () => {
+                try {
+                  const res = await apiClient.listTestRuns();
+                  // prefer a completed run for richer transcript preview
+                  const run = res.runs.find(r => r.status === 'complete') ?? res.runs[0];
+                  if (run) { setSelectedRunId(run.run_id); setView('detail'); }
+                } catch { /* ignore */ }
+              }}
+            >
+              [dev: preview transcript]
+            </button>
+          )}
         </p>
       </div>
 
       {view === 'suite' && (
         <div className="btt-suite-layout">
-          {/* Left panel */}
           <div className="btt-left-panel">
             <h3 className="btt-section-title">
               Scenarios
@@ -420,22 +727,39 @@ export function BulkTestingTool() {
               onRunStarted={handleRunStarted}
             />
           </div>
-
-          {/* Right panel */}
           <RunHistoryPlaceholder />
         </div>
       )}
 
       {view === 'running' && activeRunId && (
-        <RunningPlaceholder runId={activeRunId} />
+        <RunProgressView
+          runId={activeRunId}
+          totalExpected={totalExpected}
+          onCompleted={handleRunCompleted}
+        />
       )}
 
       {view === 'detail' && (
-        <div className="btt-placeholder">
-          <p>Transcript view coming in the next milestone.</p>
-          <button className="btt-btn btt-btn-secondary" onClick={() => setView('suite')}>
-            ← Back to Suite
-          </button>
+        <div className="btt-detail-view">
+          <div className="btt-detail-header">
+            <button className="btt-btn btt-btn-secondary" onClick={() => setView('suite')}>
+              ← Back to Suite
+            </button>
+            <span className="btt-detail-run-label">{detailRun?.run_label ?? selectedRunId}</span>
+            {detailRun && (
+              <span className={`btt-status-badge btt-scenario-status-${detailRun.status}`}>
+                {detailRun.status}
+              </span>
+            )}
+          </div>
+          {detailRun ? (
+            <TranscriptView
+              results={detailRun.scenario_results}
+              wasCancelled={detailRun.status === 'cancelled'}
+            />
+          ) : (
+            <div className="btt-placeholder"><div className="btt-spinner" /><p>Loading transcript…</p></div>
+          )}
         </div>
       )}
     </div>
