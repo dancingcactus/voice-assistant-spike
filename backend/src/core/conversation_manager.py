@@ -21,6 +21,7 @@ from core.story_engine import StoryEngine
 from core.memory_manager import MemoryManager
 
 from core.conversation_state import ConversationStateManager
+from core.plan_state import PlanStateManager
 from core.turn_classifier import TurnClassifier
 from core.conversation_router import ConversationRouter
 from core.character_executor import CharacterExecutor
@@ -43,6 +44,7 @@ class ConversationManager:
         tts_provider: Optional[TTSProvider] = None,
         memory_manager: Optional[MemoryManager] = None,
         state_manager: Optional[ConversationStateManager] = None,
+        plan_state_manager: Optional[PlanStateManager] = None,
         turn_classifier: Optional[TurnClassifier] = None,
         conversation_router: Optional[ConversationRouter] = None,
         character_executor: Optional[CharacterExecutor] = None,
@@ -61,6 +63,7 @@ class ConversationManager:
             tts_provider: TTS provider instance (optional, for voice output)
             memory_manager: Memory manager instance (creates one if not provided)
             state_manager: Coordination state manager (auto-created if None)
+            plan_state_manager: Plan state manager (auto-created if None)
             turn_classifier: Turn classifier (auto-created if None)
             conversation_router: Conversation router (auto-created if None)
             character_executor: Character executor (auto-created if None)
@@ -79,6 +82,7 @@ class ConversationManager:
         self.max_tool_calls = max_tool_calls
 
         self.state_manager = state_manager or ConversationStateManager()
+        self.plan_state_manager = plan_state_manager or PlanStateManager()
         self.turn_classifier = turn_classifier or TurnClassifier(llm=self.llm)
         self.conversation_router = conversation_router or ConversationRouter(llm=self.llm)
         self.character_executor = character_executor or CharacterExecutor(
@@ -215,6 +219,56 @@ class ConversationManager:
             },
         }
 
+    def _handle_plan_signal(
+        self,
+        context,  # ConversationContext
+        signal: Dict[str, Any],
+        history_length: int,
+        session_id: str,
+    ) -> None:
+        """
+        Apply a ``plan_signal`` emitted by a character's ``plan_action`` tool call.
+
+        Actions:
+          - ``start``:   Create a new plan.  ``history_length`` is recorded as
+                         the turn start index so characters receive full plan history.
+          - ``advance``: Move to the next plan step.
+          - ``complete``: Mark the plan as finished.
+
+        Args:
+            context: Conversation context to update.
+            signal: Parsed arguments from the ``plan_action`` tool call.
+            history_length: Current length of ``context.history`` (used as
+                ``plan_turn_start_index`` for a new plan).
+            session_id: Session ID for log context.
+        """
+        action = signal.get("action")
+        if action == "start":
+            title = signal.get("title") or "Plan"
+            steps = signal.get("steps") or []
+            self.plan_state_manager.start_plan(
+                context,
+                title=title,
+                steps=steps,
+                turn_start_index=history_length,
+            )
+            logger.info(
+                "Orchestrator: Plan started — title=%r, steps=%d (session=%s)",
+                title,
+                len(steps),
+                session_id,
+            )
+        elif action == "advance":
+            self.plan_state_manager.advance_step(context)
+            logger.info("Orchestrator: Plan advanced (session=%s)", session_id)
+        elif action == "complete":
+            self.plan_state_manager.complete_plan(context)
+            logger.info("Orchestrator: Plan completed (session=%s)", session_id)
+        else:
+            logger.warning(
+                "Orchestrator: Unknown plan_action action=%r (session=%s)", action, session_id
+            )
+
     async def _orchestrate_character_turn(
         self,
         session_id: str,
@@ -255,6 +309,20 @@ class ConversationManager:
                 )
                 self.state_manager.clear(context)
                 coord_state = self.state_manager.get_state(context)
+
+            # ── Step 2b: Silently expire stale plan state; touch if active ───
+            plan_state = self.plan_state_manager.get_state(context)
+            if plan_state is not None and plan_state.is_active:
+                if self.plan_state_manager.is_expired(plan_state):
+                    logger.info(
+                        "Orchestrator: Plan '%s' expired — clearing (session=%s)",
+                        plan_state.title,
+                        session_id,
+                    )
+                    self.plan_state_manager.clear(context)
+                else:
+                    # Refresh TTL on every interaction while plan is active
+                    self.plan_state_manager.touch(context)
 
             # ── Step 3: Classify turn when something is pending ──────────────
             turn_type = TurnType.NEW_REQUEST
@@ -337,6 +405,15 @@ class ConversationManager:
                 session_id=session_id,
                 user_id=user_id,
             )
+
+            # ── Step 7b: Handle plan_signal from primary character ────────────
+            if primary_response.plan_signal:
+                self._handle_plan_signal(
+                    context=context,
+                    signal=primary_response.plan_signal,
+                    history_length=len(context.history),
+                    session_id=session_id,
+                )
 
             # ── Step 8: Determine if secondary execution is needed ────────────
             handoff_signal = primary_response.handoff_signal  # from request_handoff tool
@@ -485,6 +562,15 @@ class ConversationManager:
             )
             # Return primary-only response rather than failing completely
             secondary_response = None
+
+        # Handle plan_signal from secondary character if present
+        if secondary_response and secondary_response.plan_signal:
+            self._handle_plan_signal(
+                context=context,
+                signal=secondary_response.plan_signal,
+                history_length=len(context.history),
+                session_id=session_id,
+            )
 
         # Clear coordination state — execution is done
         self.state_manager.clear(context)

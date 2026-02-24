@@ -24,6 +24,12 @@ logger = logging.getLogger(__name__)
 # Name of the special handoff tool that characters call to signal a handoff.
 _HANDOFF_TOOL_NAME = "request_handoff"
 
+# Name of the planning tool that characters call to manage multi-step plans.
+_PLAN_TOOL_NAME = "plan_action"
+
+# Metadata key used by PlanStateManager to store plan state.
+_PLAN_STATE_KEY = "plan_state"
+
 
 @dataclass
 class CharacterResponse:
@@ -39,6 +45,8 @@ class CharacterResponse:
             execution (useful for observability and circuit-breaker checks).
         handoff_signal: If the character called ``request_handoff``, the parsed
             arguments dict is stored here.  ``None`` otherwise.
+        plan_signal: If the character called ``plan_action``, the parsed
+            arguments dict is stored here.  ``None`` otherwise.
     """
 
     character: str
@@ -46,6 +54,7 @@ class CharacterResponse:
     voice_mode: Optional[str]
     tool_calls_made: int = 0
     handoff_signal: Optional[Dict[str, Any]] = field(default=None)
+    plan_signal: Optional[Dict[str, Any]] = field(default=None)
 
     def to_dict(self) -> dict:
         """Serialise to a JSON-compatible dictionary."""
@@ -55,6 +64,7 @@ class CharacterResponse:
             "voice_mode": self.voice_mode,
             "tool_calls_made": self.tool_calls_made,
             "handoff_signal": self.handoff_signal,
+            "plan_signal": self.plan_signal,
         }
 
 
@@ -159,10 +169,21 @@ class CharacterExecutor:
 
         # --- 3. Prepare initial messages ---
         _MAX_MSG_LEN = 200
+
+        # Plan-aware history: if a plan is active, include all turns since
+        # the plan started so characters have full context of what has
+        # already happened within this plan.
+        _plan_raw = context.metadata.get(_PLAN_STATE_KEY)
+        if _plan_raw and _plan_raw.get("status") == "active":
+            _plan_start = _plan_raw.get("plan_turn_start_index", 0)
+            history_slice = context.history[_plan_start:]
+        else:
+            history_slice = context.history[-history_window:]
+
         messages: List[Dict[str, Any]] = [
             {"role": "system", "content": system_prompt}
         ]
-        for msg in context.history[-history_window:]:
+        for msg in history_slice:
             # Skip history entries that duplicate the current task_description.
             # The user message is added to history before execute() is called,
             # so without this check it would appear twice in the LLM messages list.
@@ -192,6 +213,8 @@ class CharacterExecutor:
         tool_call_count = 0
         handoff_signal: Optional[Dict[str, Any]] = None
         handoff_accepted_this_turn = False
+        plan_signal: Optional[Dict[str, Any]] = None
+        plan_accepted_this_turn = False
 
         while llm_response.get("tool_calls") and tool_call_count < self.max_tool_calls:
             tool_call_count += 1
@@ -231,6 +254,30 @@ class CharacterExecutor:
                     # Do NOT add a tool result for this call — it is a signal only.
                     continue
 
+                # --- Intercept plan_action ---
+                if tool_name == _PLAN_TOOL_NAME:
+                    if not plan_accepted_this_turn:
+                        try:
+                            signal = json.loads(tool_call["function"]["arguments"])
+                        except (json.JSONDecodeError, TypeError):
+                            signal = {}
+                        plan_signal = signal
+                        plan_accepted_this_turn = True
+                        logger.info(
+                            "CharacterExecutor: %s called %s — accepted=True, action=%s",
+                            character,
+                            _PLAN_TOOL_NAME,
+                            signal.get("action"),
+                        )
+                    else:
+                        logger.warning(
+                            "CharacterExecutor: %s called %s again in same turn — ignored",
+                            character,
+                            _PLAN_TOOL_NAME,
+                        )
+                    # Do NOT add a tool result for this call — it is a signal only.
+                    continue
+
                 # --- Execute regular tool ---
                 try:
                     arguments = json.loads(tool_call["function"]["arguments"])
@@ -260,12 +307,13 @@ class CharacterExecutor:
 
             # Append assistant turn + tool results, then get next LLM response.
             # Build the assistant message carefully: only include real tool calls
-            # (exclude the intercepted request_handoff so the LLM doesn't see a
-            # dangling tool call without a corresponding result).
+            # (exclude the intercepted request_handoff and plan_action so the LLM
+            # doesn't see dangling tool calls without corresponding results).
+            _intercepted_names = {_HANDOFF_TOOL_NAME, _PLAN_TOOL_NAME}
             real_tool_calls = [
                 tc
                 for tc in llm_response["tool_calls"]
-                if tc["function"]["name"] != _HANDOFF_TOOL_NAME
+                if tc["function"]["name"] not in _intercepted_names
             ]
 
             if real_tool_calls or llm_response.get("content"):
@@ -299,11 +347,12 @@ class CharacterExecutor:
             text = "Done."
 
         logger.info(
-            "CharacterExecutor: %s completed (%d chars, %d tool calls, handoff=%s)",
+            "CharacterExecutor: %s completed (%d chars, %d tool calls, handoff=%s, plan=%s)",
             character,
             len(text),
             tool_call_count,
             handoff_signal is not None,
+            plan_signal.get("action") if plan_signal else None,
             extra={"character": character, "latency_ms": (time.monotonic() - _exec_start) * 1000},
         )
 
@@ -313,6 +362,7 @@ class CharacterExecutor:
             voice_mode=voice_mode,
             tool_calls_made=tool_call_count,
             handoff_signal=handoff_signal,
+            plan_signal=plan_signal,
         )
 
     # ------------------------------------------------------------------
