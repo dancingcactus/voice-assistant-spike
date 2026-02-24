@@ -29,7 +29,7 @@ logger = logging.getLogger(__name__)
 
 # LLM parameters
 _TEMPERATURE = 0.1
-_MAX_TOKENS = 400
+_MAX_TOKENS = 1200
 
 # Maximum character length for any single message content sent to the LLM.
 # Prevents very long assistant responses (recipes, shopping lists, etc.) from

@@ -21,7 +21,11 @@ logger = logging.getLogger(__name__)
 
 # LLM parameters
 _TEMPERATURE = 0.0
-_MAX_TOKENS = 80
+# 300 tokens leaves room for models that consume reasoning/thinking tokens
+# internally before producing visible output (e.g. gpt-5-mini).  The JSON
+# response itself is only ~50–60 tokens; the extra headroom prevents
+# finish_reason=length with an empty content string.
+_MAX_TOKENS = 1000
 
 # Maximum character length for any single message content sent to the LLM.
 _MAX_MSG_LEN = 200
@@ -149,6 +153,13 @@ class TurnClassifier:
         )
 
         raw = response.get("content", "") or ""
+        finish_reason = response.get("finish_reason", "")
+        if not raw and finish_reason == "length":
+            raise ValueError(
+                "LLM returned empty content with finish_reason=length — "
+                f"max_tokens={_MAX_TOKENS} is too small for this model "
+                "(likely consumed by internal reasoning tokens)"
+            )
         logger.debug("TurnClassifier: LLM raw response: %r", raw[:500])
         classification = self._parse_llm_response(raw)
         logger.info(
