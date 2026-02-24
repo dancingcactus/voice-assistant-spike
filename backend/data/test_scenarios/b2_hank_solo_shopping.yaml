@@ -1,0 +1,18 @@
+id: "hank_solo_shopping"
+name: "Hank — Shopping list"
+description: "User asks Hank to build a shopping list from scratch. Tests efficiency and sailor voice."
+required_chapter: 2
+characters_expected: ["hank"]
+setup_steps:
+  - type: "set_chapter"
+    chapter: 2
+user_turns:
+  - "Hank, I need to go to the store. Can you start a shopping list for me?"
+  - "Add milk, bread, eggs, and butter."
+  - "Also add coffee, orange juice, and some cheddar cheese."
+  - "That should do it for now. How many items is that?"
+watch_for_effects:
+  - type: "tool_call"
+    tool: "manage_shopping_list"
+    label: "Items added to shopping list"
+tags: ["single-character", "hank", "shopping", "task"]

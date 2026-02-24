@@ -1,0 +1,13 @@
+id: "delilah_solo_wrong_food"
+name: "Delilah — Food done wrong"
+description: "User describes a cooking method Delilah disagrees with. Tests PROTECTIVE mode."
+required_chapter: 1
+characters_expected: ["delilah"]
+setup_steps: []
+user_turns:
+  - "I always boil my chicken before frying it to make sure it is cooked through."
+  - "I also like to add ketchup to my macaroni and cheese."
+  - "And I rinse my pasta under cold water right after cooking it."
+  - "I thought that is how everyone does it?"
+watch_for_effects: []
+tags: ["single-character", "delilah", "cooking", "opinions"]

@@ -1,0 +1,21 @@
+id: "coord_dinner_to_list"
+name: "Coordination — Dinner plan to shopping list"
+description: "Delilah builds a dinner plan; Hank builds the shopping list. Tests the delilah to hank handoff."
+required_chapter: 2
+characters_expected: ["delilah", "hank"]
+setup_steps:
+  - type: "set_chapter"
+    chapter: 2
+user_turns:
+  - "Can you help me plan dinner for the week and put together a shopping list?"
+  - "Let us do Monday through Friday, something easy on weeknights."
+  - "That sounds great. Now can someone make the shopping list for all of that?"
+  - "Perfect. How many items ended up on the list?"
+watch_for_effects:
+  - type: "character_handoff"
+    to: "hank"
+    label: "Handoff to Hank"
+  - type: "tool_call"
+    tool: "manage_shopping_list"
+    label: "Items added to shopping list"
+tags: ["multi-character", "delilah", "hank", "cooking", "shopping", "coordination", "handoff"]

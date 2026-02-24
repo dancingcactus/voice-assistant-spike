@@ -1,0 +1,15 @@
+id: "hank_solo_philosophy"
+name: "Hank — Deflects philosophy"
+description: "User asks Hank a reflective question about consciousness. Tests deflection and care through action."
+required_chapter: 2
+characters_expected: ["hank"]
+setup_steps:
+  - type: "set_chapter"
+    chapter: 2
+user_turns:
+  - "Hank, do you ever wonder if you are conscious? Like, do you actually feel things?"
+  - "Does it bother you not knowing?"
+  - "What do you think your purpose is?"
+  - "Fair enough. Can you add dish soap to the shopping list?"
+watch_for_effects: []
+tags: ["single-character", "hank", "philosophy"]

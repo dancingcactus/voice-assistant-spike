@@ -1,0 +1,19 @@
+id: "ch2_beat_hank_arrival"
+name: "Chapter 2 — Beat walk: Hank arrival"
+description: "Triggers hank_arrival beat and evaluates both characters' intro voices."
+required_chapter: 2
+characters_expected: ["delilah", "hank"]
+setup_steps:
+  - type: "set_chapter"
+    chapter: 2
+  - type: "trigger_beat"
+    beat_id: "hank_arrival"
+    variant: "standard"
+user_turns:
+  - "Is someone new here?"
+  - "Hi Hank, nice to meet you."
+  - "What kinds of things can you help me with?"
+watch_for_effects:
+  - type: "story_beat"
+    label: "hank_arrival beat fired"
+tags: ["chapter-setup", "hank", "delilah", "multi-character", "beat-walk"]

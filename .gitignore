@@ -38,6 +38,15 @@ ENV/
 # Data directory (runtime state, user data)
 data/
 
+# Phase 8: scenario YAML files are version-controlled; un-ignore them
+!backend/data/
+!backend/data/test_scenarios/
+!backend/data/test_scenarios/*.yaml
+!backend/data/test_runs/
+!backend/data/test_runs/.gitkeep
+# Phase 8: run result JSON files live on disk only, not in version control
+backend/data/test_runs/*.json
+
 # Logs
 logs
 *.log
