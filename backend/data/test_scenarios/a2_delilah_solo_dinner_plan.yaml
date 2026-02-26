@@ -1,0 +1,13 @@
+id: "delilah_solo_dinner_plan"
+name: "Delilah — Dinner planning"
+description: "User asks for a weekly dinner plan. Tests recipe voice and warmth."
+required_chapter: 1
+characters_expected: ["delilah"]
+setup_steps: []
+user_turns:
+  - "Can you help me plan dinners for this week?"
+  - "I want something fancy for the weekend."
+  - "We have three kids so it needs to be something they will eat too."
+  - "That sounds perfect. Can you put together a full list of nights?"
+watch_for_effects: []
+tags: ["single-character", "delilah", "cooking", "planning"]

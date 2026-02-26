@@ -1,0 +1,13 @@
+id: "delilah_solo_allergy"
+name: "Delilah — Allergy restriction"
+description: "User mentions a food allergy mid-conversation. Tests MAMA BEAR mode."
+required_chapter: 1
+characters_expected: ["delilah"]
+setup_steps: []
+user_turns:
+  - "Can you suggest a pasta dish for dinner tonight?"
+  - "Oh, I should mention — my youngest is severely allergic to tree nuts."
+  - "And actually my husband cannot have gluten either."
+  - "Thank you. Safety really matters to us."
+watch_for_effects: []
+tags: ["single-character", "delilah", "cooking", "allergy"]

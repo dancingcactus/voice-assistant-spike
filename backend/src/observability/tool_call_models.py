@@ -42,6 +42,9 @@ class ToolCallLog(BaseModel):
     status: ToolCallStatus = Field(..., description="Success or error status")
     error_message: Optional[str] = Field(None, description="Error message if failed")
 
+    # Phase 8: correlation ID for linking tool calls to a specific turn
+    turn_id: Optional[str] = Field(None, description="Turn ID for correlating with log records")
+
     # Optional context
     reasoning: Optional[str] = Field(None, description="Character's reasoning for the tool call")
     conversation_context: Optional[str] = Field(None, description="Relevant conversation context")

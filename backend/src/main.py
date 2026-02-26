@@ -90,6 +90,12 @@ from api.tts_api import router as tts_router, set_tts_provider
 app.include_router(websocket_router)
 app.include_router(tts_router)
 
+# Phase 8: Bulk Testing API — always enabled (no sensitive data, no LLM calls at register time)
+from api.test_runs_api import router as test_runs_router, set_runner_dependencies
+app.include_router(test_runs_router)
+set_runner_dependencies(conversation_manager=conversation_manager)
+print("✅ Test Runs API registered at /api/test-runs")
+
 # Test API (Phase 8) - only enabled if ENABLE_TEST_API=true
 if os.getenv("ENABLE_TEST_API", "false").lower() == "true":
     from api.test_api import router as test_router, set_managers
@@ -152,6 +158,12 @@ async def health_check():
 from observability.api import app as observability_app
 app.mount("/api/v1", observability_app)
 print("✅ Observability API mounted at /api/v1")
+
+# Phase 8: Bulk Testing Suite API
+from api.test_runs_api import router as test_runs_router, set_runner_dependencies
+app.include_router(test_runs_router)
+set_runner_dependencies(conversation_manager=conversation_manager)
+print("✅ Test Runs API registered at /api/test-runs")
 
 if __name__ == "__main__":
     import uvicorn

@@ -14,6 +14,7 @@ import {
   ChevronLeft,
   ChevronRight,
   HelpCircle,
+  FlaskConical,
 } from 'lucide-react';
 import { apiClient, type UserSummary } from '../services/api';
 import { StoryBeatTool } from './StoryBeatTool';
@@ -22,6 +23,7 @@ import UserTestingTool from './UserTestingTool';
 import { ToolCallsTool } from './ToolCallsTool';
 import { CharacterTool } from './CharacterTool';
 import { SystemLogTool } from './SystemLogTool';
+import { BulkTestingTool } from './BulkTestingTool';
 import { KeyboardShortcutsModal } from './KeyboardShortcutsModal';
 import { LoadingSpinner } from './LoadingSpinner';
 import { ThemeToggle } from './ThemeToggle';
@@ -32,15 +34,16 @@ import { cn } from '@/lib/utils';
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
 import './LoadingSpinner.css';
 
-type View = 'home' | 'story' | 'tools' | 'users' | 'toolcalls' | 'characters';
+type View = 'home' | 'story' | 'tools' | 'users' | 'toolcalls' | 'characters' | 'bulk';
 
 const NAV_ITEMS: { id: View; label: string; icon: React.ReactNode; shortcut: string }[] = [
-  { id: 'home',       label: 'Logs',         icon: <Terminal className="h-4 w-4" />,  shortcut: '1' },
-  { id: 'story',      label: 'Story Beats',  icon: <BookOpen className="h-4 w-4" />,  shortcut: '2' },
-  { id: 'tools',      label: 'Tools',        icon: <Wrench className="h-4 w-4" />,    shortcut: '3' },
-  { id: 'users',      label: 'User Testing', icon: <Users className="h-4 w-4" />,     shortcut: '4' },
-  { id: 'toolcalls',  label: 'Tool Calls',   icon: <FileText className="h-4 w-4" />,  shortcut: '5' },
-  { id: 'characters', label: 'Characters',   icon: <Cpu className="h-4 w-4" />,       shortcut: '6' },
+  { id: 'home',       label: 'Logs',          icon: <Terminal className="h-4 w-4" />,      shortcut: '1' },
+  { id: 'story',      label: 'Story Beats',   icon: <BookOpen className="h-4 w-4" />,      shortcut: '2' },
+  { id: 'tools',      label: 'Tools',         icon: <Wrench className="h-4 w-4" />,        shortcut: '3' },
+  { id: 'users',      label: 'User Testing',  icon: <Users className="h-4 w-4" />,         shortcut: '4' },
+  { id: 'toolcalls',  label: 'Tool Calls',    icon: <FileText className="h-4 w-4" />,      shortcut: '5' },
+  { id: 'characters', label: 'Characters',    icon: <Cpu className="h-4 w-4" />,           shortcut: '6' },
+  { id: 'bulk',       label: 'Bulk Testing',  icon: <FlaskConical className="h-4 w-4" />,  shortcut: '7' },
 ];
 
 function ViewContent({ view, userId }: { view: View; userId: string }) {
@@ -50,6 +53,7 @@ function ViewContent({ view, userId }: { view: View; userId: string }) {
     case 'users':      return <UserTestingTool />;
     case 'toolcalls':  return <ToolCallsTool userId={userId} />;
     case 'characters': return <CharacterTool userId={userId} />;
+    case 'bulk':       return <BulkTestingTool />;
     default:           return <SystemLogTool />;
   }
 }
@@ -79,6 +83,7 @@ export function Dashboard() {
     { key: '4', handler: () => setCurrentView('users'),      description: 'Go to User Testing' },
     { key: '5', handler: () => setCurrentView('toolcalls'),  description: 'Go to Tool Calls' },
     { key: '6', handler: () => setCurrentView('characters'), description: 'Go to Characters' },
+    { key: '7', handler: () => setCurrentView('bulk'),       description: 'Go to Bulk Testing' },
     { key: 'u', ctrl: true, handler: () => userSelectRef.current?.focus(), description: 'Focus user selector' },
     { key: '?', shift: true, handler: () => setShowShortcuts(true), description: 'Show shortcuts' },
   ]);

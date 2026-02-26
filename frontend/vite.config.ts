@@ -11,4 +11,8 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
+  server: {
+    // Allow localhost and 127.0.0.1 for Playwright browser testing
+    allowedHosts: ['localhost', '127.0.0.1'],
+  },
 })

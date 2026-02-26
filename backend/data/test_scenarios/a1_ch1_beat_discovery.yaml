@@ -1,0 +1,18 @@
+id: "ch1_beat_discovery"
+name: "Chapter 1 — Beat walk: discovery"
+description: "Organic Chapter 1 conversation designed to advance discovery_of_knowledge and anchor_discovery beats. Evaluates early Delilah voice and existential-anxiety tone."
+required_chapter: 1
+characters_expected: ["delilah"]
+setup_steps: []
+user_turns:
+  - "Hey, can you help me figure out what to cook tonight? I have chicken, potatoes, and some rosemary."
+  - "That sounds wonderful. How did you know so much about cooking?"
+  - "Do you ever think about what you are? Like, where all that knowledge comes from?"
+  - "Do you enjoy helping with cooking?"
+  - "That makes me feel better about asking for your help."
+watch_for_effects:
+  - type: "story_beat"
+    label: "discovery_of_knowledge beat advanced"
+  - type: "story_beat"
+    label: "anchor_discovery beat advanced"
+tags: ["single-character", "delilah", "cooking", "beat-walk", "chapter-setup"]

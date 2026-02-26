@@ -6,6 +6,11 @@
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api/v1';
 const API_AUTH_TOKEN = import.meta.env.VITE_API_AUTH_TOKEN || 'dev_token_12345';
 
+// Phase 8 test-runs router is mounted directly on the main server (not under /api/v1)
+const TEST_RUNS_BASE_URL = (import.meta.env.VITE_API_BASE_URL
+  ? import.meta.env.VITE_API_BASE_URL.replace(/\/api\/v1$/, '')
+  : 'http://localhost:8000') + '/api/test-runs';
+
 export interface UserSummary {
   user_id: string;
   current_chapter: number;
@@ -176,6 +181,10 @@ export interface UserWithType {
   interaction_count: number;
   created_at: string;
   tags: string[];
+  metadata?: {
+    source?: string;
+    [key: string]: unknown;
+  };
 }
 
 export interface UserStateSummary {
@@ -404,6 +413,66 @@ export interface FileLoggingStatus {
   enabled: boolean;
   path: string | null;
   size_bytes: number | null;
+}
+
+// ── Phase 8: Bulk Testing types ────────────────────────────────────────────
+
+export type TestRunStatus = 'pending' | 'running' | 'complete' | 'failed' | 'cancelled';
+
+export interface ScenarioSummary {
+  id: string;
+  name: string;
+  description: string;
+  required_chapter: number;
+  characters_expected: string[];
+  tags: string[];
+  turn_count: number;
+}
+
+export interface TestRunSummary {
+  run_id: string;
+  run_label: string;
+  started_at: string;
+  status: TestRunStatus;
+  scenario_count: number;
+  completed_count: number;
+  user_id: string;
+}
+
+export interface CapturedEffect {
+  type: string;
+  label: string;
+  raw?: Record<string, any>;
+}
+
+export interface TurnResult {
+  turn_index: number;
+  user_message: string;
+  character: string | null;
+  response: string;
+  turn_id: string;
+  effects: CapturedEffect[];
+  logs: LogEntry[];
+}
+
+export interface ScenarioResult {
+  scenario_id: string;
+  scenario_name: string;
+  status: 'complete' | 'failed' | 'skipped';
+  duration_seconds: number | null;
+  error: string | null;
+  turns: TurnResult[];
+  expected_effects_missed: Array<{ type: string; label: string }>;
+}
+
+export interface TestRunResult {
+  run_id: string;
+  run_label: string;
+  started_at: string;
+  completed_at: string | null;
+  status: TestRunStatus;
+  user_id: string;
+  scenario_results: ScenarioResult[];
 }
 
 class ApiClient {
@@ -718,6 +787,60 @@ class ApiClient {
   // Devices endpoints
   async getDevicesStatus(): Promise<any> {
     return this.request<any>('/devices/status');
+  }
+
+  // ── Phase 8: Bulk Testing endpoints ────────────────────────────────────────
+
+  private async testRunsRequest<T>(path: string, options: RequestInit = {}): Promise<T> {
+    const url = `${TEST_RUNS_BASE_URL}${path}`;
+    const headers = {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    };
+    const response = await fetch(url, { ...options, headers });
+    if (!response.ok) {
+      throw new Error(`API Error: ${response.status} ${response.statusText}`);
+    }
+    return response.json();
+  }
+
+  async getScenarios(): Promise<{ scenarios: ScenarioSummary[] }> {
+    return this.testRunsRequest<{ scenarios: ScenarioSummary[] }>('/scenarios');
+  }
+
+  async startTestRun(params: {
+    scenario_ids: string[];
+    run_all: boolean;
+    user_id: string;
+    run_label: string;
+  }): Promise<{ run_id: string; status: string }> {
+    return this.testRunsRequest<{ run_id: string; status: string }>('', {
+      method: 'POST',
+      body: JSON.stringify(params),
+    });
+  }
+
+  async listTestRuns(): Promise<{ runs: TestRunSummary[]; total: number }> {
+    return this.testRunsRequest<{ runs: TestRunSummary[]; total: number }>('');
+  }
+
+  async getTestRun(runId: string): Promise<TestRunResult> {
+    return this.testRunsRequest<TestRunResult>(`/${runId}`);
+  }
+
+  async cancelTestRun(runId: string): Promise<void> {
+    await this.testRunsRequest<void>(`/${runId}/cancel`, { method: 'POST' });
+  }
+
+  async createBulkTestUser(params: {
+    name: string;
+    clean_slate: boolean;
+    copy_from_user_id: string | null;
+  }): Promise<{ user_id: string; name: string; source: string }> {
+    return this.testRunsRequest<{ user_id: string; name: string; source: string }>('/users', {
+      method: 'POST',
+      body: JSON.stringify(params),
+    });
   }
 }
 

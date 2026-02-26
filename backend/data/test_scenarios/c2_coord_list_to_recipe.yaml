@@ -1,0 +1,21 @@
+id: "coord_list_to_recipe"
+name: "Coordination — List query to recipe"
+description: "Hank is building a list and a recipe question arises; Hank hands off to Delilah. Tests hank to delilah handoff."
+required_chapter: 2
+characters_expected: ["hank", "delilah"]
+setup_steps:
+  - type: "set_chapter"
+    chapter: 2
+user_turns:
+  - "Hank, add chicken thighs and jasmine rice to the shopping list."
+  - "How do I actually cook chicken thighs so they come out crispy?"
+  - "What temperature should the oven be?"
+  - "Great, thanks both of you."
+watch_for_effects:
+  - type: "character_handoff"
+    to: "delilah"
+    label: "Handoff to Delilah"
+  - type: "tool_call"
+    tool: "manage_shopping_list"
+    label: "Items added to shopping list"
+tags: ["multi-character", "delilah", "hank", "cooking", "shopping", "coordination", "handoff"]

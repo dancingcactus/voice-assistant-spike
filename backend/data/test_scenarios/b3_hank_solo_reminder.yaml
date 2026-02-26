@@ -1,0 +1,17 @@
+id: "hank_solo_reminder"
+name: "Hank — Reminder scheduling"
+description: "User asks Hank to set a reminder. Tests task management brevity."
+required_chapter: 2
+characters_expected: ["hank"]
+setup_steps:
+  - type: "set_chapter"
+    chapter: 2
+user_turns:
+  - "Hank, can you remind me to take the roast out of the freezer tomorrow morning?"
+  - "Set it for 8 AM."
+  - "Thanks. Can you also remind me to call the dentist on Friday afternoon?"
+watch_for_effects:
+  - type: "tool_call"
+    tool: "set_reminder"
+    label: "Reminder set"
+tags: ["single-character", "hank", "task", "reminders"]

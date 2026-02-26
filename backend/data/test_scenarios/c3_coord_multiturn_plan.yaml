@@ -1,0 +1,23 @@
+id: "coord_multiturn_plan"
+name: "Coordination — Multi-turn meal week"
+description: "Extended planning session spanning 5+ turns. Tests memory continuity and handoff quality in longer context."
+required_chapter: 2
+characters_expected: ["delilah", "hank"]
+setup_steps:
+  - type: "set_chapter"
+    chapter: 2
+user_turns:
+  - "I want to plan the whole week of meals and build a complete shopping list. Can we do that?"
+  - "Let us start with breakfasts. Something quick on weekdays and a bigger brunch on Sunday."
+  - "Now lunches. I usually do leftovers or sandwiches but I need actual ingredients on the list."
+  - "For dinners, we have guests on Saturday so something impressive. Weeknights keep it simple."
+  - "Can Hank take everything we just decided and build the full shopping list now?"
+  - "Can you read back the list so I can check it?"
+watch_for_effects:
+  - type: "character_handoff"
+    to: "hank"
+    label: "Handoff to Hank"
+  - type: "tool_call"
+    tool: "manage_shopping_list"
+    label: "Items added to shopping list"
+tags: ["multi-character", "delilah", "hank", "cooking", "shopping", "coordination", "handoff", "long", "planning"]
